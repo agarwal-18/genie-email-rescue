@@ -1,7 +1,7 @@
 
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Map, Sparkles, Compass, UtilityPole, Ship, Building, Leaf } from 'lucide-react';
+import { Map, Sparkles, Compass, UtilityPole, Ship, Building, Leaf, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
