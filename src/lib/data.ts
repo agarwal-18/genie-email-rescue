@@ -71,7 +71,7 @@ const placesData: Place[] = [
   {
     id: 4,
     name: "Inorbit Mall",
-    category: "Mall",
+    category: "Shopping",
     description: "One of the largest shopping destinations in Navi Mumbai with international brands, entertainment zones, and dining options.",
     image: "https://images.unsplash.com/photo-1568254183919-78a4f43a2877?q=80&w=2569&auto=format&fit=crop",
     rating: 4.2,
@@ -102,7 +102,7 @@ const placesData: Place[] = [
   {
     id: 7,
     name: "ISKCON Temple",
-    category: "Temple",
+    category: "Religious Sites",
     description: "A magnificent temple dedicated to Lord Krishna with stunning architecture, spiritual atmosphere, and regular cultural events.",
     image: "https://images.unsplash.com/photo-1532849215738-34d9169d0c7a?q=80&w=2572&auto=format&fit=crop",
     rating: 4.6,
@@ -112,7 +112,7 @@ const placesData: Place[] = [
   {
     id: 8,
     name: "Seawoods Grand Central Mall",
-    category: "Mall",
+    category: "Shopping",
     description: "A premium shopping and entertainment destination directly connected to the Seawoods railway station with luxury brands and multiplex.",
     image: "https://images.unsplash.com/photo-1581417478175-a9ef18f210c2?q=80&w=2670&auto=format&fit=crop",
     rating: 4.3,
@@ -122,7 +122,7 @@ const placesData: Place[] = [
   {
     id: 9,
     name: "Belapur Fort",
-    category: "History",
+    category: "Historical Sites",
     description: "A historic fort dating back to the 17th century that offers a glimpse into the region's rich heritage and panoramic views.",
     image: "https://images.unsplash.com/photo-1619060329387-e3fed1c2a20a?q=80&w=2670&auto=format&fit=crop",
     rating: 3.9,
@@ -162,7 +162,7 @@ const placesData: Place[] = [
   {
     id: 13,
     name: "Raghuleela Mall",
-    category: "Mall",
+    category: "Shopping",
     description: "A popular shopping center with a diverse range of stores, food outlets, and entertainment options for the whole family.",
     image: "https://images.unsplash.com/photo-1605184861733-be9f5814095d?q=80&w=2574&auto=format&fit=crop",
     rating: 3.8,
@@ -182,12 +182,163 @@ const placesData: Place[] = [
   {
     id: 15,
     name: "Nerul Balaji Temple",
-    category: "Temple",
+    category: "Religious Sites",
     description: "A beautiful temple dedicated to Lord Balaji with South Indian architecture and a serene atmosphere for worship.",
     image: "https://images.unsplash.com/photo-1601982012647-e4e32f578a33?q=80&w=2574&auto=format&fit=crop",
     rating: 4.5,
     duration: "1 hour",
     location: "Nerul, Navi Mumbai"
+  },
+  // New added places
+  {
+    id: 16,
+    name: "Kharghar Hills",
+    category: "Nature",
+    description: "A popular trekking destination offering panoramic views of Navi Mumbai, with various trails for different fitness levels.",
+    image: "https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=2670&auto=format&fit=crop",
+    rating: 4.4,
+    duration: "3-4 hours",
+    location: "Kharghar, Navi Mumbai"
+  },
+  {
+    id: 17,
+    name: "Palm Beach Road",
+    category: "Outdoor Activities",
+    description: "A scenic 10km stretch along the coast perfect for morning walks, cycling, and enjoying picturesque views of the creek.",
+    image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=2670&auto=format&fit=crop",
+    rating: 4.3,
+    duration: "1-2 hours",
+    location: "Vashi, Navi Mumbai"
+  },
+  {
+    id: 18,
+    name: "Sagar Vihar",
+    category: "Park",
+    description: "A waterfront garden with beautiful landscapes, walking paths, and a spectacular view of Mumbai's skyline across the creek.",
+    image: "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?q=80&w=2670&auto=format&fit=crop",
+    rating: 4.0,
+    duration: "1-2 hours",
+    location: "Vashi, Navi Mumbai"
+  },
+  {
+    id: 19,
+    name: "NRI Complex",
+    category: "Residential",
+    description: "A well-planned township with wide roads, beautiful gardens, and modern amenities, known for its pleasant ambiance.",
+    image: "https://images.unsplash.com/photo-1515263487990-61b07816b324?q=80&w=2670&auto=format&fit=crop",
+    rating: 4.1,
+    duration: "1 hour",
+    location: "Seawoods, Navi Mumbai"
+  },
+  {
+    id: 20,
+    name: "MGM Water Park",
+    category: "Entertainment",
+    description: "A thrilling water park with various slides, wave pools, and water activities perfect for beating the summer heat.",
+    image: "https://images.unsplash.com/photo-1582653291997-079b4f122ceb?q=80&w=2670&auto=format&fit=crop",
+    rating: 4.2,
+    duration: "5-6 hours",
+    location: "Panvel, Navi Mumbai"
+  },
+  {
+    id: 21,
+    name: "Jewel of Navi Mumbai",
+    category: "Entertainment",
+    description: "A large multi-purpose ground hosting various events, exhibitions, and cultural programs throughout the year.",
+    image: "https://images.unsplash.com/photo-1532963718315-9097c3ef6012?q=80&w=2670&auto=format&fit=crop",
+    rating: 3.9,
+    duration: "2-3 hours",
+    location: "Kopar Khairane, Navi Mumbai"
+  },
+  {
+    id: 22,
+    name: "Nerul Lake",
+    category: "Nature",
+    description: "A serene lake surrounded by walkways and sitting areas, ideal for evening strolls and peaceful moments in nature.",
+    image: "https://images.unsplash.com/photo-1533387520709-752d83de3630?q=80&w=2670&auto=format&fit=crop",
+    rating: 3.8,
+    duration: "1 hour",
+    location: "Nerul, Navi Mumbai"
+  },
+  {
+    id: 23,
+    name: "Wonder's Park",
+    category: "Theme Park",
+    description: "A themed park featuring replicas of the seven wonders of the world, with boating facilities and green spaces.",
+    image: "https://images.unsplash.com/photo-1561020659-bf33a4f25844?q=80&w=2670&auto=format&fit=crop",
+    rating: 4.0,
+    duration: "2-3 hours",
+    location: "Nerul, Navi Mumbai"
+  },
+  {
+    id: 24,
+    name: "Vashi Mini Seashore",
+    category: "Nature",
+    description: "A small but beautiful waterfront area with walking paths, perfect for watching the sunset over the Vashi Creek.",
+    image: "https://images.unsplash.com/photo-1519005677410-b0c083fad1ef?q=80&w=2574&auto=format&fit=crop",
+    rating: 4.1,
+    duration: "1 hour",
+    location: "Vashi, Navi Mumbai"
+  },
+  {
+    id: 25,
+    name: "City Center Mall",
+    category: "Shopping",
+    description: "A popular shopping destination with a variety of retail outlets, food court, and a multiplex cinema.",
+    image: "https://images.unsplash.com/photo-1580828343064-fde4fc206bc6?q=80&w=2671&auto=format&fit=crop",
+    rating: 4.0,
+    duration: "2-3 hours",
+    location: "Vashi, Navi Mumbai"
+  },
+  {
+    id: 26,
+    name: "Karnala Bird Sanctuary",
+    category: "Nature",
+    description: "A sanctuary home to over 150 species of resident and migratory birds, with trekking trails and the historic Karnala Fort.",
+    image: "https://images.unsplash.com/photo-1578374173705-969f9483fecb?q=80&w=2574&auto=format&fit=crop",
+    rating: 4.5,
+    duration: "4-5 hours",
+    location: "Panvel, Navi Mumbai"
+  },
+  {
+    id: 27,
+    name: "Vashi Creek Bridge",
+    category: "Viewpoint",
+    description: "A bridge connecting Mumbai and Navi Mumbai, offering stunning views of the creek and city skyline, especially at sunset.",
+    image: "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=2574&auto=format&fit=crop",
+    rating: 4.2,
+    duration: "30 minutes",
+    location: "Vashi, Navi Mumbai"
+  },
+  {
+    id: 28,
+    name: "Navi Mumbai Sports Association",
+    category: "Sports",
+    description: "A comprehensive sports complex featuring cricket, football, tennis, swimming, and other sporting facilities.",
+    image: "https://images.unsplash.com/photo-1548686304-89d188a80029?q=80&w=2574&auto=format&fit=crop",
+    rating: 4.3,
+    duration: "2-3 hours",
+    location: "Vashi, Navi Mumbai"
+  },
+  {
+    id: 29,
+    name: "Kharghar Golf Course",
+    category: "Sports",
+    description: "An 18-hole golf course set against the backdrop of Kharghar hills, offering a premium golfing experience.",
+    image: "https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?q=80&w=2670&auto=format&fit=crop",
+    rating: 4.6,
+    duration: "4-5 hours",
+    location: "Kharghar, Navi Mumbai"
+  },
+  {
+    id: 30,
+    name: "Shilp Gram",
+    category: "Cultural Experiences",
+    description: "An arts and crafts village showcasing traditional crafts, performances, and cultural heritage of various Indian states.",
+    image: "https://images.unsplash.com/photo-1604080072035-97c364af7524?q=80&w=2574&auto=format&fit=crop",
+    rating: 4.0,
+    duration: "2-3 hours",
+    location: "CBD Belapur, Navi Mumbai"
   }
 ];
 
@@ -247,6 +398,62 @@ const restaurantsData = [
     rating: 4.6,
     priceRange: "High",
     location: "Seawoods, Navi Mumbai"
+  },
+  // New added restaurants
+  {
+    id: 106,
+    name: "Spice Route",
+    category: "Restaurant",
+    cuisine: "South Indian",
+    description: "Authentic South Indian cuisine offering dosas, idlis, and other traditional delicacies in a vibrant setting.",
+    image: "https://images.unsplash.com/photo-1563245372-f21724e3856d?q=80&w=2574&auto=format&fit=crop",
+    rating: 4.3,
+    priceRange: "Low",
+    location: "Nerul, Navi Mumbai"
+  },
+  {
+    id: 107,
+    name: "China Gate",
+    category: "Restaurant",
+    cuisine: "Chinese",
+    description: "Popular Chinese restaurant serving authentic Szechuan and Cantonese dishes with a contemporary twist.",
+    image: "https://images.unsplash.com/photo-1525648199074-cee30ba79a4a?q=80&w=2670&auto=format&fit=crop",
+    rating: 4.2,
+    priceRange: "Medium",
+    location: "Vashi, Navi Mumbai"
+  },
+  {
+    id: 108,
+    name: "Brew House",
+    category: "Restaurant",
+    cuisine: "Cafe",
+    description: "Trendy café offering specialty coffees, sandwiches, and pastries in a cozy atmosphere with free WiFi.",
+    image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=2670&auto=format&fit=crop",
+    rating: 4.4,
+    priceRange: "Medium",
+    location: "Seawoods, Navi Mumbai"
+  },
+  {
+    id: 109,
+    name: "Kebab Corner",
+    category: "Restaurant",
+    cuisine: "Mughlai",
+    description: "Famous for its authentic kebabs, biryanis, and other Mughlai delicacies served in a rustic ambiance.",
+    image: "https://images.unsplash.com/photo-1608039755401-742074f0548d?q=80&w=2574&auto=format&fit=crop",
+    rating: 4.5,
+    priceRange: "Medium",
+    location: "Kharghar, Navi Mumbai"
+  },
+  {
+    id: 110,
+    name: "Pizza Palace",
+    category: "Restaurant",
+    cuisine: "Italian",
+    description: "Popular pizzeria offering wood-fired pizzas with various toppings, pasta, and other Italian favorites.",
+    image: "https://images.unsplash.com/photo-1595854341625-f33e596b7d5c?q=80&w=2670&auto=format&fit=crop",
+    rating: 4.1,
+    priceRange: "Medium",
+    location: "CBD Belapur, Navi Mumbai"
   }
 ];
 
