@@ -1,243 +1,246 @@
 
-import { useRef } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Map, Sparkles, Compass, UtilityPole, Ship, Building, Leaf, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
+import Navbar from '@/components/Navbar';
 import FeatureCard from '@/components/FeatureCard';
 import PlaceCard from '@/components/PlaceCard';
-import { getPopularPlaces } from '@/lib/data';
+import { MapPin, Calendar, Compass, Clock, Bookmark } from 'lucide-react';
 
 const Index = () => {
-  const contentRef = useRef<HTMLDivElement>(null);
-  const popularPlaces = getPopularPlaces().slice(0, 3);
-
+  const [activeFeature, setActiveFeature] = useState<number>(0);
+  
   const features = [
     {
-      icon: Map,
-      title: 'Interactive Maps',
-      description: 'Navigate through Navi Mumbai with ease using our detailed maps.',
-      color: 'bg-navi-blue'
-    },
-    {
-      icon: Sparkles,
       title: 'Personalized Itineraries',
-      description: 'Get custom travel plans based on your preferences and interests.',
-      color: 'bg-navi-violet'
+      description: 'Create custom travel plans tailored to your preferences, budget, and schedule.',
+      icon: Calendar,
     },
     {
+      title: 'AI-Powered Suggestions',
+      description: 'Get intelligent recommendations for attractions, restaurants, and activities.',
       icon: Compass,
-      title: 'Local Insights',
-      description: 'Discover hidden gems with recommendations from locals.',
-      color: 'bg-navi-teal'
+    },
+    {
+      title: 'Time-Saving Planning',
+      description: 'Efficiently organize your trip with our smart scheduling tools.',
+      icon: Clock,
+    },
+    {
+      title: 'Save Your Favorites',
+      description: 'Bookmark and revisit your favorite itineraries for future adventures.',
+      icon: Bookmark,
     }
+  ];
+  
+  const featuredDestinations = [
+    {
+      id: 1,
+      name: 'Eiffel Tower',
+      category: 'Monument',
+      description: 'Iconic iron lattice tower on the Champ de Mars in Paris, France, named after engineer Gustave Eiffel.',
+      image: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?q=80&w=1287&auto=format&fit=crop',
+      rating: 4.8,
+      location: 'Paris, France',
+    },
+    {
+      id: 2,
+      name: 'Kyoto Temples',
+      category: 'Cultural',
+      description: 'Ancient Buddhist temples, gardens, imperial palaces, Shinto shrines and traditional wooden houses.',
+      image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1170&auto=format&fit=crop',
+      rating: 4.9,
+      location: 'Kyoto, Japan',
+    },
+    {
+      id: 3,
+      name: 'Grand Canyon',
+      category: 'Natural Wonder',
+      description: 'Steep-sided canyon carved by the Colorado River in Arizona, United States.',
+      image: 'https://images.unsplash.com/photo-1474044159687-1ee9f3a51722?q=80&w=1170&auto=format&fit=crop',
+      rating: 4.9,
+      location: 'Arizona, USA',
+    },
+  ];
+  
+  const topExperiences = [
+    {
+      id: 4,
+      name: 'Northern Lights Tour',
+      category: 'Adventure',
+      description: 'Experience the magical aurora borealis dancing across the Arctic sky.',
+      image: 'https://images.unsplash.com/photo-1483347756197-71ef80e95f73?q=80&w=1170&auto=format&fit=crop',
+      rating: 4.9,
+      duration: '4 hours',
+      location: 'Tromsø, Norway',
+    },
+    {
+      id: 5,
+      name: 'Santorini Sunset Cruise',
+      category: 'Leisure',
+      description: 'Sail around the volcanic islands of Santorini and enjoy breathtaking sunset views.',
+      image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?q=80&w=1074&auto=format&fit=crop',
+      rating: 4.7,
+      duration: '5 hours',
+      location: 'Santorini, Greece',
+    },
+    {
+      id: 6,
+      name: 'Machu Picchu Hike',
+      category: 'Adventure',
+      description: 'Trek the legendary Inca Trail to discover the ancient city of Machu Picchu.',
+      image: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?q=80&w=1172&auto=format&fit=crop',
+      rating: 4.8,
+      duration: '4 days',
+      location: 'Cusco, Peru',
+    },
   ];
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <Hero />
       
-      <div id="main-content" ref={contentRef} className="pt-16 pb-20">
-        {/* Features Section */}
-        <section className="container mx-auto px-4 md:px-6 py-16">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <h2 className="text-3xl font-bold tracking-tight">Explore Navi Mumbai Like Never Before</h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Your ultimate guide to experiencing the best of the city
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
+      <Hero 
+        title="Discover Your Perfect Journey"
+        subtitle="AI-powered travel planning that creates personalized itineraries tailored to your interests, budget, and schedule."
+        ctaText="Plan Your Trip"
+        ctaLink="/itinerary"
+        imageUrl="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=1421&auto=format&fit=crop"
+      />
+      
+      {/* Features Section */}
+      <section className="py-20 px-4 md:px-6 max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">How NaviExplore Works</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Our AI-powered platform streamlines travel planning, making it easy to create the perfect itinerary.
+          </p>
+        </div>
+        
+        <div className="grid md:grid-cols-2 gap-10 items-center">
+          <div className="space-y-6">
             {features.map((feature, index) => (
-              <div key={index} className="animate-fade-up" style={{ animationDelay: `${index * 100}ms` }}>
-                <FeatureCard {...feature} />
+              <div
+                key={index}
+                className={`p-6 rounded-xl cursor-pointer transition-all ${
+                  activeFeature === index 
+                    ? 'bg-primary text-primary-foreground shadow-md' 
+                    : 'bg-card hover:bg-accent'
+                }`}
+                onClick={() => setActiveFeature(index)}
+              >
+                <div className="flex items-start gap-4">
+                  <div className={`p-2 rounded-full ${
+                    activeFeature === index 
+                      ? 'bg-primary-foreground text-primary' 
+                      : 'bg-primary/10 text-primary'
+                  }`}>
+                    <feature.icon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-lg mb-1">{feature.title}</h3>
+                    <p className={activeFeature === index ? 'text-primary-foreground/80' : 'text-muted-foreground'}>
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
-        </section>
-        
-        {/* Popular Destinations */}
-        <section className="bg-muted/30 py-16">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="flex justify-between items-end mb-10">
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight">Popular Destinations</h2>
-                <p className="mt-2 text-muted-foreground">
-                  Most visited places in Navi Mumbai
-                </p>
-              </div>
-              <Link to="/places">
-                <Button variant="link" className="text-primary">View all places</Button>
-              </Link>
-            </div>
-            
-            <div className="grid md:grid-cols-3 gap-6">
-              {popularPlaces.map((place, index) => (
-                <div key={place.id} className="animate-fade-up" style={{ animationDelay: `${index * 100}ms` }}>
-                  <PlaceCard {...place} />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-        
-        {/* Navi Mumbai Highlights */}
-        <section className="container mx-auto px-4 md:px-6 py-16">
-          <div className="grid md:grid-cols-2 gap-10 items-center">
-            <div className="order-2 md:order-1">
-              <div className="space-y-6">
-                <h2 className="text-3xl font-bold tracking-tight">Navi Mumbai Highlights</h2>
-                <p className="text-muted-foreground">
-                  Discover the planned city of the future with pristine 
-                  infrastructure, lush greenery, and a perfect blend of 
-                  urban development with natural beauty.
-                </p>
-                
-                <div className="space-y-4">
-                  <div className="flex gap-3">
-                    <div className="bg-navi-teal/10 p-2 rounded-lg">
-                      <Building className="h-5 w-5 text-navi-teal" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">Modern Architecture</h3>
-                      <p className="text-sm text-muted-foreground">Iconic structures and planned urban landscape</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-3">
-                    <div className="bg-navi-green/10 p-2 rounded-lg">
-                      <Leaf className="h-5 w-5 text-navi-green" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">Parks & Nature</h3>
-                      <p className="text-sm text-muted-foreground">Beautiful parks, mangroves and flamingo sanctuaries</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-3">
-                    <div className="bg-navi-indigo/10 p-2 rounded-lg">
-                      <Ship className="h-5 w-5 text-navi-indigo" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">Waterfront Views</h3>
-                      <p className="text-sm text-muted-foreground">Stunning creeks and coastal landscapes</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-3">
-                    <div className="bg-navi-blue/10 p-2 rounded-lg">
-                      <UtilityPole className="h-5 w-5 text-navi-blue" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">Connected Living</h3>
-                      <p className="text-sm text-muted-foreground">Excellent public transportation and infrastructure</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="pt-2">
-                  <Link to="/itinerary">
-                    <Button>Plan Your Visit</Button>
-                  </Link>
-                </div>
-              </div>
-            </div>
-            
-            <div className="order-1 md:order-2">
-              <div className="relative">
-                <div className="rounded-2xl overflow-hidden shadow-xl">
-                  <img 
-                    src="https://images.unsplash.com/photo-1570168763841-c88fe2fab8a5?q=80&w=2574&auto=format&fit=crop"
-                    alt="Navi Mumbai View" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="absolute -bottom-6 -left-6 w-48 h-48 rounded-lg overflow-hidden shadow-lg border-4 border-background">
-                  <img 
-                    src="https://images.unsplash.com/photo-1600457108015-41909b7e8dc3?q=80&w=2574&auto=format&fit=crop"
-                    alt="Navi Mumbai Detail" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        
-        {/* CTA Section */}
-        <section className="bg-gradient-to-r from-navi-blue to-navi-indigo text-white py-16">
-          <div className="container mx-auto px-4 md:px-6 text-center">
-            <div className="max-w-2xl mx-auto">
-              <h2 className="text-3xl font-bold mb-4">Ready to Explore Navi Mumbai?</h2>
-              <p className="text-white/80 mb-8">
-                Create your personalized itinerary in minutes and discover the best of Navi Mumbai.
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Link to="/register">
-                  <Button size="lg" variant="default" className="bg-white text-primary hover:bg-white/90 w-full sm:w-auto">
-                    Sign Up Free
-                  </Button>
-                </Link>
-                <Link to="/places">
-                  <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 hover:border-white/50 w-full sm:w-auto">
-                    Browse Places
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-      
-      {/* Footer */}
-      <footer className="bg-foreground/5 py-12">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="flex flex-col md:flex-row justify-between">
-            <div className="mb-6 md:mb-0">
-              <Link to="/" className="flex items-center space-x-2 text-lg font-medium">
-                <MapPin className="h-6 w-6 text-navi-blue" />
-                <span className="font-semibold">NaviExplore</span>
-              </Link>
-              <p className="mt-2 text-sm text-muted-foreground max-w-xs">
-                Your complete guide to exploring Navi Mumbai, with personalized itineraries and local insights.
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
-              <div>
-                <h3 className="text-sm font-medium mb-3">Navigation</h3>
-                <ul className="space-y-2 text-sm">
-                  <li><Link to="/" className="text-muted-foreground hover:text-foreground">Home</Link></li>
-                  <li><Link to="/places" className="text-muted-foreground hover:text-foreground">Explore</Link></li>
-                  <li><Link to="/itinerary" className="text-muted-foreground hover:text-foreground">Itinerary</Link></li>
-                </ul>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium mb-3">Account</h3>
-                <ul className="space-y-2 text-sm">
-                  <li><Link to="/login" className="text-muted-foreground hover:text-foreground">Sign In</Link></li>
-                  <li><Link to="/register" className="text-muted-foreground hover:text-foreground">Register</Link></li>
-                </ul>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium mb-3">Legal</h3>
-                <ul className="space-y-2 text-sm">
-                  <li><a href="#" className="text-muted-foreground hover:text-foreground">Privacy</a></li>
-                  <li><a href="#" className="text-muted-foreground hover:text-foreground">Terms</a></li>
-                </ul>
-              </div>
-            </div>
-          </div>
           
-          <div className="mt-10 pt-6 border-t border-border text-center text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} NaviExplore. All rights reserved.</p>
+          <div className="relative h-[400px] md:h-[500px] rounded-xl overflow-hidden shadow-xl">
+            <img 
+              src="https://images.unsplash.com/photo-1522199710521-72d69614c702?q=80&w=1072&auto=format&fit=crop" 
+              alt="Travel planning on tablet" 
+              className="w-full h-full object-cover rounded-xl"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl flex items-end">
+              <div className="p-6 text-white">
+                <h3 className="text-xl font-semibold mb-2">Smart Planning</h3>
+                <p className="opacity-90">Create your perfect itinerary with the help of AI</p>
+              </div>
+            </div>
           </div>
         </div>
-      </footer>
+      </section>
+      
+      {/* Featured Destinations */}
+      <section className="py-20 px-4 md:px-6 bg-accent/30">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Featured Destinations</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Explore some of the world's most incredible places with our curated recommendations.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {featuredDestinations.map((destination) => (
+              <PlaceCard
+                key={destination.id}
+                id={destination.id}
+                name={destination.name}
+                category={destination.category}
+                description={destination.description}
+                image={destination.image}
+                rating={destination.rating}
+                location={destination.location}
+              />
+            ))}
+          </div>
+          
+          <div className="text-center mt-12">
+            <Link to="/places">
+              <Button size="lg" variant="outline">
+                Explore More Destinations
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+      
+      {/* Top Experiences */}
+      <section className="py-20 px-4 md:px-6 max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Top Experiences</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Unforgettable activities and adventures for every type of traveler.
+          </p>
+        </div>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {topExperiences.map((experience) => (
+            <PlaceCard
+              key={experience.id}
+              id={experience.id}
+              name={experience.name}
+              category={experience.category}
+              description={experience.description}
+              image={experience.image}
+              rating={experience.rating}
+              duration={experience.duration}
+              location={experience.location}
+            />
+          ))}
+        </div>
+      </section>
+      
+      {/* CTA Section */}
+      <section className="py-20 px-4 md:px-6 bg-primary text-primary-foreground">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Plan Your Next Adventure?</h2>
+          <p className="mb-8 opacity-90 max-w-2xl mx-auto">
+            Create a personalized itinerary tailored to your interests, budget, and schedule with our AI-powered travel planner.
+          </p>
+          <Link to="/itinerary">
+            <Button size="lg" variant="secondary">
+              <MapPin className="mr-2 h-5 w-5" />
+              Start Planning Now
+            </Button>
+          </Link>
+        </div>
+      </section>
     </div>
   );
 };

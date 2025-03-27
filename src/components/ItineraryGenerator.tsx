@@ -1,490 +1,335 @@
-
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Calendar, Clock, Filter, ListFilter, CheckCircle, ChevronsUpDown, Map, Save } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { generateItinerary } from '@/lib/data';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+import { format } from "date-fns"
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
-interface ItineraryActivity {
-  time: string;
-  title: string;
-  location: string;
-  description: string;
-  image?: string;
-  category: string;
-}
-
-interface ItineraryDay {
-  day: number;
-  activities: ItineraryActivity[];
-}
-
 interface ItineraryGeneratorProps {
-  onGenerate?: (itinerary: ItineraryDay[]) => void;
+  
 }
 
-const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
-  const [title, setTitle] = useState("My Navi Mumbai Adventure");
-  const [days, setDays] = useState(2);
-  const [paceValue, setPaceValue] = useState(50);
-  const [budget, setBudget] = useState('medium');
-  const [interests, setInterests] = useState<string[]>([]);
-  const [transportation, setTransportation] = useState('public');
+const ItineraryGenerator = ({ }: ItineraryGeneratorProps) => {
+  const [destination, setDestination] = useState('');
+  const [numberOfDays, setNumberOfDays] = useState(3);
+  const [startDate, setStartDate] = useState<Date | undefined>(new Date());
+  const [interests, setInterests] = useState([
+    'Historical Sites',
+    'Museums',
+    'Local Cuisine',
+    'Outdoor Activities',
+    'Shopping',
+    'Nightlife',
+    'Relaxation',
+    'Adventure'
+  ]);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [pace, setPace] = useState('Moderate');
+  const [budget, setBudget] = useState('Mid-Range');
+  const [transportation, setTransportation] = useState('Public Transportation');
   const [includeFood, setIncludeFood] = useState(true);
-  const [startDate, setStartDate] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [saveLoading, setSaveLoading] = useState(false);
-  const [generated, setGenerated] = useState(false);
-  const [itineraryId, setItineraryId] = useState<string | null>(null);
-  const [searchParams] = useSearchParams();
+  const [itinerary, setItinerary] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [itineraryTitle, setItineraryTitle] = useState('');
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { user } = useAuth();
 
-  const interestOptions = [
-    'Nature', 'Museums', 'Shopping', 'Adventure', 
-    'History', 'Parks', 'Food', 'Temples', 'Art',
-    'Local Markets', 'Architecture'
-  ];
-
   useEffect(() => {
-    const id = searchParams.get('id');
-    if (id) {
-      setItineraryId(id);
-      loadItinerary(id);
-    }
-  }, [searchParams]);
-
-  const loadItinerary = async (id: string) => {
-    if (!user) return;
-    
-    try {
-      setLoading(true);
-      
-      // Fetch the itinerary details
-      const { data: itineraryData, error: itineraryError } = await supabase
-        .from('user_itineraries')
-        .select('*')
-        .eq('id', id)
-        .eq('user_id', user.id)
-        .single();
-      
-      if (itineraryError) throw itineraryError;
-      
-      if (itineraryData) {
-        setTitle(itineraryData.title);
-        setDays(itineraryData.days);
-        setPaceValue(itineraryData.pace === 'relaxed' ? 20 : itineraryData.pace === 'moderate' ? 50 : 80);
-        setBudget(itineraryData.budget || 'medium');
-        setInterests(itineraryData.interests || []);
-        setTransportation(itineraryData.transportation || 'public');
-        setIncludeFood(itineraryData.include_food === null ? true : itineraryData.include_food);
-        setStartDate(itineraryData.start_date || '');
-        
-        // Fetch activities for this itinerary
-        const { data: activitiesData, error: activitiesError } = await supabase
-          .from('itinerary_activities')
-          .select('*')
-          .eq('itinerary_id', id)
-          .order('day', { ascending: true });
-        
-        if (activitiesError) throw activitiesError;
-        
-        if (activitiesData && activitiesData.length > 0) {
-          // Convert from database structure to application structure
-          const days: { [key: number]: ItineraryDay } = {};
-          
-          activitiesData.forEach(activity => {
-            if (!days[activity.day]) {
-              days[activity.day] = {
-                day: activity.day,
-                activities: []
-              };
-            }
-            
-            days[activity.day].activities.push({
-              time: activity.time,
-              title: activity.title,
-              location: activity.location,
-              description: activity.description || '',
-              image: activity.image,
-              category: activity.category || ''
-            });
-          });
-          
-          const itinerary = Object.values(days).sort((a, b) => a.day - b.day);
-          
-          if (onGenerate) {
-            onGenerate(itinerary);
-          }
-          
-          setGenerated(true);
-        }
-      }
-    } catch (error: any) {
-      console.error('Error loading itinerary:', error);
-      toast({
-        title: "Error loading itinerary",
-        description: error.message || "Could not load the saved itinerary.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleInterest = (interest: string) => {
-    if (interests.includes(interest)) {
-      setInterests(interests.filter(i => i !== interest));
-    } else {
-      setInterests([...interests, interest]);
-    }
-  };
-
-  const handleGenerate = () => {
-    setLoading(true);
-    
-    // Simulate API call delay
-    setTimeout(() => {
-      const pace = paceValue < 33 ? 'relaxed' : paceValue < 66 ? 'moderate' : 'active';
-      
-      const itinerary = generateItinerary({
-        days,
-        pace,
-        budget,
-        interests,
-        includeFood,
-        transportation
-      });
-      
-      if (onGenerate) {
-        onGenerate(itinerary);
-      }
-      
-      setLoading(false);
-      setGenerated(true);
-    }, 1500);
-  };
-
-  const handleSaveItinerary = async (itineraryData: ItineraryDay[]) => {
     if (!user) {
       toast({
         title: "Authentication required",
-        description: "Please sign in to save your itinerary.",
+        description: "Please sign in to create an itinerary.",
+        variant: "destructive"
+      });
+      navigate('/login');
+    }
+  }, [user, navigate, toast]);
+
+  const generateItinerary = async () => {
+    if (!destination || !numberOfDays || !startDate || selectedInterests.length === 0 || !pace || !budget || !transportation) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all the fields to generate an itinerary.",
         variant: "destructive"
       });
       return;
     }
     
-    if (!generated || !itineraryData || itineraryData.length === 0) {
-      toast({
-        title: "No itinerary to save",
-        description: "Please generate an itinerary first before saving.",
-        variant: "destructive"
-      });
-      return;
+    setIsLoading(true);
+    
+    // Mock AI response
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const mockItinerary = Array.from({ length: numberOfDays }, (_, dayIndex) => ({
+      day: dayIndex + 1,
+      activities: Array.from({ length: 2 }, (_, activityIndex) => ({
+        time: `${9 + activityIndex * 4}:00 AM`,
+        title: `Activity ${activityIndex + 1} on Day ${dayIndex + 1}`,
+        location: 'Some Location',
+        description: 'Some Description',
+        image: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?q=80&w=1287&auto=format&fit=crop',
+        category: 'Historical Site'
+      }))
+    }));
+    
+    setItinerary(mockItinerary);
+    setIsLoading(false);
+    
+    toast({
+      title: "Itinerary generated",
+      description: "Your itinerary has been generated successfully."
+    });
+  };
+
+  const handleInterestClick = (interest: string) => {
+    if (selectedInterests.includes(interest)) {
+      setSelectedInterests(selectedInterests.filter(i => i !== interest));
+    } else {
+      setSelectedInterests([...selectedInterests, interest]);
     }
+  };
+
+  const saveItinerary = async () => {
+    if (!user) return;
+    
+    setIsSaving(true);
     
     try {
-      setSaveLoading(true);
-      
-      const pace = paceValue < 33 ? 'relaxed' : paceValue < 66 ? 'moderate' : 'active';
-      
-      // First, upsert the itinerary record
-      const { data: itineraryRecord, error: itineraryError } = await supabase
+      // Save the itinerary
+      const { data: itineraryData, error: itineraryError } = await supabase
         .from('user_itineraries')
-        .upsert({
-          id: itineraryId || undefined,
+        .insert({
           user_id: user.id,
-          title,
-          days,
-          start_date: startDate || null,
-          pace,
-          budget,
-          interests,
-          transportation,
-          include_food: includeFood,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'id',
-          returning: 'representation'
+          title: itineraryTitle || `Trip to ${destination}`,
+          days: numberOfDays,
+          start_date: startDate,
+          pace: pace,
+          budget: budget,
+          interests: selectedInterests,
+          transportation: transportation,
+          include_food: includeFood
         })
         .select()
         .single();
       
       if (itineraryError) throw itineraryError;
       
-      if (itineraryRecord) {
-        setItineraryId(itineraryRecord.id);
-        
-        // If editing existing itinerary, delete all existing activities first
-        if (itineraryId) {
-          const { error: deleteError } = await supabase
-            .from('itinerary_activities')
-            .delete()
-            .eq('itinerary_id', itineraryId);
-          
-          if (deleteError) throw deleteError;
-        }
-        
-        // Insert all activities
-        const activities = itineraryData.flatMap(day => 
+      // Save each activity
+      if (itineraryData) {
+        const activitiesData = itinerary.flatMap((day, index) => 
           day.activities.map(activity => ({
-            itinerary_id: itineraryRecord.id,
-            day: day.day,
+            itinerary_id: itineraryData.id,
+            day: index + 1,
             time: activity.time,
             title: activity.title,
             location: activity.location,
-            description: activity.description,
-            image: activity.image,
-            category: activity.category
+            description: activity.description || null,
+            image: activity.image || null,
+            category: activity.category || null
           }))
         );
         
         const { error: activitiesError } = await supabase
           .from('itinerary_activities')
-          .insert(activities);
+          .insert(activitiesData);
         
         if (activitiesError) throw activitiesError;
         
         toast({
           title: "Itinerary saved",
-          description: "Your itinerary has been saved successfully.",
+          description: "Your itinerary has been saved successfully."
         });
       }
     } catch (error: any) {
       console.error('Error saving itinerary:', error);
       toast({
         title: "Error saving itinerary",
-        description: error.message || "Could not save your itinerary.",
+        description: error.message || "There was an error saving your itinerary.",
         variant: "destructive"
       });
     } finally {
-      setSaveLoading(false);
+      setIsSaving(false);
     }
   };
 
   return (
-    <Card className="w-full overflow-hidden border-none shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-navi-blue to-navi-teal text-white">
-        <div className="flex items-center">
-          <Map className="mr-2 h-5 w-5" />
-          <CardTitle>Itinerary Planner</CardTitle>
-        </div>
-        <CardDescription className="text-white/80">
-          {user ? "Create your perfect Navi Mumbai itinerary" : "Sign in to save your itineraries"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-6 p-6">
-        <div className="grid gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="title">Itinerary Title</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="My Navi Mumbai Adventure"
+    <div className="container mx-auto p-4 md:p-6">
+      <h2 className="text-2xl font-bold mb-4">Create Your Itinerary</h2>
+      
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Input Section */}
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="destination">Destination</Label>
+            <Input 
+              type="text" 
+              id="destination" 
+              placeholder="Enter destination" 
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
             />
           </div>
           
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="dates">Start Date</Label>
-            <div className="relative">
-              <Input
-                id="dates"
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="pl-10"
-              />
-              <Calendar className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-            </div>
-          </div>
-          
-          <div className="flex flex-col gap-2">
-            <div className="flex justify-between">
-              <Label htmlFor="days">Number of Days</Label>
-              <span className="text-sm font-medium">{days} days</span>
-            </div>
-            <Slider
-              id="days"
-              min={1}
-              max={7}
-              step={1}
-              value={[days]}
-              onValueChange={(value) => setDays(value[0])}
+          <div>
+            <Label htmlFor="title">Itinerary Title (Optional)</Label>
+            <Input 
+              type="text" 
+              id="title" 
+              placeholder="My Awesome Trip" 
+              value={itineraryTitle}
+              onChange={(e) => setItineraryTitle(e.target.value)}
             />
           </div>
-        </div>
-        
-        <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="preferences">
-            <AccordionTrigger className="font-medium">
-              <div className="flex items-center">
-                <Filter className="mr-2 h-4 w-4" />
-                <span>Preferences</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="grid gap-4 py-3">
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <Label>Pace</Label>
-                    <span className="text-xs">
-                      {paceValue < 33 ? 'Relaxed' : paceValue < 66 ? 'Moderate' : 'Active'}
-                    </span>
-                  </div>
-                  <Slider
-                    min={0}
-                    max={100}
-                    step={1}
-                    value={[paceValue]}
-                    onValueChange={(value) => setPaceValue(value[0])}
-                  />
-                </div>
-                
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="budget">Budget</Label>
-                  <Select value={budget} onValueChange={setBudget}>
-                    <SelectTrigger id="budget">
-                      <SelectValue placeholder="Choose your budget" />
-                    </SelectTrigger>
-                    <SelectContent position="popper">
-                      <SelectItem value="budget">Budget-friendly</SelectItem>
-                      <SelectItem value="medium">Mid-range</SelectItem>
-                      <SelectItem value="luxury">Luxury</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="transport">Transportation</Label>
-                  <Select value={transportation} onValueChange={setTransportation}>
-                    <SelectTrigger id="transport">
-                      <SelectValue placeholder="Choose transportation" />
-                    </SelectTrigger>
-                    <SelectContent position="popper">
-                      <SelectItem value="public">Public Transport</SelectItem>
-                      <SelectItem value="taxi">Taxi/Cab</SelectItem>
-                      <SelectItem value="car">Private Car</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch 
-                    id="include-food" 
-                    checked={includeFood}
-                    onCheckedChange={setIncludeFood}
-                  />
-                  <Label htmlFor="include-food">Include food recommendations</Label>
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
           
-          <AccordionItem value="interests">
-            <AccordionTrigger className="font-medium">
-              <div className="flex items-center">
-                <ListFilter className="mr-2 h-4 w-4" />
-                <span>Interests</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 py-3">
-                {interestOptions.map((interest) => (
-                  <Button
-                    key={interest}
-                    type="button"
-                    variant={interests.includes(interest) ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => toggleInterest(interest)}
-                    className="justify-start"
-                  >
-                    {interests.includes(interest) && (
-                      <CheckCircle className="mr-2 h-3 w-3" />
-                    )}
-                    <span className="text-xs">{interest}</span>
-                  </Button>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </CardContent>
-      <CardFooter className="bg-muted/30 px-6 py-4 flex flex-col gap-2">
-        <Button 
-          onClick={handleGenerate}
-          disabled={loading || saveLoading}
-          className="w-full"
-        >
-          {loading ? (
-            <>
-              <Clock className="mr-2 h-4 w-4 animate-spin" />
-              <span>Generating...</span>
-            </>
-          ) : generated ? (
-            <>
-              <ChevronsUpDown className="mr-2 h-4 w-4" />
-              <span>Update Itinerary</span>
-            </>
-          ) : (
-            <>
-              <Map className="mr-2 h-4 w-4" />
-              <span>Generate Itinerary</span>
-            </>
-          )}
-        </Button>
-        
-        {user && generated && onGenerate && (
-          <Button 
-            variant="outline"
-            className="w-full"
-            disabled={loading || saveLoading}
-            onClick={() => onGenerate && handleSaveItinerary(onGenerate as any)}
-          >
-            {saveLoading ? (
-              <>
-                <Clock className="mr-2 h-4 w-4 animate-spin" />
-                <span>Saving...</span>
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                <span>{itineraryId ? 'Save Changes' : 'Save Itinerary'}</span>
-              </>
-            )}
+          <div>
+            <Label htmlFor="days">Number of Days</Label>
+            <Input 
+              type="number" 
+              id="days" 
+              placeholder="Enter number of days" 
+              value={numberOfDays}
+              onChange={(e) => setNumberOfDays(Number(e.target.value))}
+            />
+          </div>
+          
+          <div>
+            <Label>Start Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-[240px] justify-start text-left font-normal",
+                    !startDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={setStartDate}
+                  disabled={(date) =>
+                    date < new Date()
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          
+          <div>
+            <Label>Interests</Label>
+            <div className="flex flex-wrap gap-2">
+              {interests.map((interest) => (
+                <Button
+                  key={interest}
+                  variant={selectedInterests.includes(interest) ? "default" : "outline"}
+                  onClick={() => handleInterestClick(interest)}
+                  size="sm"
+                >
+                  {interest}
+                </Button>
+              ))}
+            </div>
+          </div>
+          
+          <div>
+            <Label htmlFor="pace">Pace</Label>
+            <Select value={pace} onValueChange={setPace}>
+              <SelectTrigger className="w-[240px]">
+                <SelectValue placeholder="Select pace" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Relaxed">Relaxed</SelectItem>
+                <SelectItem value="Moderate">Moderate</SelectItem>
+                <SelectItem value="Fast-Paced">Fast-Paced</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <Label htmlFor="budget">Budget</Label>
+            <Select value={budget} onValueChange={setBudget}>
+              <SelectTrigger className="w-[240px]">
+                <SelectValue placeholder="Select budget" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Budget-Friendly">Budget-Friendly</SelectItem>
+                <SelectItem value="Mid-Range">Mid-Range</SelectItem>
+                <SelectItem value="Luxury">Luxury</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <Label htmlFor="transportation">Transportation</Label>
+            <Select value={transportation} onValueChange={setTransportation}>
+              <SelectTrigger className="w-[240px]">
+                <SelectValue placeholder="Select transportation" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Public Transportation">Public Transportation</SelectItem>
+                <SelectItem value="Rental Car">Rental Car</SelectItem>
+                <SelectItem value="Mix of Both">Mix of Both</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="includeFood" 
+              checked={includeFood}
+              onCheckedChange={(checked: boolean) => setIncludeFood(checked)}
+            />
+            <Label htmlFor="includeFood">Include Food Recommendations</Label>
+          </div>
+          
+          <Button onClick={generateItinerary} disabled={isLoading}>
+            {isLoading ? "Generating..." : "Generate Itinerary"}
           </Button>
-        )}
-      </CardFooter>
-    </Card>
+        </div>
+        
+        {/* Itinerary Section */}
+        <div>
+          {itinerary.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold">Generated Itinerary</h3>
+              {itinerary.map((day, index) => (
+                <div key={index} className="border rounded-md p-4">
+                  <h4 className="text-lg font-medium">Day {day.day}</h4>
+                  <ul className="list-disc pl-5">
+                    {day.activities.map((activity, activityIndex) => (
+                      <li key={activityIndex} className="mb-2">
+                        <span className="font-semibold">{activity.time}</span>: {activity.title} ({activity.location})
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+              <Button variant="secondary" onClick={saveItinerary} disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Itinerary"}
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 
