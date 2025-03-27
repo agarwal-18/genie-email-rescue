@@ -1,5 +1,6 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { MapPin, Clock, Calendar, Map, Menu, Copy, Share2, Download, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
 import ItineraryGenerator from '@/components/ItineraryGenerator';
 
@@ -37,12 +39,17 @@ interface ItineraryDay {
 const Itinerary = () => {
   const [itinerary, setItinerary] = useState<ItineraryDay[]>([]);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
 
   const handleGenerateItinerary = (newItinerary: ItineraryDay[]) => {
     setItinerary(newItinerary);
   };
 
   const handleShare = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).catch(err => console.error('Failed to copy URL', err));
+    
     toast({
       title: "Share link copied",
       description: "The link to your itinerary has been copied to clipboard.",
@@ -194,7 +201,9 @@ const Itinerary = () => {
                   <Map className="h-16 w-16 text-muted-foreground mb-4" />
                   <h3 className="text-xl font-medium mb-2">No Itinerary Yet</h3>
                   <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                    Use the itinerary generator to create your personalized Navi Mumbai exploration plan.
+                    {user ? 
+                      "Use the itinerary generator to create your personalized Navi Mumbai exploration plan." : 
+                      "Sign in to create and save your personalized Navi Mumbai exploration plans."}
                   </p>
                   <div className="flex flex-col gap-3 text-sm text-muted-foreground">
                     <div className="flex items-center">
