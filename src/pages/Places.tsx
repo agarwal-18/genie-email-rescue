@@ -13,99 +13,15 @@ import {
 } from '@/components/ui/select';
 import PlaceCard from '@/components/PlaceCard';
 import Navbar from '@/components/Navbar';
+import { getAllPlaces } from '@/lib/data';
 
 const Places = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('all');
   const [filteredPlaces, setFilteredPlaces] = useState<any[]>([]);
 
-  const places = [
-    {
-      id: 1,
-      name: 'Eiffel Tower',
-      category: 'Monument',
-      description: 'Iconic iron lattice tower on the Champ de Mars in Paris, France, named after engineer Gustave Eiffel.',
-      image: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?q=80&w=1287&auto=format&fit=crop',
-      rating: 4.8,
-      location: 'Paris, France',
-    },
-    {
-      id: 2,
-      name: 'Kyoto Temples',
-      category: 'Cultural',
-      description: 'Ancient Buddhist temples, gardens, imperial palaces, Shinto shrines and traditional wooden houses.',
-      image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1170&auto=format&fit=crop',
-      rating: 4.9,
-      location: 'Kyoto, Japan',
-    },
-    {
-      id: 3,
-      name: 'Grand Canyon',
-      category: 'Natural Wonder',
-      description: 'Steep-sided canyon carved by the Colorado River in Arizona, United States.',
-      image: 'https://images.unsplash.com/photo-1474044159687-1ee9f3a51722?q=80&w=1170&auto=format&fit=crop',
-      rating: 4.9,
-      location: 'Arizona, USA',
-    },
-    {
-      id: 4,
-      name: 'Northern Lights Tour',
-      category: 'Adventure',
-      description: 'Experience the magical aurora borealis dancing across the Arctic sky.',
-      image: 'https://images.unsplash.com/photo-1483347756197-71ef80e95f73?q=80&w=1170&auto=format&fit=crop',
-      rating: 4.9,
-      duration: '4 hours',
-      location: 'Tromsø, Norway',
-    },
-    {
-      id: 5,
-      name: 'Santorini Sunset Cruise',
-      category: 'Leisure',
-      description: 'Sail around the volcanic islands of Santorini and enjoy breathtaking sunset views.',
-      image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?q=80&w=1074&auto=format&fit=crop',
-      rating: 4.7,
-      duration: '5 hours',
-      location: 'Santorini, Greece',
-    },
-    {
-      id: 6,
-      name: 'Machu Picchu Hike',
-      category: 'Adventure',
-      description: 'Trek the legendary Inca Trail to discover the ancient city of Machu Picchu.',
-      image: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?q=80&w=1172&auto=format&fit=crop',
-      rating: 4.8,
-      duration: '4 days',
-      location: 'Cusco, Peru',
-    },
-    {
-      id: 7,
-      name: 'Colosseum',
-      category: 'Historical',
-      description: 'Ancient Roman gladiatorial arena and iconic symbol of Imperial Rome.',
-      image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1096&auto=format&fit=crop',
-      rating: 4.7,
-      location: 'Rome, Italy',
-    },
-    {
-      id: 8,
-      name: 'Great Barrier Reef',
-      category: 'Natural Wonder',
-      description: 'World\'s largest coral reef system off the coast of Queensland, Australia.',
-      image: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?q=80&w=1287&auto=format&fit=crop',
-      rating: 4.9,
-      location: 'Queensland, Australia',
-    },
-    {
-      id: 9,
-      name: 'Safari Experience',
-      category: 'Adventure',
-      description: 'Explore the African savanna and witness incredible wildlife in their natural habitat.',
-      image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=1286&auto=format&fit=crop',
-      rating: 4.9,
-      duration: '5 days',
-      location: 'Serengeti, Tanzania',
-    },
-  ];
+  // Get places from data.ts
+  const places = getAllPlaces();
 
   // Get all unique categories
   const categories = ['all', ...Array.from(new Set(places.map(place => place.category)))];
@@ -126,9 +42,9 @@ const Places = () => {
     }
     
     setFilteredPlaces(results);
-  }, [searchTerm, category]);
+  }, [searchTerm, category, places]);
 
-  const featuredPlace = places[0]; // Eiffel Tower as featured
+  const featuredPlace = places.find(place => place.featured) || places[0]; // Use first featured place or first place
 
   return (
     <div className="min-h-screen bg-background">
@@ -138,9 +54,9 @@ const Places = () => {
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4">Explore Amazing Destinations</h1>
+            <h1 className="text-4xl font-bold mb-4">Explore Navi Mumbai</h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Discover fascinating places around the world to add to your next travel itinerary.
+              Discover fascinating places around Navi Mumbai to add to your next exploration plan.
             </p>
           </div>
           
@@ -191,7 +107,7 @@ const Places = () => {
           
           {/* All Places */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPlaces.slice(1).map((place) => (
+            {filteredPlaces.filter(place => place.id !== featuredPlace.id).map((place) => (
               <PlaceCard
                 key={place.id}
                 id={place.id}

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import FeatureCard from '@/components/FeatureCard';
 import PlaceCard from '@/components/PlaceCard';
 import { MapPin, Calendar, Compass, Clock, Bookmark } from 'lucide-react';
+import { getAllPlaces } from '@/lib/data';
 
 const Index = () => {
   const [activeFeature, setActiveFeature] = useState<number>(0);
@@ -14,17 +14,17 @@ const Index = () => {
   const features = [
     {
       title: 'Personalized Itineraries',
-      description: 'Create custom travel plans tailored to your preferences, budget, and schedule.',
+      description: 'Create custom exploration plans tailored to your preferences, budget, and schedule.',
       icon: Calendar,
     },
     {
       title: 'AI-Powered Suggestions',
-      description: 'Get intelligent recommendations for attractions, restaurants, and activities.',
+      description: 'Get intelligent recommendations for attractions, restaurants, and activities in Navi Mumbai.',
       icon: Compass,
     },
     {
       title: 'Time-Saving Planning',
-      description: 'Efficiently organize your trip with our smart scheduling tools.',
+      description: 'Efficiently organize your Navi Mumbai exploration with our smart scheduling tools.',
       icon: Clock,
     },
     {
@@ -34,79 +34,29 @@ const Index = () => {
     }
   ];
   
-  const featuredDestinations = [
-    {
-      id: 1,
-      name: 'Eiffel Tower',
-      category: 'Monument',
-      description: 'Iconic iron lattice tower on the Champ de Mars in Paris, France, named after engineer Gustave Eiffel.',
-      image: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?q=80&w=1287&auto=format&fit=crop',
-      rating: 4.8,
-      location: 'Paris, France',
-    },
-    {
-      id: 2,
-      name: 'Kyoto Temples',
-      category: 'Cultural',
-      description: 'Ancient Buddhist temples, gardens, imperial palaces, Shinto shrines and traditional wooden houses.',
-      image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1170&auto=format&fit=crop',
-      rating: 4.9,
-      location: 'Kyoto, Japan',
-    },
-    {
-      id: 3,
-      name: 'Grand Canyon',
-      category: 'Natural Wonder',
-      description: 'Steep-sided canyon carved by the Colorado River in Arizona, United States.',
-      image: 'https://images.unsplash.com/photo-1474044159687-1ee9f3a51722?q=80&w=1170&auto=format&fit=crop',
-      rating: 4.9,
-      location: 'Arizona, USA',
-    },
-  ];
+  // Get all Navi Mumbai places from data.ts
+  const allPlaces = getAllPlaces();
   
-  const topExperiences = [
-    {
-      id: 4,
-      name: 'Northern Lights Tour',
-      category: 'Adventure',
-      description: 'Experience the magical aurora borealis dancing across the Arctic sky.',
-      image: 'https://images.unsplash.com/photo-1483347756197-71ef80e95f73?q=80&w=1170&auto=format&fit=crop',
-      rating: 4.9,
-      duration: '4 hours',
-      location: 'Tromsø, Norway',
-    },
-    {
-      id: 5,
-      name: 'Santorini Sunset Cruise',
-      category: 'Leisure',
-      description: 'Sail around the volcanic islands of Santorini and enjoy breathtaking sunset views.',
-      image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?q=80&w=1074&auto=format&fit=crop',
-      rating: 4.7,
-      duration: '5 hours',
-      location: 'Santorini, Greece',
-    },
-    {
-      id: 6,
-      name: 'Machu Picchu Hike',
-      category: 'Adventure',
-      description: 'Trek the legendary Inca Trail to discover the ancient city of Machu Picchu.',
-      image: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?q=80&w=1172&auto=format&fit=crop',
-      rating: 4.8,
-      duration: '4 days',
-      location: 'Cusco, Peru',
-    },
-  ];
+  // Get featured places (those with featured flag or highest rated)
+  const featuredDestinations = allPlaces
+    .filter(place => place.featured || place.rating >= 4.5)
+    .slice(0, 3);
+  
+  // Get top experiences (different categories for variety)
+  const topExperiences = allPlaces
+    .filter(place => !featuredDestinations.some(fp => fp.id === place.id))
+    .slice(0, 3);
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
       <Hero 
-        title="Discover Your Perfect Journey"
-        subtitle="AI-powered travel planning that creates personalized itineraries tailored to your interests, budget, and schedule."
-        ctaText="Plan Your Trip"
+        title="Discover Navi Mumbai"
+        subtitle="AI-powered trip planning that creates personalized Navi Mumbai itineraries tailored to your interests, budget, and schedule."
+        ctaText="Plan Your Exploration"
         ctaLink="/itinerary"
-        imageUrl="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=1421&auto=format&fit=crop"
+        imageUrl="https://images.unsplash.com/photo-1582649155902-afcacf182863?q=80&w=2670&auto=format&fit=crop"
       />
       
       {/* Features Section */}
@@ -114,7 +64,7 @@ const Index = () => {
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">How NaviExplore Works</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Our AI-powered platform streamlines travel planning, making it easy to create the perfect itinerary.
+            Our AI-powered platform streamlines Navi Mumbai exploration planning, making it easy to create the perfect itinerary.
           </p>
         </div>
         
@@ -171,7 +121,7 @@ const Index = () => {
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Featured Destinations</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Explore some of the world's most incredible places with our curated recommendations.
+              Explore some of Navi Mumbai's most incredible places with our curated recommendations.
             </p>
           </div>
           
@@ -205,7 +155,7 @@ const Index = () => {
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Top Experiences</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Unforgettable activities and adventures for every type of traveler.
+            Unforgettable activities and adventures for every type of explorer in Navi Mumbai.
           </p>
         </div>
         
@@ -229,9 +179,9 @@ const Index = () => {
       {/* CTA Section */}
       <section className="py-20 px-4 md:px-6 bg-primary text-primary-foreground">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Plan Your Next Adventure?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Explore Navi Mumbai?</h2>
           <p className="mb-8 opacity-90 max-w-2xl mx-auto">
-            Create a personalized itinerary tailored to your interests, budget, and schedule with our AI-powered travel planner.
+            Create a personalized itinerary tailored to your interests, budget, and schedule with our AI-powered Navi Mumbai exploration planner.
           </p>
           <Link to="/itinerary">
             <Button size="lg" variant="secondary">
