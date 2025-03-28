@@ -13,6 +13,10 @@ import Places from "./pages/Places";
 import Itinerary from "./pages/Itinerary";
 import NotFound from "./pages/NotFound";
 import SavedItineraries from "./pages/SavedItineraries";
+import Forum from "./pages/Forum";
+import ForumPostCreate from "./pages/ForumPostCreate";
+import ForumPostDetail from "./pages/ForumPostDetail";
+import UserProfile from "./pages/UserProfile";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +34,13 @@ const App = () => (
             <Route path="/places" element={<Places />} />
             <Route path="/itinerary" element={<ProtectedRoute><Itinerary /></ProtectedRoute>} />
             <Route path="/saved-itineraries" element={<ProtectedRoute><SavedItineraries /></ProtectedRoute>} />
+            
+            {/* Forum Routes */}
+            <Route path="/forum" element={<Forum />} />
+            <Route path="/forum/create" element={<ProtectedRoute><ForumPostCreate /></ProtectedRoute>} />
+            <Route path="/forum/post/:postId" element={<ForumPostDetail />} />
+            <Route path="/profile/:userId?" element={<UserProfile />} />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

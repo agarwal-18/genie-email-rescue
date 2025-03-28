@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, MapPin, LogOut } from 'lucide-react';
+import { Menu, X, User, MapPin, LogOut, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -9,6 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 
 const Navbar = () => {
@@ -18,7 +19,7 @@ const Navbar = () => {
   const { user, signOut } = useAuth();
 
   const isActive = (path: string) => {
-    return location.pathname === path;
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
   useEffect(() => {
@@ -48,6 +49,7 @@ const Navbar = () => {
           <nav className="hidden md:flex items-center space-x-1">
             <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Home</Link>
             <Link to="/places" className={`nav-link ${isActive('/places') ? 'active' : ''}`}>Explore</Link>
+            <Link to="/forum" className={`nav-link ${isActive('/forum') ? 'active' : ''}`}>Forum</Link>
             {user && (
               <>
                 <Link to="/itinerary" className={`nav-link ${isActive('/itinerary') ? 'active' : ''}`}>Planner</Link>
@@ -66,6 +68,11 @@ const Navbar = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => location.pathname !== "/profile" && window.location.assign("/profile")}>
+                    <User className="h-4 w-4 mr-2" />
+                    My Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => signOut()}>
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign Out
@@ -105,10 +112,22 @@ const Navbar = () => {
           <nav className="flex flex-col space-y-4">
             <Link to="/" className={`px-4 py-2 rounded-lg ${isActive('/') ? 'bg-primary/10 text-primary' : 'hover:bg-accent'}`}>Home</Link>
             <Link to="/places" className={`px-4 py-2 rounded-lg ${isActive('/places') ? 'bg-primary/10 text-primary' : 'hover:bg-accent'}`}>Explore</Link>
+            <Link to="/forum" className={`px-4 py-2 rounded-lg ${isActive('/forum') ? 'bg-primary/10 text-primary' : 'hover:bg-accent'}`}>
+              <div className="flex items-center">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Forum
+              </div>
+            </Link>
             {user && (
               <>
                 <Link to="/itinerary" className={`px-4 py-2 rounded-lg ${isActive('/itinerary') ? 'bg-primary/10 text-primary' : 'hover:bg-accent'}`}>Planner</Link>
                 <Link to="/saved-itineraries" className={`px-4 py-2 rounded-lg ${isActive('/saved-itineraries') ? 'bg-primary/10 text-primary' : 'hover:bg-accent'}`}>My Itineraries</Link>
+                <Link to="/profile" className={`px-4 py-2 rounded-lg ${isActive('/profile') ? 'bg-primary/10 text-primary' : 'hover:bg-accent'}`}>
+                  <div className="flex items-center">
+                    <User className="h-4 w-4 mr-2" />
+                    My Profile
+                  </div>
+                </Link>
               </>
             )}
           </nav>

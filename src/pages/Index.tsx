@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Clock, Calendar, Compass } from 'lucide-react';
+import { MapPin, Clock, Calendar, Compass, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Navbar from '@/components/Navbar';
@@ -58,7 +58,7 @@ const Index = () => {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-4 gap-8">
             <FeatureCard
               title="Discover Places"
               description="Explore curated destinations across Navi Mumbai from scenic spots to cultural attractions."
@@ -72,6 +72,13 @@ const Index = () => {
               icon={Calendar}
               buttonText="Plan Now"
               buttonLink="/itinerary"
+            />
+            <FeatureCard
+              title="Join Discussions"
+              description="Connect with other travelers and locals to share experiences, tips, and recommendations."
+              icon={MessageSquare}
+              buttonText="Join Forum"
+              buttonLink="/forum"
             />
             <FeatureCard
               title="Get Recommendations"
@@ -164,6 +171,29 @@ const Index = () => {
               <h3 className="text-xl font-semibold mb-4">Travel Tips</h3>
               <TripTips locations={['Vashi', 'Nerul', 'Kharghar']} />
             </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Forum & Community Section */}
+      <section className="py-16 px-4 md:px-6 bg-muted/30">
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-4">Join Our Community</h2>
+          <p className="max-w-2xl mx-auto mb-8 text-muted-foreground">
+            Connect with fellow travelers, share your experiences, and get insider tips from locals through our discussion forum.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link to="/forum">
+              <Button size="lg" className="w-full sm:w-auto">
+                <MessageSquare className="mr-2 h-5 w-5" />
+                Browse Discussions
+              </Button>
+            </Link>
+            <Link to="/forum/create">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                Share Your Experience
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
