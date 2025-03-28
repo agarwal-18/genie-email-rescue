@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -108,7 +107,8 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
         budget: budget.toLowerCase(),
         interests: selectedInterests,
         includeFood,
-        transportation
+        transportation,
+        location // Pass selected location to the generator
       });
       
       setItinerary(generatedItinerary);

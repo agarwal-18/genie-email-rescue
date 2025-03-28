@@ -18,6 +18,7 @@ const Hero = ({ title, subtitle, ctaText, ctaLink, imageUrl }: HeroProps) => {
           src={imageUrl} 
           alt="Travel background" 
           className="w-full h-full object-cover"
+          loading="eager"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
       </div>
