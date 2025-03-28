@@ -6,7 +6,8 @@ interface ItineraryOptions {
   interests: string[];
   includeFood: boolean;
   transportation: string;
-  location?: string; // Optional location parameter
+  location?: string; // Keeping for backwards compatibility
+  locations?: string[]; // New multiple locations parameter
 }
 
 // Define the Place interface to ensure consistent data structure
@@ -398,41 +399,64 @@ const restaurants: Restaurant[] = [
 ];
 
 // Export function to get all places
-export const getAllPlaces = (): Place[] => {
+export function getAllPlaces(): Place[] {
   return places;
-};
+}
 
 // Export function to get all restaurants
-export const getAllRestaurants = (): Restaurant[] => {
+export function getAllRestaurants(): Restaurant[] {
   return restaurants;
-};
+}
 
 // Function to get places by location (used for itinerary generation)
-export const getPlacesByLocation = (locationName: string): Place[] => {
+export function getPlacesByLocation(locationName: string): Place[] {
   return places.filter(place => place.location === locationName);
-};
+}
+
+// Function to get places by multiple locations
+export function getPlacesByLocations(locationNames: string[]): Place[] {
+  return places.filter(place => locationNames.includes(place.location));
+}
 
 // Function to get restaurants by location (used for itinerary generation)
-export const getRestaurantsByLocation = (locationName: string): Restaurant[] => {
+export function getRestaurantsByLocation(locationName: string): Restaurant[] {
   return restaurants.filter(restaurant => restaurant.location === locationName);
-};
+}
+
+// Function to get restaurants by multiple locations
+export function getRestaurantsByLocations(locationNames: string[]): Restaurant[] {
+  return restaurants.filter(restaurant => locationNames.includes(restaurant.location));
+}
 
 // Export function to generate an itinerary based on provided options
-export const generateItinerary = (options: ItineraryOptions) => {
-  const { days, pace, budget, interests, includeFood, transportation, location } = options;
+export function generateItinerary(options: ItineraryOptions) {
+  const { days, pace, budget, interests, includeFood, transportation } = options;
+  
+  // Handle both single location and multiple locations
+  const locationsList = options.locations || (options.location ? [options.location] : []);
   
   // Array to store our itinerary
   const itinerary = [];
   
-  // Get places filtered by the selected location
-  const locationPlaces = location ? getPlacesByLocation(location) : places;
+  // Get places filtered by the selected locations
+  let locationPlaces: Place[] = [];
+  if (locationsList.length > 0) {
+    locationPlaces = getPlacesByLocations(locationsList);
+  } else {
+    locationPlaces = places;
+  }
   
-  // Get restaurants filtered by the selected location
-  const locationRestaurants = location ? getRestaurantsByLocation(location) : restaurants;
+  // Get restaurants filtered by the selected locations
+  let locationRestaurants: Restaurant[] = [];
+  if (locationsList.length > 0) {
+    locationRestaurants = getRestaurantsByLocations(locationsList);
+  } else {
+    locationRestaurants = restaurants;
+  }
   
-  // If we don't have enough places for the selected location, add some from nearby areas
+  // If we don't have enough places for the selected locations, add some from nearby areas
   if (locationPlaces.length < days * 3) {
-    console.log(`Not enough places in ${location}, adding some from nearby areas`);
+    console.log(`Not enough places in ${locationsList.join(', ')}, adding some from nearby areas`);
     // This would ideally use a more sophisticated algorithm to add nearby places
   }
   
@@ -589,4 +613,4 @@ export const generateItinerary = (options: ItineraryOptions) => {
   }
   
   return itinerary;
-};
+}

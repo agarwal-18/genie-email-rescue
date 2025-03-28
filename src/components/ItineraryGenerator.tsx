@@ -1,13 +1,13 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { generateItinerary } from '@/lib/data';
+import { Badge } from "@/components/ui/badge";
 
 interface ItineraryGeneratorProps {
   onGenerate?: (itinerary: any[]) => void;
@@ -52,7 +53,7 @@ const INTERESTS = [
 ];
 
 const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
-  const [location, setLocation] = useState<string>('Vashi');
+  const [selectedLocations, setSelectedLocations] = useState<string[]>(['Vashi']);
   const [numberOfDays, setNumberOfDays] = useState(3);
   const [startDate, setStartDate] = useState<Date | undefined>(new Date());
   const [selectedInterests, setSelectedInterests] = useState<string[]>(['Outdoor Activities', 'Local Cuisine']);
@@ -79,6 +80,17 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
     }
   }, [user, navigate, toast]);
 
+  const handleLocationToggle = (location: string) => {
+    if (selectedLocations.includes(location)) {
+      // Don't remove if it's the only location left
+      if (selectedLocations.length > 1) {
+        setSelectedLocations(selectedLocations.filter(loc => loc !== location));
+      }
+    } else {
+      setSelectedLocations([...selectedLocations, location]);
+    }
+  };
+
   const handleInterestToggle = (interest: string) => {
     if (selectedInterests.includes(interest)) {
       setSelectedInterests(selectedInterests.filter(i => i !== interest));
@@ -88,7 +100,7 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
   };
 
   const generateItineraryHandler = async () => {
-    if (!location || !numberOfDays || !startDate || selectedInterests.length === 0 || !pace || !budget || !transportation) {
+    if (!selectedLocations.length || !numberOfDays || !startDate || selectedInterests.length === 0 || !pace || !budget || !transportation) {
       toast({
         title: "Missing information",
         description: "Please fill in all the fields to generate an itinerary.",
@@ -100,7 +112,7 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
     setIsLoading(true);
     
     try {
-      // Using the data.ts generator function
+      // Using the data.ts generator function with multiple locations
       const generatedItinerary = generateItinerary({
         days: numberOfDays,
         pace: pace.toLowerCase(),
@@ -108,7 +120,7 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
         interests: selectedInterests,
         includeFood,
         transportation,
-        location // Pass selected location to the generator
+        locations: selectedLocations // Pass selected locations array
       });
       
       setItinerary(generatedItinerary);
@@ -148,14 +160,15 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
         .from('user_itineraries')
         .insert({
           user_id: user.id,
-          title: itineraryTitle || `Trip to ${location}`,
+          title: itineraryTitle || `Trip to ${selectedLocations.join(', ')}`,
           days: numberOfDays,
           start_date: startDateIso,
           pace: pace,
           budget: budget,
           interests: selectedInterests,
           transportation: transportation,
-          include_food: includeFood
+          include_food: includeFood,
+          locations: selectedLocations // Save multiple locations
         })
         .select()
         .single();
@@ -205,21 +218,35 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
       <h3 className="text-xl font-semibold mb-4">Create Your Itinerary</h3>
       
       <div className="space-y-6">
-        {/* Location Selection */}
+        {/* Multiple Location Selection */}
         <div>
-          <Label htmlFor="location">Location</Label>
-          <Select value={location} onValueChange={setLocation}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select location" />
-            </SelectTrigger>
-            <SelectContent>
-              {LOCATIONS.map((loc) => (
-                <SelectItem key={loc} value={loc}>
-                  {loc}, Navi Mumbai
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label className="mb-2 block">Locations</Label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {selectedLocations.map((loc) => (
+              <Badge key={loc} variant="secondary" className="flex items-center gap-1">
+                {loc}
+                <button 
+                  onClick={() => handleLocationToggle(loc)}
+                  disabled={selectedLocations.length <= 1}
+                  className="ml-1 rounded-full hover:bg-muted"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {LOCATIONS.filter(loc => !selectedLocations.includes(loc)).map((loc) => (
+              <Badge 
+                key={loc} 
+                variant="outline" 
+                className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                onClick={() => handleLocationToggle(loc)}
+              >
+                + {loc}
+              </Badge>
+            ))}
+          </div>
         </div>
         
         {/* Itinerary Title */}

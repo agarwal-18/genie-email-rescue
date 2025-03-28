@@ -21,6 +21,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
 import ItineraryGenerator from '@/components/ItineraryGenerator';
+import TripTips from '@/components/TripTips';
+import Weather from '@/components/Weather';
 
 interface ItineraryActivity {
   time: string;
@@ -38,12 +40,25 @@ interface ItineraryDay {
 
 const Itinerary = () => {
   const [itinerary, setItinerary] = useState<ItineraryDay[]>([]);
+  const [selectedLocations, setSelectedLocations] = useState<string[]>(['Vashi']);
   const { toast } = useToast();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
 
   const handleGenerateItinerary = (newItinerary: ItineraryDay[]) => {
     setItinerary(newItinerary);
+    
+    // Extract unique locations from the itinerary activities
+    const locations = new Set<string>();
+    newItinerary.forEach(day => {
+      day.activities.forEach(activity => {
+        if (activity.location) {
+          locations.add(activity.location);
+        }
+      });
+    });
+    
+    setSelectedLocations(Array.from(locations));
   };
 
   const handleShare = () => {
@@ -84,6 +99,20 @@ const Itinerary = () => {
             {/* Itinerary Generator */}
             <div className="md:col-span-5 lg:col-span-4 md:sticky md:top-24 h-fit">
               <ItineraryGenerator onGenerate={handleGenerateItinerary} />
+              
+              {/* Weather Widget */}
+              {selectedLocations.length > 0 && (
+                <div className="mt-4">
+                  <Weather location={selectedLocations[0]} />
+                </div>
+              )}
+              
+              {/* Trip Tips */}
+              {itinerary.length > 0 && (
+                <div className="mt-4">
+                  <TripTips locations={selectedLocations} />
+                </div>
+              )}
             </div>
             
             {/* Itinerary Display */}

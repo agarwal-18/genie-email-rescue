@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Search, Filter, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import {
 import PlaceCard from '@/components/PlaceCard';
 import Navbar from '@/components/Navbar';
 import { getAllPlaces } from '@/lib/data';
+import Weather from '@/components/Weather';
 
 interface Place {
   id: string;
@@ -30,12 +32,16 @@ const Places = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('all');
   const [filteredPlaces, setFilteredPlaces] = useState<Place[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<string>('Vashi');
 
   // Get places from data.ts
   const places = getAllPlaces();
 
   // Get all unique categories
   const categories = ['all', ...Array.from(new Set(places.map(place => place.category)))];
+  
+  // Get all unique locations
+  const locations = Array.from(new Set(places.map(place => place.location)));
 
   useEffect(() => {
     // Filter places based on search term and category
@@ -69,6 +75,27 @@ const Places = () => {
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Discover fascinating places around Navi Mumbai to add to your next exploration plan.
             </p>
+          </div>
+          
+          {/* Weather Component */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Local Weather</h2>
+              <Select 
+                value={selectedLocation} 
+                onValueChange={setSelectedLocation}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations.map((loc) => (
+                    <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Weather location={selectedLocation} />
           </div>
           
           {/* Search and Filter */}
