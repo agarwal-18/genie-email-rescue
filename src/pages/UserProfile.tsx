@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
   MapPin, 
@@ -120,17 +119,45 @@ const mockUserPosts = {
   'current-user': []
 };
 
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
+  category: string;
+  tags: string[];
+  createdAt: string;
+  likesCount: number;
+  commentsCount: number;
+  viewsCount: number;
+}
+
 const UserProfile = () => {
   const { userId } = useParams<{ userId: string }>();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('posts');
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
   
   // Get profile data - in a real app you would fetch this from your backend
   const profileId = userId || (user?.id || 'current-user');
   const profile = mockProfiles[profileId] || mockProfiles['current-user'];
-  const posts = mockUserPosts[profileId] || [];
+  const mockPostsForUser = mockUserPosts[profileId] || [];
   
   const isOwnProfile = !userId || userId === (user?.id || 'current-user');
+  
+  // Load user posts from localStorage
+  useEffect(() => {
+    // Get all posts from localStorage
+    const storedPosts = JSON.parse(localStorage.getItem('forumPosts') || '[]');
+    
+    // Filter posts by the profile user ID
+    const profilePosts = storedPosts.filter((post: Post) => post.authorId === profileId);
+    
+    // Combine with mock posts for this user
+    setUserPosts([...profilePosts, ...mockPostsForUser]);
+  }, [profileId]);
   
   // Format join date
   const joinDate = new Date(profile.joinDate);
@@ -227,9 +254,9 @@ const UserProfile = () => {
             </TabsList>
             
             <TabsContent value="posts" className="mt-0">
-              {posts.length > 0 ? (
+              {userPosts.length > 0 ? (
                 <div className="space-y-4">
-                  {posts.map(post => (
+                  {userPosts.map(post => (
                     <ForumPost key={post.id} post={post} />
                   ))}
                 </div>

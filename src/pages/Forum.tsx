@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Tag, Filter, Users, MapPin, Utensils, Mountain } from 'lucide-react';
@@ -122,17 +121,44 @@ const suggestedTopics = [
   "Nature walks and green spaces to explore"
 ];
 
+// Interface for Post type
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
+  category: string;
+  tags: string[];
+  createdAt: string;
+  likesCount: number;
+  commentsCount: number;
+  viewsCount: number;
+}
+
 const Forum = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredPosts, setFilteredPosts] = useState(mockPosts);
+  const [allPosts, setAllPosts] = useState<Post[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
 
+  // Load posts from localStorage and combine with mock posts
   useEffect(() => {
-    // Filter posts based on active category and search query
-    let posts = [...mockPosts];
+    // Get user-created posts from localStorage
+    const userPosts = JSON.parse(localStorage.getItem('forumPosts') || '[]');
+    
+    // Combine with mock posts, with user posts at the beginning
+    const combinedPosts = [...userPosts, ...mockPosts];
+    setAllPosts(combinedPosts);
+  }, []);
+
+  // Filter posts based on active category and search query
+  useEffect(() => {
+    let posts = [...allPosts];
     
     if (activeCategory && activeCategory !== 'all') {
       posts = posts.filter(post => post.category === activeCategory);
@@ -148,7 +174,7 @@ const Forum = () => {
     }
     
     setFilteredPosts(posts);
-  }, [activeCategory, searchQuery]);
+  }, [activeCategory, searchQuery, allPosts]);
 
   const handleCreatePost = () => {
     if (!user) {

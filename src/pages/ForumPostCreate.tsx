@@ -15,10 +15,12 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ForumPostCreate = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('');
@@ -73,7 +75,31 @@ const ForumPostCreate = () => {
       return;
     }
     
-    // Here you would normally save the post to your backend
+    // Create the new post object
+    const newPost = {
+      id: Date.now().toString(),
+      title: title.trim(),
+      content: content.trim(),
+      authorId: user?.id || 'current-user',
+      authorName: user?.displayName || 'CurrentUser',
+      authorAvatar: user?.photoURL || 'https://i.pravatar.cc/150?img=8',
+      category,
+      tags,
+      createdAt: new Date().toISOString(),
+      likesCount: 0,
+      commentsCount: 0,
+      viewsCount: 0
+    };
+    
+    // Get existing posts from localStorage or create empty array
+    const existingPosts = JSON.parse(localStorage.getItem('forumPosts') || '[]');
+    
+    // Add new post to the array
+    const updatedPosts = [newPost, ...existingPosts];
+    
+    // Save back to localStorage
+    localStorage.setItem('forumPosts', JSON.stringify(updatedPosts));
+    
     toast({
       title: "Post created!",
       description: "Your post has been submitted successfully"
