@@ -31,7 +31,7 @@ const locationTips: Record<string, { bestTime: string, mustVisit: string[], avoi
   'Belapur': {
     bestTime: 'October to March for outdoor activities.',
     mustVisit: ['Belapur Fort', 'Parsik Hill', 'Bonsai Garden'],
-    avoid: 'The fort area after sunset as it's not well-lit.',
+    avoid: "The fort area after sunset as it's not well-lit.",
     localCustoms: 'Many local shops close for afternoon breaks from 1-4 PM.'
   },
   'Airoli': {

@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/select';
 import PlaceCard from '@/components/PlaceCard';
 import Navbar from '@/components/Navbar';
-import { getAllPlaces } from '@/lib/data';
+import { getPlaces } from '@/lib/data';
 import Weather from '@/components/Weather';
 
 interface Place {
@@ -35,7 +35,7 @@ const Places = () => {
   const [selectedLocation, setSelectedLocation] = useState<string>('Vashi');
 
   // Get places from data.ts
-  const places = getAllPlaces();
+  const places = getPlaces();
 
   // Get all unique categories
   const categories = ['all', ...Array.from(new Set(places.map(place => place.category)))];
