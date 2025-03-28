@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,18 @@ import FeatureCard from '@/components/FeatureCard';
 import PlaceCard from '@/components/PlaceCard';
 import { MapPin, Calendar, Compass, Clock, Bookmark } from 'lucide-react';
 import { getAllPlaces } from '@/lib/data';
+
+interface Place {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  image: string;
+  rating: number;
+  location: string;
+  duration?: string;
+  featured?: boolean;
+}
 
 const Index = () => {
   const [activeFeature, setActiveFeature] = useState<number>(0);

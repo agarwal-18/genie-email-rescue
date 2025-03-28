@@ -12,7 +12,7 @@ interface HeroProps {
 
 const Hero = ({ title, subtitle, ctaText, ctaLink, imageUrl }: HeroProps) => {
   return (
-    <div className="relative min-h-[90vh] flex items-center">
+    <div className="relative min-h-[90vh] flex items-center overflow-hidden">
       <div className="absolute inset-0 z-0">
         <img 
           src={imageUrl} 

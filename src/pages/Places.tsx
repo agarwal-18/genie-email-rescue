@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Search, Filter, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,10 +14,22 @@ import PlaceCard from '@/components/PlaceCard';
 import Navbar from '@/components/Navbar';
 import { getAllPlaces } from '@/lib/data';
 
+interface Place {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  image: string;
+  rating: number;
+  location: string;
+  duration?: string;
+  featured?: boolean;
+}
+
 const Places = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('all');
-  const [filteredPlaces, setFilteredPlaces] = useState<any[]>([]);
+  const [filteredPlaces, setFilteredPlaces] = useState<Place[]>([]);
 
   // Get places from data.ts
   const places = getAllPlaces();
