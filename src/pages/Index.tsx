@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPinIcon, Clock, CalendarIcon, Compass } from 'lucide-react';
+import { MapPin, Clock, Calendar, Compass } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Navbar from '@/components/Navbar';
@@ -62,14 +62,14 @@ const Index = () => {
             <FeatureCard
               title="Discover Places"
               description="Explore curated destinations across Navi Mumbai from scenic spots to cultural attractions."
-              icon={<MapPinIcon className="h-10 w-10" />}
+              icon={<MapPin className="h-10 w-10" />}
               buttonText="View Places"
               buttonLink="/places"
             />
             <FeatureCard
               title="Plan Itineraries"
               description="Create customized travel plans with our easy-to-use itinerary builder based on your preferences."
-              icon={<CalendarIcon className="h-10 w-10" />}
+              icon={<Calendar className="h-10 w-10" />}
               buttonText="Plan Now"
               buttonLink="/itinerary"
             />
@@ -118,7 +118,7 @@ const Index = () => {
                     </div>
                   </div>
                   <CardDescription className="flex items-center mt-1">
-                    <MapPinIcon className="h-4 w-4 mr-1" />
+                    <MapPin className="h-4 w-4 mr-1" />
                     {place.location}
                   </CardDescription>
                 </CardHeader>

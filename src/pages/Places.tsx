@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/select';
 import PlaceCard from '@/components/PlaceCard';
 import Navbar from '@/components/Navbar';
-import { getPlaces } from '@/lib/data';
+import { getAllPlaces } from '@/lib/data';
 import Weather from '@/components/Weather';
 
 interface Place {
@@ -35,7 +35,7 @@ const Places = () => {
   const [selectedLocation, setSelectedLocation] = useState<string>('Vashi');
 
   // Get places from data.ts
-  const places = getPlaces();
+  const places = getAllPlaces();
 
   // Get all unique categories
   const categories = ['all', ...Array.from(new Set(places.map(place => place.category)))];
@@ -90,7 +90,7 @@ const Places = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {locations.map((loc) => (
-                    <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                    <SelectItem key={loc as string} value={loc as string}>{loc as string}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -119,7 +119,7 @@ const Places = () => {
                 <SelectContent>
                   <SelectGroup>
                     {categories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
+                      <SelectItem key={cat as string} value={cat as string}>
                         {cat === 'all' ? 'All Categories' : cat}
                       </SelectItem>
                     ))}

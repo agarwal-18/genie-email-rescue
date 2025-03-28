@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface PlaceCardProps {
-  id: number;
+  id: string;
   name: string;
   category: string;
   description: string;
