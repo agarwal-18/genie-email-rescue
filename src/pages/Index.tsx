@@ -62,21 +62,21 @@ const Index = () => {
             <FeatureCard
               title="Discover Places"
               description="Explore curated destinations across Navi Mumbai from scenic spots to cultural attractions."
-              icon={<MapPin className="h-10 w-10" />}
+              icon={MapPin}
               buttonText="View Places"
               buttonLink="/places"
             />
             <FeatureCard
               title="Plan Itineraries"
               description="Create customized travel plans with our easy-to-use itinerary builder based on your preferences."
-              icon={<Calendar className="h-10 w-10" />}
+              icon={Calendar}
               buttonText="Plan Now"
               buttonLink="/itinerary"
             />
             <FeatureCard
               title="Get Recommendations"
               description="Receive personalized suggestions for attractions, dining, and activities tailored to your interests."
-              icon={<Compass className="h-10 w-10" />}
+              icon={Compass}
               buttonText="Get Started"
               buttonLink="/register"
             />
