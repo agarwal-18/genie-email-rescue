@@ -1,8 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { Cloud, CloudRain, Sun, CloudSun, Loader2, CloudDrizzle, Wind } from 'lucide-react';
+import { Cloud, CloudRain, Sun, CloudSun, Loader2, CloudDrizzle, Wind, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface WeatherProps {
   location: string;
@@ -17,7 +18,7 @@ interface WeatherData {
   icon: React.ReactNode;
 }
 
-// More realistic weather data with location-specific patterns
+// Simulated weather data with location-specific patterns (not real weather data)
 const getWeatherData = (location: string): WeatherData => {
   // Create a deterministic but location-specific hash
   const hash = Array.from(location).reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -92,7 +93,19 @@ const Weather = ({ location, className }: WeatherProps) => {
       <CardHeader className="bg-primary/5 p-4">
         <CardTitle className="text-sm font-medium flex items-center justify-between">
           <span>Current Weather in {location}</span>
-          {weather && weather.icon}
+          <div className="flex items-center">
+            {weather && weather.icon}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-4 w-4 ml-2 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">This is simulated weather data for demonstration purposes</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4">

@@ -39,6 +39,7 @@ const Places = () => {
     const savedFavorites = localStorage.getItem('favorites');
     return savedFavorites ? JSON.parse(savedFavorites) : [];
   });
+  const [featuredPlace, setFeaturedPlace] = useState<Place | null>(null);
 
   // Get places from data.ts
   const places = getAllPlaces();
@@ -79,12 +80,24 @@ const Places = () => {
     // Filter by tab (all or favorites)
     if (currentTab === 'favorites') {
       results = results.filter(place => favorites.includes(place.id));
+      setFeaturedPlace(null);
+    } else {
+      // Find a featured place that matches the current category filter
+      const possibleFeaturedPlaces = places.filter(place => 
+        place.featured && (category === 'all' || place.category === category)
+      );
+      
+      // Use the first matching featured place, or null if none
+      setFeaturedPlace(possibleFeaturedPlaces.length > 0 ? possibleFeaturedPlaces[0] : null);
+      
+      // Remove the featured place from the filtered results to avoid duplication
+      if (possibleFeaturedPlaces.length > 0) {
+        results = results.filter(place => place.id !== possibleFeaturedPlaces[0].id);
+      }
     }
     
     setFilteredPlaces(results);
   }, [searchTerm, category, places, currentTab, favorites]);
-
-  const featuredPlace = places.find(place => place.featured) || places[0]; // Use first featured place or first place
 
   return (
     <div className="min-h-screen bg-background">
@@ -166,7 +179,7 @@ const Places = () => {
           </div>
           
           {/* Featured Destination (only show in All tab) */}
-          {currentTab === 'all' && (
+          {currentTab === 'all' && featuredPlace && (
             <div className="mb-12">
               <PlaceCard
                 id={featuredPlace.id}
@@ -185,23 +198,21 @@ const Places = () => {
           
           {/* All Places or Favorites */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPlaces
-              .filter(place => currentTab === 'all' ? place.id !== featuredPlace.id : true)
-              .map((place) => (
-                <PlaceCard
-                  key={place.id}
-                  id={place.id}
-                  name={place.name}
-                  category={place.category}
-                  description={place.description}
-                  image={place.image}
-                  rating={place.rating}
-                  duration={place.duration}
-                  location={place.location}
-                  onFavoriteToggle={toggleFavorite}
-                  isFavorite={favorites.includes(place.id)}
-                />
-              ))}
+            {filteredPlaces.map((place) => (
+              <PlaceCard
+                key={place.id}
+                id={place.id}
+                name={place.name}
+                category={place.category}
+                description={place.description}
+                image={place.image}
+                rating={place.rating}
+                duration={place.duration}
+                location={place.location}
+                onFavoriteToggle={toggleFavorite}
+                isFavorite={favorites.includes(place.id)}
+              />
+            ))}
           </div>
           
           {filteredPlaces.length === 0 && (
