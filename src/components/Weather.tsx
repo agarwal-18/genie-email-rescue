@@ -63,19 +63,32 @@ const Weather = ({ location, className }: WeatherProps) => {
     
     const fetchWeatherData = async () => {
       try {
+        console.log(`Fetching weather for ${location}...`);
+        
         // Encode location for URL
         const encodedLocation = encodeURIComponent(location);
         
-        // Fetch weather data from OpenWeatherMap API
-        const response = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${encodedLocation},in&units=metric&appid=${API_KEY}`
-        );
+        // Use HTTPS for the API call
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodedLocation},in&units=metric&appid=${API_KEY}`;
+        console.log("API URL:", url);
+        
+        // Add a timeout to the fetch request
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        const response = await fetch(url, { 
+          signal: controller.signal,
+          mode: 'cors' // Ensure CORS is enabled
+        });
+        
+        clearTimeout(timeoutId);
         
         if (!response.ok) {
-          throw new Error(`Weather data not available for ${location}`);
+          throw new Error(`API returned status ${response.status}`);
         }
         
         const data = await response.json();
+        console.log("Weather data received:", data);
         
         // Extract and format relevant weather data
         const weatherData: WeatherData = {
@@ -88,7 +101,7 @@ const Weather = ({ location, className }: WeatherProps) => {
         
         setWeather(weatherData);
         setLoading(false);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error fetching weather data:", err);
         setError(`Could not fetch weather data for ${location}`);
         setLoading(false);
