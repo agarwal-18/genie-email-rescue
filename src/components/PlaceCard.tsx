@@ -14,6 +14,8 @@ interface PlaceCardProps {
   duration?: string;
   location: string;
   featured?: boolean;
+  onFavoriteToggle?: (id: string) => void;
+  isFavorite?: boolean;
 }
 
 const PlaceCard = ({ 
@@ -25,36 +27,63 @@ const PlaceCard = ({
   rating, 
   duration, 
   location,
-  featured = false 
+  featured = false,
+  onFavoriteToggle,
+  isFavorite = false
 }: PlaceCardProps) => {
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const img = new Image();
     img.src = image;
-    img.onload = () => setLoaded(true);
+    img.onload = () => {
+      setLoaded(true);
+      setError(false);
+    };
+    img.onerror = () => {
+      setError(true);
+      setLoaded(true); // Still mark as loaded to remove loading state
+    };
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
   }, [image]);
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (onFavoriteToggle) {
+      onFavoriteToggle(id);
+    }
+  };
 
   return (
     <div 
       className={cn(
-        "flex flex-col rounded-xl overflow-hidden bg-white shadow-sm transition-all duration-300 hover:shadow-md",
+        "flex flex-col rounded-xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm transition-all duration-300 hover:shadow-md",
         featured ? "md:flex-row" : "h-full",
         !loaded && "animate-pulse"
       )}
     >
       <div className={cn(
-        "overflow-hidden",
+        "overflow-hidden relative",
         featured ? "md:w-1/2 h-60 md:h-auto" : "h-48"
       )}>
-        {loaded ? (
+        {!loaded && !error ? (
+          <div className="w-full h-full bg-muted"></div>
+        ) : error ? (
+          <div className="w-full h-full flex items-center justify-center bg-muted">
+            <p className="text-sm text-muted-foreground">Image unavailable</p>
+          </div>
+        ) : (
           <img 
             src={image} 
             alt={name}
             className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
           />
-        ) : (
-          <div className="w-full h-full bg-muted"></div>
         )}
       </div>
       
@@ -75,7 +104,13 @@ const PlaceCard = ({
             </h3>
           </div>
           <div className="flex items-center">
-            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+            <Star 
+              className={cn(
+                "w-5 h-5 cursor-pointer", 
+                isFavorite ? "text-yellow-500 fill-yellow-500" : "text-gray-400"
+              )} 
+              onClick={handleFavoriteClick}
+            />
             <span className="ml-1 text-sm font-medium">{rating.toFixed(1)}</span>
           </div>
         </div>

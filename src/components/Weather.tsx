@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Cloud, CloudRain, Sun, CloudSun, Loader2 } from 'lucide-react';
+import { Cloud, CloudRain, Sun, CloudSun, Loader2, CloudDrizzle, Wind } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
@@ -17,12 +17,25 @@ interface WeatherData {
   icon: React.ReactNode;
 }
 
-// Mock weather data generator for demo purposes
+// More realistic weather data with location-specific patterns
 const getWeatherData = (location: string): WeatherData => {
-  // In a real app, this would be an API call to a weather service
-  const conditions = ['Sunny', 'Partly Cloudy', 'Cloudy', 'Rainy'];
-  const randomIndex = Math.floor(Math.random() * conditions.length);
-  const condition = conditions[randomIndex];
+  // Create a deterministic but location-specific hash
+  const hash = Array.from(location).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  
+  // Use the hash to create deterministic but different weather for each location
+  const conditions = ['Sunny', 'Partly Cloudy', 'Cloudy', 'Rainy', 'Drizzle', 'Windy'];
+  const index = hash % conditions.length;
+  const condition = conditions[index];
+  
+  // Temperature is 25-35°C, but varies by location
+  const tempBase = 25 + (hash % 10);
+  const temperature = tempBase;
+  
+  // Humidity is 50-80%, but varies by location
+  const humidity = 50 + (hash % 30);
+  
+  // Wind speed is 5-25 km/h, but varies by location
+  const windSpeed = 5 + (hash % 20);
   
   let icon;
   switch (condition) {
@@ -38,15 +51,21 @@ const getWeatherData = (location: string): WeatherData => {
     case 'Rainy':
       icon = <CloudRain className="h-8 w-8 text-blue-600" />;
       break;
+    case 'Drizzle':
+      icon = <CloudDrizzle className="h-8 w-8 text-blue-400" />;
+      break;
+    case 'Windy':
+      icon = <Wind className="h-8 w-8 text-gray-500" />;
+      break;
     default:
       icon = <Sun className="h-8 w-8 text-yellow-500" />;
   }
   
   return {
     condition,
-    temperature: Math.floor(Math.random() * 10) + 25, // 25-35°C
-    humidity: Math.floor(Math.random() * 30) + 50, // 50-80%
-    windSpeed: Math.floor(Math.random() * 20) + 5, // 5-25 km/h
+    temperature,
+    humidity,
+    windSpeed,
     icon
   };
 };
@@ -56,11 +75,14 @@ const Weather = ({ location, className }: WeatherProps) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API call
+    // Reset for new location
+    setLoading(true);
+    
+    // Simulate API call with a short delay
     const timer = setTimeout(() => {
       setWeather(getWeatherData(location));
       setLoading(false);
-    }, 1000);
+    }, 800);
     
     return () => clearTimeout(timer);
   }, [location]);

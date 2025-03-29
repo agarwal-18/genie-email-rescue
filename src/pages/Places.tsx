@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Search, Filter, MapPin } from 'lucide-react';
+import { Search, Filter, MapPin, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PlaceCard from '@/components/PlaceCard';
 import Navbar from '@/components/Navbar';
 import { getAllPlaces } from '@/lib/data';
@@ -33,6 +34,11 @@ const Places = () => {
   const [category, setCategory] = useState('all');
   const [filteredPlaces, setFilteredPlaces] = useState<Place[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string>('Vashi');
+  const [currentTab, setCurrentTab] = useState('all');
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    const savedFavorites = localStorage.getItem('favorites');
+    return savedFavorites ? JSON.parse(savedFavorites) : [];
+  });
 
   // Get places from data.ts
   const places = getAllPlaces();
@@ -43,8 +49,20 @@ const Places = () => {
   // Get all unique locations
   const locations = Array.from(new Set(places.map(place => place.location)));
 
+  // Toggle favorite status for a place
+  const toggleFavorite = (id: string) => {
+    setFavorites(prev => {
+      const newFavorites = prev.includes(id)
+        ? prev.filter(fav => fav !== id)
+        : [...prev, id];
+      
+      localStorage.setItem('favorites', JSON.stringify(newFavorites));
+      return newFavorites;
+    });
+  };
+
   useEffect(() => {
-    // Filter places based on search term and category
+    // Filter places based on search term, category, and current tab
     let results = places;
     
     if (searchTerm) {
@@ -57,9 +75,14 @@ const Places = () => {
     if (category !== 'all') {
       results = results.filter(place => place.category === category);
     }
+
+    // Filter by tab (all or favorites)
+    if (currentTab === 'favorites') {
+      results = results.filter(place => favorites.includes(place.id));
+    }
     
     setFilteredPlaces(results);
-  }, [searchTerm, category, places]);
+  }, [searchTerm, category, places, currentTab, favorites]);
 
   const featuredPlace = places.find(place => place.featured) || places[0]; // Use first featured place or first place
 
@@ -99,7 +122,7 @@ const Places = () => {
           </div>
           
           {/* Search and Filter */}
-          <div className="mb-12 grid gap-4 md:flex md:items-center md:space-x-4">
+          <div className="mb-8 grid gap-4 md:flex md:items-center md:space-x-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -128,43 +151,72 @@ const Places = () => {
               </Select>
             </div>
           </div>
-          
-          {/* Featured Destination */}
-          <div className="mb-12">
-            <PlaceCard
-              id={featuredPlace.id}
-              name={featuredPlace.name}
-              category={featuredPlace.category}
-              description={featuredPlace.description}
-              image={featuredPlace.image}
-              rating={featuredPlace.rating}
-              location={featuredPlace.location}
-              featured={true}
-            />
+
+          {/* Tabs for All/Favorites */}
+          <div className="mb-8">
+            <Tabs defaultValue="all" value={currentTab} onValueChange={setCurrentTab}>
+              <TabsList className="grid w-full md:w-[400px] grid-cols-2">
+                <TabsTrigger value="all">All Places</TabsTrigger>
+                <TabsTrigger value="favorites" className="flex items-center">
+                  <Star className="w-4 h-4 mr-2" />
+                  Favorites
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
           
-          {/* All Places */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPlaces.filter(place => place.id !== featuredPlace.id).map((place) => (
+          {/* Featured Destination (only show in All tab) */}
+          {currentTab === 'all' && (
+            <div className="mb-12">
               <PlaceCard
-                key={place.id}
-                id={place.id}
-                name={place.name}
-                category={place.category}
-                description={place.description}
-                image={place.image}
-                rating={place.rating}
-                duration={place.duration}
-                location={place.location}
+                id={featuredPlace.id}
+                name={featuredPlace.name}
+                category={featuredPlace.category}
+                description={featuredPlace.description}
+                image={featuredPlace.image}
+                rating={featuredPlace.rating}
+                location={featuredPlace.location}
+                featured={true}
+                onFavoriteToggle={toggleFavorite}
+                isFavorite={favorites.includes(featuredPlace.id)}
               />
-            ))}
+            </div>
+          )}
+          
+          {/* All Places or Favorites */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredPlaces
+              .filter(place => currentTab === 'all' ? place.id !== featuredPlace.id : true)
+              .map((place) => (
+                <PlaceCard
+                  key={place.id}
+                  id={place.id}
+                  name={place.name}
+                  category={place.category}
+                  description={place.description}
+                  image={place.image}
+                  rating={place.rating}
+                  duration={place.duration}
+                  location={place.location}
+                  onFavoriteToggle={toggleFavorite}
+                  isFavorite={favorites.includes(place.id)}
+                />
+              ))}
           </div>
           
           {filteredPlaces.length === 0 && (
             <div className="text-center py-12">
               <MapPin className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No destinations found</h3>
-              <p className="text-muted-foreground">Try adjusting your search or filter criteria</p>
+              <h3 className="text-lg font-medium">
+                {currentTab === 'favorites' 
+                  ? "No favorite destinations yet" 
+                  : "No destinations found"}
+              </h3>
+              <p className="text-muted-foreground">
+                {currentTab === 'favorites'
+                  ? "Click the star icon on any destination to add it to your favorites"
+                  : "Try adjusting your search or filter criteria"}
+              </p>
             </div>
           )}
         </div>
