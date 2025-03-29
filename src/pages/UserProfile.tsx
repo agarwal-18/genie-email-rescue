@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { 
@@ -26,27 +27,31 @@ const UserProfile = () => {
     const mockUsers = [
       {
         id: '1',
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        location: 'Navi Mumbai',
-        memberSince: '2023-01-15',
-        bio: 'Travel enthusiast exploring Navi Mumbai and sharing experiences.',
-        savedItineraries: 5,
-        forumPosts: 12,
-      },
-      {
-        id: currentUser?.id || '2',
-        name: currentUser?.email?.split('@')[0] || 'Guest User',
-        email: currentUser?.email || 'guest@example.com',
+        username: 'ganeshaditya125',
+        name: 'Ganesh Aditya',
+        email: 'ganeshaditya125@gmail.com',
         location: 'Navi Mumbai',
         memberSince: '2023-05-20',
         bio: 'Loves exploring local food and hidden gems in Navi Mumbai.',
         savedItineraries: 3,
         forumPosts: 8,
+        hoursExplored: 36,
+      },
+      {
+        id: currentUser?.id || '2',
+        username: 'ganeshaditya125',
+        name: currentUser?.email?.split('@')[0] || 'Ganesh Aditya',
+        email: currentUser?.email || 'ganeshaditya125@gmail.com',
+        location: 'Navi Mumbai',
+        memberSince: '2023-05-20',
+        bio: 'Loves exploring local food and hidden gems in Navi Mumbai.',
+        savedItineraries: 3,
+        forumPosts: 8,
+        hoursExplored: 36,
       },
     ];
 
-    const user = mockUsers.find(u => u.id === (userId || currentUser?.id));
+    const user = mockUsers.find(u => u.id === (userId || currentUser?.id)) || mockUsers[1];
     setUserProfile(user);
   }, [userId, currentUser]);
 
@@ -74,7 +79,7 @@ const UserProfile = () => {
             <CardTitle className="text-2xl font-medium">
               <div className="flex items-center">
                 <UserIcon className="mr-2 h-5 w-5" />
-                {userProfile.name}
+                {userProfile.username}
               </div>
             </CardTitle>
             {isCurrentUserProfile && (
@@ -120,7 +125,7 @@ const UserProfile = () => {
               <Card className="glass">
                 <CardContent className="flex flex-col items-center justify-center p-4">
                   <Clock className="h-6 w-6 text-primary mb-2" />
-                  <div className="text-xl font-semibold">36</div>
+                  <div className="text-xl font-semibold">{userProfile.hoursExplored}</div>
                   <div className="text-sm text-muted-foreground">Hours Explored</div>
                 </CardContent>
               </Card>
