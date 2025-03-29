@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Search, Filter, MapPin, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -71,6 +70,22 @@ const Places = () => {
         place.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         place.location.toLowerCase().includes(searchTerm.toLowerCase())
       );
+      
+      // Apply proper sorting based on search match relevance
+      results.sort((a, b) => {
+        const aNameMatch = a.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const bNameMatch = b.name.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        // If one matches in name and the other doesn't, prioritize the name match
+        if (aNameMatch && !bNameMatch) return -1;
+        if (!aNameMatch && bNameMatch) return 1;
+        
+        // Otherwise sort by rating as secondary criteria
+        return b.rating - a.rating;
+      });
+    } else {
+      // When no search term is provided, sort by rating
+      results = [...results].sort((a, b) => b.rating - a.rating);
     }
     
     if (category !== 'all') {
