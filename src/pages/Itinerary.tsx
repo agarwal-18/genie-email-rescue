@@ -23,6 +23,7 @@ import Navbar from '@/components/Navbar';
 import ItineraryGenerator from '@/components/ItineraryGenerator';
 import TripTips from '@/components/TripTips';
 import Weather from '@/components/Weather';
+import ItineraryMap from '@/components/ItineraryMap';
 
 interface ItineraryActivity {
   time: string;
@@ -41,6 +42,7 @@ interface ItineraryDay {
 const Itinerary = () => {
   const [itinerary, setItinerary] = useState<ItineraryDay[]>([]);
   const [selectedLocations, setSelectedLocations] = useState<string[]>(['Vashi']);
+  const [isMapOpen, setIsMapOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
@@ -80,6 +82,18 @@ const Itinerary = () => {
       title: "Itinerary downloaded",
       description: "Your itinerary has been downloaded as a PDF.",
     });
+  };
+
+  const handleOpenMap = () => {
+    if (itinerary.length > 0) {
+      setIsMapOpen(true);
+    } else {
+      toast({
+        title: "No itinerary created",
+        description: "Generate an itinerary first to view it on the map.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -215,7 +229,7 @@ const Itinerary = () => {
                   </Card>
                   
                   <div className="flex justify-between items-center">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={handleOpenMap}>
                       <Map className="h-4 w-4 mr-2" />
                       <span>View on Map</span>
                     </Button>
@@ -254,6 +268,15 @@ const Itinerary = () => {
           </div>
         </div>
       </div>
+      
+      {/* Map Dialog */}
+      {itinerary.length > 0 && (
+        <ItineraryMap 
+          itinerary={itinerary} 
+          isOpen={isMapOpen} 
+          onClose={() => setIsMapOpen(false)} 
+        />
+      )}
     </div>
   );
 };

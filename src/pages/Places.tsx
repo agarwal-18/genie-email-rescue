@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Search, Filter, MapPin, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -65,18 +66,28 @@ const Places = () => {
     // Filter places based on search term, category, and current tab
     let results = places;
     
+    // Apply search filter if there's a search term
     if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      
+      // Filter places that match the search term
       results = results.filter(place => 
-        place.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        place.location.toLowerCase().includes(searchTerm.toLowerCase())
+        place.name.toLowerCase().includes(searchLower) ||
+        place.location.toLowerCase().includes(searchLower) ||
+        place.category.toLowerCase().includes(searchLower) ||
+        place.description.toLowerCase().includes(searchLower)
       );
       
-      // Apply proper sorting based on search match relevance
+      // Sort by exact name match first, then partial name match, then other fields
       results.sort((a, b) => {
-        const aNameMatch = a.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const bNameMatch = b.name.toLowerCase().includes(searchTerm.toLowerCase());
+        // Exact name match gets highest priority
+        if (a.name.toLowerCase() === searchLower && b.name.toLowerCase() !== searchLower) return -1;
+        if (a.name.toLowerCase() !== searchLower && b.name.toLowerCase() === searchLower) return 1;
         
-        // If one matches in name and the other doesn't, prioritize the name match
+        // Partial name match gets second priority
+        const aNameMatch = a.name.toLowerCase().includes(searchLower);
+        const bNameMatch = b.name.toLowerCase().includes(searchLower);
+        
         if (aNameMatch && !bNameMatch) return -1;
         if (!aNameMatch && bNameMatch) return 1;
         
@@ -88,6 +99,7 @@ const Places = () => {
       results = [...results].sort((a, b) => b.rating - a.rating);
     }
     
+    // Apply category filter
     if (category !== 'all') {
       results = results.filter(place => place.category === category);
     }
@@ -97,17 +109,22 @@ const Places = () => {
       results = results.filter(place => favorites.includes(place.id));
       setFeaturedPlace(null);
     } else {
-      // Find a featured place that matches the current category filter
-      const possibleFeaturedPlaces = places.filter(place => 
+      // For featured place selection, avoid always taking the first one
+      // Only use featured places that match the current category filter
+      const eligibleFeatured = places.filter(place => 
         place.featured && (category === 'all' || place.category === category)
       );
       
-      // Use the first matching featured place, or null if none
-      setFeaturedPlace(possibleFeaturedPlaces.length > 0 ? possibleFeaturedPlaces[0] : null);
-      
-      // Remove the featured place from the filtered results to avoid duplication
-      if (possibleFeaturedPlaces.length > 0) {
-        results = results.filter(place => place.id !== possibleFeaturedPlaces[0].id);
+      // Randomly select a featured place from eligible ones if available
+      // This prevents always showing the same featured place
+      if (eligibleFeatured.length > 0) {
+        const randomIndex = Math.floor(Math.random() * eligibleFeatured.length);
+        setFeaturedPlace(eligibleFeatured[randomIndex]);
+        
+        // Remove the featured place from results to avoid duplication
+        results = results.filter(place => place.id !== eligibleFeatured[randomIndex].id);
+      } else {
+        setFeaturedPlace(null);
       }
     }
     
