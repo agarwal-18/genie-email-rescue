@@ -22,9 +22,10 @@ interface Post {
 
 interface ForumPostProps {
   post: Post;
+  onTagClick?: (tag: string) => void;
 }
 
-const ForumPost = ({ post }: ForumPostProps) => {
+const ForumPost = ({ post, onTagClick }: ForumPostProps) => {
   // Get author initials for avatar fallback
   const getInitials = (name: string) => {
     return name
@@ -47,6 +48,15 @@ const ForumPost = ({ post }: ForumPostProps) => {
     };
     
     return categories[categoryId] || categoryId;
+  };
+
+  // Handle tag click
+  const handleTagClick = (e: React.MouseEvent, tag: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onTagClick) {
+      onTagClick(tag);
+    }
   };
 
   return (
@@ -87,7 +97,12 @@ const ForumPost = ({ post }: ForumPostProps) => {
           
           <div className="mt-3 flex flex-wrap gap-1">
             {post.tags.map(tag => (
-              <Badge key={tag} variant="secondary" className="text-xs">
+              <Badge 
+                key={tag} 
+                variant="secondary" 
+                className="text-xs cursor-pointer hover:bg-secondary/80"
+                onClick={(e) => handleTagClick(e, tag)}
+              >
                 {tag}
               </Badge>
             ))}

@@ -1,10 +1,17 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Tag, Filter, Users, MapPin, Utensils, Mountain } from 'lucide-react';
+import { Search, Plus, Tag, Filter, Users, MapPin, Utensils, Mountain, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import Navbar from '@/components/Navbar';
 import ForumCategory from '@/components/ForumCategory';
 import ForumPost from '@/components/ForumPost';
@@ -145,6 +152,15 @@ const Forum = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [allPosts, setAllPosts] = useState<Post[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isTagPopoverOpen, setIsTagPopoverOpen] = useState(false);
+
+  // Extract all unique tags from posts
+  const allTags = Array.from(
+    new Set(
+      allPosts.flatMap(post => post.tags)
+    )
+  ).sort();
 
   // Load posts from localStorage and combine with mock posts
   useEffect(() => {
@@ -156,14 +172,16 @@ const Forum = () => {
     setAllPosts(combinedPosts);
   }, []);
 
-  // Filter posts based on active category and search query
+  // Filter posts based on active category, search query, and selected tags
   useEffect(() => {
     let posts = [...allPosts];
     
+    // Filter by category
     if (activeCategory && activeCategory !== 'all') {
       posts = posts.filter(post => post.category === activeCategory);
     }
     
+    // Filter by search query
     if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
       posts = posts.filter(post => 
@@ -172,9 +190,18 @@ const Forum = () => {
         post.tags.some(tag => tag.toLowerCase().includes(query))
       );
     }
+
+    // Filter by selected tags
+    if (selectedTags.length > 0) {
+      posts = posts.filter(post => 
+        selectedTags.every(tag => 
+          post.tags.some(postTag => postTag.toLowerCase() === tag.toLowerCase())
+        )
+      );
+    }
     
     setFilteredPosts(posts);
-  }, [activeCategory, searchQuery, allPosts]);
+  }, [activeCategory, searchQuery, allPosts, selectedTags]);
 
   const handleCreatePost = () => {
     if (!user) {
@@ -188,6 +215,23 @@ const Forum = () => {
     }
     
     navigate('/forum/create');
+  };
+
+  // Handle tag click from ForumPost component
+  const handleTagClick = (tag: string) => {
+    if (!selectedTags.includes(tag)) {
+      setSelectedTags(prev => [...prev, tag]);
+    }
+  };
+
+  // Handle removing a selected tag
+  const handleRemoveTag = (tag: string) => {
+    setSelectedTags(prev => prev.filter(t => t !== tag));
+  };
+
+  // Handle clearing all selected tags
+  const handleClearTags = () => {
+    setSelectedTags([]);
   };
 
   return (
@@ -240,6 +284,32 @@ const Forum = () => {
             ))}
           </div>
 
+          {/* Selected Tags Display */}
+          {selectedTags.length > 0 && (
+            <div className="mb-4">
+              <div className="flex items-center flex-wrap gap-2">
+                <span className="text-sm text-muted-foreground">Filtered by tags:</span>
+                {selectedTags.map(tag => (
+                  <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                    {tag}
+                    <X 
+                      className="h-3 w-3 cursor-pointer" 
+                      onClick={() => handleRemoveTag(tag)} 
+                    />
+                  </Badge>
+                ))}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 text-xs" 
+                  onClick={handleClearTags}
+                >
+                  Clear all
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Topics and Discussions */}
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="w-full lg:w-3/4">
@@ -256,17 +326,65 @@ const Forum = () => {
                       <Filter className="h-3 w-3 mr-1" />
                       Filters
                     </Badge>
-                    <Badge variant="outline" className="cursor-pointer">
-                      <Tag className="h-3 w-3 mr-1" />
-                      Tags
-                    </Badge>
+                    
+                    <Popover open={isTagPopoverOpen} onOpenChange={setIsTagPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <Badge variant="outline" className="cursor-pointer">
+                          <Tag className="h-3 w-3 mr-1" />
+                          Tags
+                        </Badge>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[200px] p-0" align="end">
+                        <Command>
+                          <CommandInput placeholder="Search tags..." />
+                          <CommandList>
+                            <CommandEmpty>No tags found.</CommandEmpty>
+                            <CommandGroup>
+                              {allTags.map((tag) => (
+                                <CommandItem
+                                  key={tag}
+                                  onSelect={() => {
+                                    if (!selectedTags.includes(tag)) {
+                                      setSelectedTags(prev => [...prev, tag]);
+                                    } else {
+                                      setSelectedTags(prev => prev.filter(t => t !== tag));
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center w-full">
+                                    <div 
+                                      className={`w-4 h-4 mr-2 border rounded ${
+                                        selectedTags.includes(tag) 
+                                          ? 'bg-primary border-primary' 
+                                          : 'border-input'
+                                      }`}
+                                    >
+                                      {selectedTags.includes(tag) && (
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-primary-foreground">
+                                          <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                      )}
+                                    </div>
+                                    {tag}
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
                 
                 <TabsContent value="discussions" className="mt-0">
                   <div className="space-y-4">
                     {filteredPosts.map((post) => (
-                      <ForumPost key={post.id} post={post} />
+                      <ForumPost 
+                        key={post.id} 
+                        post={post} 
+                        onTagClick={handleTagClick} 
+                      />
                     ))}
                     
                     {filteredPosts.length === 0 && (
@@ -275,6 +393,7 @@ const Forum = () => {
                         <Button variant="link" onClick={() => {
                           setSearchQuery('');
                           setActiveCategory(null);
+                          setSelectedTags([]);
                         }}>
                           Reset filters
                         </Button>
@@ -288,7 +407,7 @@ const Forum = () => {
                     {filteredPosts
                       .sort((a, b) => b.likesCount - a.likesCount)
                       .map((post) => (
-                        <ForumPost key={post.id} post={post} />
+                        <ForumPost key={post.id} post={post} onTagClick={handleTagClick} />
                       ))}
                   </div>
                 </TabsContent>
@@ -298,7 +417,7 @@ const Forum = () => {
                     {filteredPosts
                       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                       .map((post) => (
-                        <ForumPost key={post.id} post={post} />
+                        <ForumPost key={post.id} post={post} onTagClick={handleTagClick} />
                       ))}
                   </div>
                 </TabsContent>
@@ -331,14 +450,22 @@ const Forum = () => {
                   Popular Tags
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary" className="cursor-pointer" onClick={() => setSearchQuery('food')}>food</Badge>
-                  <Badge variant="secondary" className="cursor-pointer" onClick={() => setSearchQuery('trekking')}>trekking</Badge>
-                  <Badge variant="secondary" className="cursor-pointer" onClick={() => setSearchQuery('weekend')}>weekend</Badge>
-                  <Badge variant="secondary" className="cursor-pointer" onClick={() => setSearchQuery('vashi')}>vashi</Badge>
-                  <Badge variant="secondary" className="cursor-pointer" onClick={() => setSearchQuery('monsoon')}>monsoon</Badge>
-                  <Badge variant="secondary" className="cursor-pointer" onClick={() => setSearchQuery('family')}>family</Badge>
-                  <Badge variant="secondary" className="cursor-pointer" onClick={() => setSearchQuery('events')}>events</Badge>
-                  <Badge variant="secondary" className="cursor-pointer" onClick={() => setSearchQuery('nature')}>nature</Badge>
+                  {['food', 'trekking', 'weekend', 'vashi', 'monsoon', 'family', 'events', 'nature'].map((tag) => (
+                    <Badge 
+                      key={tag} 
+                      variant={selectedTags.includes(tag) ? "default" : "secondary"} 
+                      className="cursor-pointer" 
+                      onClick={() => {
+                        if (!selectedTags.includes(tag)) {
+                          setSelectedTags(prev => [...prev, tag]);
+                        } else {
+                          setSelectedTags(prev => prev.filter(t => t !== tag));
+                        }
+                      }}
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
                 </div>
               </div>
               

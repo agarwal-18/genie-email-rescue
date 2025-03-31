@@ -78,20 +78,27 @@ const Places = () => {
         place.description.toLowerCase().includes(searchLower)
       );
       
-      // Sort by exact name match first, then partial name match, then other fields
+      // More effective sorting algorithm:
       results.sort((a, b) => {
-        // Exact name match gets highest priority
-        if (a.name.toLowerCase() === searchLower && b.name.toLowerCase() !== searchLower) return -1;
-        if (a.name.toLowerCase() !== searchLower && b.name.toLowerCase() === searchLower) return 1;
+        // 1. Exact name match gets highest priority
+        const aExactName = a.name.toLowerCase() === searchLower;
+        const bExactName = b.name.toLowerCase() === searchLower;
+        if (aExactName && !bExactName) return -1;
+        if (!aExactName && bExactName) return 1;
         
-        // Partial name match gets second priority
+        // 2. Starts with search term
+        const aNameStarts = a.name.toLowerCase().startsWith(searchLower);
+        const bNameStarts = b.name.toLowerCase().startsWith(searchLower);
+        if (aNameStarts && !bNameStarts) return -1;
+        if (!aNameStarts && bNameStarts) return 1;
+        
+        // 3. Partial name match
         const aNameMatch = a.name.toLowerCase().includes(searchLower);
         const bNameMatch = b.name.toLowerCase().includes(searchLower);
-        
         if (aNameMatch && !bNameMatch) return -1;
         if (!aNameMatch && bNameMatch) return 1;
         
-        // Otherwise sort by rating as secondary criteria
+        // 4. Finally sort by rating
         return b.rating - a.rating;
       });
     } else {
@@ -109,22 +116,30 @@ const Places = () => {
       results = results.filter(place => favorites.includes(place.id));
       setFeaturedPlace(null);
     } else {
-      // For featured place selection, avoid always taking the first one
-      // Only use featured places that match the current category filter
-      const eligibleFeatured = places.filter(place => 
-        place.featured && (category === 'all' || place.category === category)
-      );
-      
-      // Randomly select a featured place from eligible ones if available
-      // This prevents always showing the same featured place
-      if (eligibleFeatured.length > 0) {
-        const randomIndex = Math.floor(Math.random() * eligibleFeatured.length);
-        setFeaturedPlace(eligibleFeatured[randomIndex]);
-        
-        // Remove the featured place from results to avoid duplication
-        results = results.filter(place => place.id !== eligibleFeatured[randomIndex].id);
-      } else {
+      // Improved featured place selection - don't use any featured place when searching
+      if (searchTerm) {
         setFeaturedPlace(null);
+      } else {
+        // Only use featured places that match the current category filter
+        const eligibleFeatured = places.filter(place => 
+          place.featured && (category === 'all' || place.category === category)
+        );
+        
+        // Select a featured place based on page load, not on every filter change
+        if (eligibleFeatured.length > 0) {
+          // Use a consistent seed for selection to avoid changing on every render
+          // We'll use the current day as seed to change it only once per day
+          const today = new Date().toDateString();
+          const seed = today.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+          const index = seed % eligibleFeatured.length;
+          
+          setFeaturedPlace(eligibleFeatured[index]);
+          
+          // Remove the featured place from results to avoid duplication
+          results = results.filter(place => place.id !== eligibleFeatured[index].id);
+        } else {
+          setFeaturedPlace(null);
+        }
       }
     }
     
