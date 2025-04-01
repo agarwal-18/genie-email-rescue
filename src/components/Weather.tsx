@@ -68,8 +68,8 @@ const Weather = ({ location, className }: WeatherProps) => {
         // Encode location for URL
         const encodedLocation = encodeURIComponent(location);
         
-        // Use HTTPS for the API call
-        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodedLocation},in&units=metric&appid=${API_KEY}`;
+        // Use HTTPS for the API call - removed the hardcoded ",in" suffix to make it more flexible
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodedLocation}&units=metric&appid=${API_KEY}`;
         console.log("API URL:", url);
         
         // Add a timeout to the fetch request
@@ -123,8 +123,23 @@ const Weather = ({ location, className }: WeatherProps) => {
       }
     };
     
-    // Fetch weather data
-    fetchWeatherData();
+    // Only fetch if we have a location
+    if (location && location.trim() !== '') {
+      fetchWeatherData();
+    } else {
+      // Handle empty location
+      setError("Location not specified");
+      setLoading(false);
+      
+      // Use default data for empty location
+      setWeather({
+        condition: "Unknown",
+        temperature: 25,
+        humidity: 60,
+        windSpeed: 10,
+        icon: <Cloud className="h-8 w-8 text-gray-400" />
+      });
+    }
   }, [location, toast]);
 
   return (
