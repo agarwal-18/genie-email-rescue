@@ -38,7 +38,7 @@ npm run dev
 
 - Browse popular places in Navi Mumbai
 - Create customized travel itineraries
-- Join community discussions
+- Join community discussions and forums
 - Get real-time weather updates
 - View travel tips for different areas
 - Responsive design for mobile and desktop
