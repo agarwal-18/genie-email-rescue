@@ -43,7 +43,7 @@ const places: Place[] = [
     name: "DY Patil Stadium",
     category: "Sports",
     description: "A state-of-the-art cricket stadium that hosts IPL matches and other sporting events.",
-    image: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=1473&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=1473&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.6,
     location: "Nerul",
     duration: "3-4 hours",
@@ -54,7 +54,7 @@ const places: Place[] = [
     name: "Central Park",
     category: "Parks & Gardens",
     description: "A large urban park with walking paths, gardens, and recreational facilities.",
-    image: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.3,
     location: "Kharghar",
     duration: "1-2 hours"
@@ -64,7 +64,7 @@ const places: Place[] = [
     name: "Wonders Park",
     category: "Amusement",
     description: "A theme park with miniature replicas of world-famous monuments and attractions.",
-    image: "https://images.unsplash.com/photo-1513889961551-628c1e5e2ee9?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1513889961551-628c1e5e2ee9?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.4,
     location: "Nerul",
     duration: "2-3 hours"
@@ -74,7 +74,7 @@ const places: Place[] = [
     name: "NMMC Butterfly Garden",
     category: "Parks & Gardens",
     description: "A specialized garden that attracts various butterfly species with plants that serve as food sources.",
-    image: "https://images.unsplash.com/photo-1606748313289-81f81f9eae50?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1606748313289-81f81f9eae50?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.2,
     location: "Seawoods",
     duration: "1 hour"
@@ -84,7 +84,7 @@ const places: Place[] = [
     name: "Pandavkada Falls",
     category: "Natural Attractions",
     description: "A scenic waterfall that comes alive during the monsoon season, offering beautiful views.",
-    image: "https://images.unsplash.com/photo-1503614472-8c93d56e92ce?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1503614472-8c93d56e92ce?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.5,
     location: "Kharghar",
     duration: "2-3 hours"
@@ -94,7 +94,7 @@ const places: Place[] = [
     name: "Inorbit Mall",
     category: "Shopping",
     description: "A premium shopping destination with international brands, restaurants, and entertainment options.",
-    image: "https://images.unsplash.com/photo-1519567241313-8636f525cd4a?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1519567241313-8636f525cd4a?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.4,
     location: "Vashi",
     duration: "3-4 hours",
@@ -105,7 +105,7 @@ const places: Place[] = [
     name: "Parsik Hill",
     category: "Natural Attractions",
     description: "A hill offering panoramic views of Navi Mumbai, popular for trekking and sunrise viewing.",
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.1,
     location: "Belapur",
     duration: "2-3 hours"
@@ -115,7 +115,7 @@ const places: Place[] = [
     name: "Belapur Fort",
     category: "Historical Sites",
     description: "Historical fort built in the 17th century, offering a glimpse into the region's past.",
-    image: "https://images.unsplash.com/photo-1564566500014-459a2967f00c?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1564566500014-459a2967f00c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.0,
     location: "Belapur",
     duration: "1-2 hours"
@@ -125,7 +125,7 @@ const places: Place[] = [
     name: "Nerul Balaji Temple",
     category: "Religious Sites",
     description: "A beautiful temple dedicated to Lord Balaji, featuring South Indian architecture.",
-    image: "https://images.unsplash.com/photo-1561361058-c12e14fc165e?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1561361058-c12e14fc165e?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.7,
     location: "Nerul",
     duration: "1 hour",
@@ -136,7 +136,7 @@ const places: Place[] = [
     name: "Seawoods Grand Central Mall",
     category: "Shopping",
     description: "A modern mall with a mix of retail shops, eateries, and entertainment options.",
-    image: "https://images.unsplash.com/photo-1568254183919-78a4f43a2877?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1568254183919-78a4f43a2877?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.3,
     location: "Seawoods",
     duration: "2-3 hours"
@@ -146,7 +146,7 @@ const places: Place[] = [
     name: "Kharghar Hills",
     category: "Natural Attractions",
     description: "Rolling hills offering scenic views, popular for trekking and nature photography.",
-    image: "https://images.unsplash.com/photo-1525477759567-7c3cd50a8957?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1525477759567-7c3cd50a8957?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.5,
     location: "Kharghar",
     duration: "3-4 hours"
@@ -156,7 +156,7 @@ const places: Place[] = [
     name: "Utsav Chowk",
     category: "Entertainment",
     description: "A popular hangout spot with food stalls, cultural performances, and community gatherings.",
-    image: "https://images.unsplash.com/photo-1464207687429-7505649dae38?q=80&w=1473&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1464207687429-7505649dae38?q=80&w=1473&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.2,
     location: "Kharghar",
     duration: "1-2 hours"
@@ -166,7 +166,7 @@ const places: Place[] = [
     name: "CIDCO Exhibition Centre",
     category: "Cultural",
     description: "A venue hosting exhibitions, trade shows, and cultural events throughout the year.",
-    image: "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.0,
     location: "Vashi",
     duration: "2-3 hours"
@@ -176,7 +176,7 @@ const places: Place[] = [
     name: "Mini Seashore",
     category: "Natural Attractions",
     description: "A small waterfront area perfect for evening walks and enjoying cool breezes.",
-    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1473&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1473&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.4,
     location: "Vashi",
     duration: "1 hour"
@@ -186,7 +186,7 @@ const places: Place[] = [
     name: "Shilp Gram",
     category: "Cultural",
     description: "A craft village showcasing traditional arts, crafts, and cultural performances.",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1415&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1415&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.2,
     location: "Airoli",
     duration: "2 hours"
@@ -196,7 +196,7 @@ const places: Place[] = [
     name: "Flamingo Sanctuary",
     category: "Wildlife",
     description: "A wetland sanctuary where thousands of flamingos migrate during winter months.",
-    image: "https://images.unsplash.com/photo-1564171149171-88ba9136cdc8?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1564171149171-88ba9136cdc8?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.8,
     location: "Airoli",
     duration: "2-3 hours",
@@ -207,7 +207,7 @@ const places: Place[] = [
     name: "Science Centre",
     category: "Educational",
     description: "An interactive museum with science exhibits and demonstrations for all ages.",
-    image: "https://images.unsplash.com/photo-1576086135867-9301855780d5?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1576086135867-9301855780d5?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.3,
     location: "Kopar Khairane",
     duration: "2-3 hours"
@@ -217,7 +217,7 @@ const places: Place[] = [
     name: "Vashi Creek Bridge",
     category: "Landmarks",
     description: "An iconic bridge connecting Mumbai to Navi Mumbai, offering scenic views of the creek.",
-    image: "https://images.unsplash.com/photo-1559570278-eb8d71d06403?q=80&w=1473&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1559570278-eb8d71d06403?q=80&w=1473&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.1,
     location: "Vashi",
     duration: "30 minutes"
@@ -227,7 +227,7 @@ const places: Place[] = [
     name: "Jewel of Navi Mumbai",
     category: "Parks & Gardens",
     description: "A well-maintained garden with beautiful landscapes, fountains, and recreational areas.",
-    image: "https://images.unsplash.com/photo-1584479898061-15742e14f50d?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1584479898061-15742e14f50d?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.3,
     location: "Seawoods",
     duration: "1-2 hours"
@@ -237,7 +237,7 @@ const places: Place[] = [
     name: "Ulwe Hill",
     category: "Natural Attractions",
     description: "A hill offering panoramic views of the developing Navi Mumbai Airport area.",
-    image: "https://images.unsplash.com/photo-1551978129-b73f45d132eb?q=80&w=1472&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1551978129-b73f45d132eb?q=80&w=1472&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.0,
     location: "Ulwe",
     duration: "2 hours"
@@ -247,7 +247,7 @@ const places: Place[] = [
     name: "Bonsai Garden",
     category: "Parks & Gardens",
     description: "A specialized garden featuring a collection of bonsai trees and Japanese-inspired landscapes.",
-    image: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?q=80&w=1632&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.2,
     location: "Belapur",
     duration: "1 hour"
@@ -257,7 +257,7 @@ const places: Place[] = [
     name: "Raghuleela Mall",
     category: "Shopping",
     description: "A popular shopping destination with various retail outlets, food court, and entertainment options.",
-    image: "https://images.unsplash.com/photo-1605267994962-015b59d59ea9?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1605267994962-015b59d59ea9?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.1,
     location: "Vashi",
     duration: "2-3 hours"
@@ -267,7 +267,7 @@ const places: Place[] = [
     name: "Golf Course",
     category: "Sports",
     description: "An 18-hole golf course set amidst beautiful landscapes and greenery.",
-    image: "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.5,
     location: "Kharghar",
     duration: "4-5 hours"
@@ -277,7 +277,7 @@ const places: Place[] = [
     name: "Airoli Knowledge Park",
     category: "Educational",
     description: "A tech hub housing various IT companies and educational institutions.",
-    image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=1472&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=1472&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.0,
     location: "Airoli",
     duration: "1-2 hours"
@@ -287,7 +287,7 @@ const places: Place[] = [
     name: "Mango Garden",
     category: "Parks & Gardens",
     description: "A garden with various species of mango trees, popular during the summer season.",
-    image: "https://images.unsplash.com/photo-1622944925998-2429e7c6ae91?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1622944925998-2429e7c6ae91?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.2,
     location: "Kopar Khairane",
     duration: "1 hour"
@@ -301,7 +301,7 @@ const restaurants: Restaurant[] = [
     name: "Gajali Restaurant",
     cuisine: "Seafood",
     description: "Famous for its coastal Maharashtrian cuisine and fresh seafood dishes.",
-    image: "https://images.unsplash.com/photo-1536392706976-e486e2ba97af?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1536392706976-e486e2ba97af?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.5,
     location: "Vashi",
     price: "Mid-Range"
@@ -311,7 +311,7 @@ const restaurants: Restaurant[] = [
     name: "Sigree Global Grill",
     cuisine: "Multi-cuisine",
     description: "Renowned for its buffet spread featuring global cuisines with live grilling stations.",
-    image: "https://images.unsplash.com/photo-1544148103-0773bf10d330?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1544148103-0773bf10d330?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.4,
     location: "Nerul",
     price: "Luxury"
@@ -321,7 +321,7 @@ const restaurants: Restaurant[] = [
     name: "Urban Tadka",
     cuisine: "North Indian",
     description: "Popular for its authentic North Indian dishes and Punjabi specialties.",
-    image: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?q=80&w=1480&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.3,
     location: "Kharghar",
     price: "Mid-Range"
@@ -331,7 +331,7 @@ const restaurants: Restaurant[] = [
     name: "Cafe Trofima",
     cuisine: "Continental",
     description: "A cozy cafe offering European dishes, pastries, and specialty coffees.",
-    image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.2,
     location: "Seawoods",
     price: "Mid-Range"
@@ -341,7 +341,7 @@ const restaurants: Restaurant[] = [
     name: "China Gate",
     cuisine: "Chinese",
     description: "Authentic Chinese cuisine with Szechuan and Cantonese specialties.",
-    image: "https://images.unsplash.com/photo-1550388342-b3fd986e9e66?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1550388342-b3fd986e9e66?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.4,
     location: "Belapur",
     price: "Mid-Range"
@@ -351,7 +351,7 @@ const restaurants: Restaurant[] = [
     name: "Dakshin",
     cuisine: "South Indian",
     description: "Specializing in authentic South Indian dishes from various regions.",
-    image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.5,
     location: "Vashi",
     price: "Mid-Range"
@@ -361,7 +361,7 @@ const restaurants: Restaurant[] = [
     name: "Saffron Bay",
     cuisine: "Indian",
     description: "Fine dining restaurant offering traditional Indian cuisine with modern presentation.",
-    image: "https://images.unsplash.com/photo-1625398407937-2ee245abd2aa?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1625398407937-2ee245abd2aa?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.6,
     location: "Nerul",
     price: "Luxury"
@@ -371,7 +371,7 @@ const restaurants: Restaurant[] = [
     name: "Bon Appetit",
     cuisine: "Italian",
     description: "Authentic Italian restaurant with handmade pasta and wood-fired pizzas.",
-    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.3,
     location: "Kharghar",
     price: "Luxury"
@@ -381,7 +381,7 @@ const restaurants: Restaurant[] = [
     name: "Street Food Corner",
     cuisine: "Street Food",
     description: "Popular spot offering a variety of Indian street food in a hygienic setting.",
-    image: "https://images.unsplash.com/photo-1547573854-74d2a71d0826?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1547573854-74d2a71d0826?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.2,
     location: "Kopar Khairane",
     price: "Budget-Friendly"
@@ -391,7 +391,7 @@ const restaurants: Restaurant[] = [
     name: "Garden Cafe",
     cuisine: "Multi-cuisine",
     description: "Outdoor cafe set in a garden environment with a diverse menu.",
-    image: "https://images.unsplash.com/photo-1599458252573-56ae36120de1?q=80&w=1470&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1599458252573-56ae36120de1?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.1,
     location: "Belapur",
     price: "Mid-Range"

@@ -33,24 +33,42 @@ const PlaceCard = ({
 }: PlaceCardProps) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 2;
 
   useEffect(() => {
+    // Reset state when image URL changes
+    setLoaded(false);
+    setError(false);
+    
     const img = new Image();
-    img.src = image;
-    img.onload = () => {
+    img.src = `${image}${image.includes('?') ? '&' : '?'}cache=${Date.now()}`;
+    
+    const onLoad = () => {
       setLoaded(true);
       setError(false);
     };
-    img.onerror = () => {
-      setError(true);
-      setLoaded(true); // Still mark as loaded to remove loading state
+    
+    const onError = () => {
+      // If we haven't reached max retries, try again with a different cache buster
+      if (retryCount < maxRetries) {
+        setRetryCount(prev => prev + 1);
+        // Use a slightly different URL to bypass cache
+        img.src = `${image}${image.includes('?') ? '&' : '?'}cache=${Date.now() + retryCount}`;
+      } else {
+        setError(true);
+        setLoaded(true); // Mark as loaded to remove loading state
+      }
     };
+    
+    img.onload = onLoad;
+    img.onerror = onError;
 
     return () => {
       img.onload = null;
       img.onerror = null;
     };
-  }, [image]);
+  }, [image, retryCount]);
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -58,6 +76,25 @@ const PlaceCard = ({
     if (onFavoriteToggle) {
       onFavoriteToggle(id);
     }
+  };
+
+  // Function to generate a fallback image based on the category
+  const getFallbackImage = () => {
+    // Map categories to relevant fallback images
+    const categoryMap: Record<string, string> = {
+      "Parks & Gardens": "https://images.unsplash.com/photo-1584479898061-15742e14f50d?ixlib=rb-4.0.3",
+      "Natural Attractions": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3",
+      "Shopping": "https://images.unsplash.com/photo-1605267994962-015b59d59ea9?ixlib=rb-4.0.3",
+      "Historical Sites": "https://images.unsplash.com/photo-1564566500014-459a2967f00c?ixlib=rb-4.0.3",
+      "Religious Sites": "https://images.unsplash.com/photo-1561361058-c12e14fc165e?ixlib=rb-4.0.3",
+      "Sports": "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-4.0.3",
+      "Wildlife": "https://images.unsplash.com/photo-1564171149171-88ba9136cdc8?ixlib=rb-4.0.3", 
+      "Educational": "https://images.unsplash.com/photo-1576086135867-9301855780d5?ixlib=rb-4.0.3",
+      "Amusement": "https://images.unsplash.com/photo-1513889961551-628c1e5e2ee9?ixlib=rb-4.0.3",
+      "Cultural": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3",
+    };
+    
+    return categoryMap[category] || "https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3";
   };
 
   return (
@@ -75,12 +112,14 @@ const PlaceCard = ({
         {!loaded && !error ? (
           <div className="w-full h-full bg-muted"></div>
         ) : error ? (
-          <div className="w-full h-full flex items-center justify-center bg-muted">
-            <p className="text-sm text-muted-foreground">Image unavailable</p>
-          </div>
+          <img 
+            src={getFallbackImage()}
+            alt={name}
+            className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+          />
         ) : (
           <img 
-            src={image} 
+            src={image}
             alt={name}
             className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
           />
