@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Search, Filter, MapPin, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -47,8 +46,9 @@ const Places = () => {
   // Get all unique categories
   const categories = ['all', ...Array.from(new Set(places.map(place => place.category)))];
   
-  // Get all unique locations
-  const locations = Array.from(new Set(places.map(place => place.location)));
+  // Get all unique locations - filter out "Ulwe" if it exists
+  const locations = Array.from(new Set(places.map(place => place.location)))
+    .filter(location => location !== "Ulwe");
 
   // Toggle favorite status for a place
   const toggleFavorite = (id: string) => {
