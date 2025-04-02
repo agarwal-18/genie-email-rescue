@@ -119,17 +119,11 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
         locations: selectedLocations // Pass selected locations array
       });
       
-      // Ensure all activities have valid locations
-      const validItinerary = generatedItinerary.map(day => ({
-        ...day,
-        activities: day.activities.filter(activity => activity.location)
-      }));
-
-      setItinerary(validItinerary);
+      setItinerary(generatedItinerary);
       
       // If onGenerate callback is provided, pass the itinerary
       if (onGenerate) {
-        onGenerate(validItinerary);
+        onGenerate(generatedItinerary);
       }
       
       toast({
