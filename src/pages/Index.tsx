@@ -41,7 +41,7 @@ const Index = () => {
       
       {/* Hero Section */}
       <Hero
-        title="Discover Navi Mumbai"
+        title="Discover Navi Mumbais"
         subtitle="Explore the hidden gems and must-visit places in the planned city of Navi Mumbai, Maharashtra."
         ctaText="Start Exploring"
         ctaLink="/places"
