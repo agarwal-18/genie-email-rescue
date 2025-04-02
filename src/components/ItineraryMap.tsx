@@ -54,7 +54,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   };
 
   // Default fallback coordinates for Navi Mumbai
-  const defaultCoordinates: [19.0330, 73.0169];
+  const defaultCoordinates = { lat: 19.033, lng: 73.029 }; // Example coordinates for Navi Mumbai
 
   // Initialize the map when the dialog is opened
   useEffect(() => {
