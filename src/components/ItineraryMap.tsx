@@ -118,3 +118,4 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
 };
 
 export default ItineraryMap;
+
