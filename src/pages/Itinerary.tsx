@@ -158,13 +158,27 @@ const Itinerary = () => {
   const handleOpenMap = () => {
     if (itinerary.length > 0) {
       console.log("Opening map with itinerary:", itinerary);
-      console.log("Locations for map:", selectedLocations);
+
+      // Filter out activities with invalid or missing locations
+      const validLocations = itinerary.flatMap(day =>
+        day.activities.filter(activity => activity.location)
+      );
+
+      if (validLocations.length === 0) {
+        toast({
+          title: "No valid locations",
+          description: "The itinerary does not contain any valid locations to display on the map.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setIsMapOpen(true);
     } else {
       toast({
         title: "No itinerary created",
         description: "Generate an itinerary first to view it on the map.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
