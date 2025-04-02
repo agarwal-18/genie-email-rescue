@@ -106,18 +106,7 @@ const Itinerary = () => {
 
   const handleGenerateItinerary = (newItinerary: ItineraryDay[]) => {
     console.log("New itinerary generated:", newItinerary);
-    
-    // Add images to activities that don't have them
-    const itineraryWithImages = newItinerary.map(day => ({
-      ...day,
-      activities: day.activities.map(activity => ({
-        ...activity,
-        image: activity.image || getImageForLocation(activity.location)
-      }))
-    }));
-    
-    setItinerary(itineraryWithImages);
-    
+
     // Extract unique locations from the itinerary activities
     const locations = new Set<string>();
     newItinerary.forEach(day => {
@@ -128,10 +117,21 @@ const Itinerary = () => {
         }
       });
     });
-    
+
     const locationArray = Array.from(locations);
     console.log("Extracted locations:", locationArray);
     setSelectedLocations(locationArray);
+
+    // Add images to activities
+    const itineraryWithImages = newItinerary.map(day => ({
+      ...day,
+      activities: day.activities.map(activity => ({
+        ...activity,
+        image: activity.image || getImageForLocation(activity.location)
+      }))
+    }));
+
+    setItinerary(itineraryWithImages);
   };
 
   const handleShare = () => {
@@ -158,13 +158,28 @@ const Itinerary = () => {
   const handleOpenMap = () => {
     if (itinerary.length > 0) {
       console.log("Opening map with itinerary:", itinerary);
-      console.log("Locations for map:", selectedLocations);
+
+      const validLocations = itinerary.flatMap(day =>
+        day.activities.filter(activity => activity.location)
+      );
+
+      console.log("Valid locations for map:", validLocations);
+
+      if (validLocations.length === 0) {
+        toast({
+          title: "No valid locations",
+          description: "The itinerary does not contain any valid locations to display on the map.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setIsMapOpen(true);
     } else {
       toast({
         title: "No itinerary created",
         description: "Generate an itinerary first to view it on the map.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -359,3 +374,4 @@ const Itinerary = () => {
 };
 
 export default Itinerary;
+
