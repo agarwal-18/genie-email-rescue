@@ -38,7 +38,9 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   const map = useRef<MapboxMap | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mapboxAPIKey, setMapboxAPIKey] = useState<string>("");
+  const [mapboxAPIKey, setMapboxAPIKey] = useState<string>(() => {
+    return localStorage.getItem('mapboxAPIKey') || '';
+  });
   
   // Get all unique locations from itinerary
   const locations = itinerary.flatMap(day => 
@@ -92,8 +94,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   // Initialize the map when the dialog is opened
   useEffect(() => {
     console.log('Map dialog open state:', isOpen);
-    console.log('Map container ref:', mapContainer.current);
-    console.log('Map ref state:', map.current);
+    console.log('Map container ref exists:', !!mapContainer.current);
     
     // Make sure we only initialize when the dialog is open and the map container exists
     if (!isOpen || !mapContainer.current) {
@@ -120,51 +121,77 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
           console.log('No stored API key found');
         }
 
-        // Dynamic import of mapbox-gl
+        // Using a default public token that works for basic maps
+        const apiKey = storedKey || 'pk.eyJ1IjoibmF2aXRyaXBwbGFubmVyIiwiYSI6ImNsczFheWZxNjAxd3Uyam9pNWNjMnp0Y3MifQ.c15i4R6fWG7YoYBHcaCvVA';
+        
+        // Dynamic import of mapbox-gl with module import
         console.log('Importing mapbox-gl...');
         const mapboxgl = await import('mapbox-gl');
+        
+        // Import CSS first
         await import('mapbox-gl/dist/mapbox-gl.css');
         
-        // Set the Mapbox API key - use a default public token if none provided
-        const apiKey = storedKey || 'pk.eyJ1IjoiZGVtb3VzZXIiLCJhIjoiY2xxNmEzMTRnMG9oZTJpcXd2MDFyYTFzNiJ9.MZImMlpgVPaKLjHZW4246A';
-        mapboxgl.default.accessToken = apiKey;
         console.log('Setting mapbox access token:', apiKey.substring(0, 10) + '...');
+        mapboxgl.default.accessToken = apiKey;
         
         setError(null);
         
         // Create map instance
         console.log('Creating map instance...');
+        if (!mapContainer.current) {
+          console.error('Map container is null');
+          setError('Map container reference is null');
+          return;
+        }
+        
+        // Create the map with explicit dimensions to ensure it renders
+        mapContainer.current.style.width = '100%';
+        mapContainer.current.style.height = '400px';
+        
         map.current = new mapboxgl.default.Map({
-          container: mapContainer.current!,
+          container: mapContainer.current,
           style: 'mapbox://styles/mapbox/streets-v12',
           center: [73.0169, 19.0330], // Centered on Navi Mumbai
           zoom: 11
         });
         
+        console.log('Map instance created:', !!map.current);
+        
+        // Add navigation controls
         map.current.addControl(new mapboxgl.default.NavigationControl(), 'top-right');
         
+        // Add event listeners for debugging
         map.current.on('load', () => {
           console.log('Map loaded successfully');
           setMapLoaded(true);
         });
 
-        map.current.on('error', (e) => {
+        map.current.on('error', (e: any) => {
           console.error('Map error:', e);
           setError(`Map error: ${e.error?.message || 'Unknown error'}`);
         });
+        
+        // Force a resize to ensure map fills container
+        setTimeout(() => {
+          if (map.current) {
+            console.log('Forcing map resize');
+            map.current.resize();
+          }
+        }, 1000);
       } catch (err) {
         console.error('Error initializing map:', err);
-        setError('Could not load the map. Please try again later.');
+        setError(`Could not load the map: ${err instanceof Error ? err.message : 'Unknown error'}`);
       }
     };
 
     // Small delay to ensure the container is fully rendered
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       initMap();
     }, 500);
     
     // Cleanup
     return () => {
+      clearTimeout(timeoutId);
       if (map.current) {
         console.log('Cleaning up map instance');
         map.current.remove();
@@ -282,8 +309,15 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
                 maxZoom: 14
               });
               console.log('Map fitted to bounds');
+              
+              // Additional resize call after fitting bounds
+              setTimeout(() => {
+                if (map.current) {
+                  map.current.resize();
+                }
+              }, 500);
             }
-          }, 1000); // Longer delay to ensure markers are added
+          }, 1000);
         } else {
           console.log('No valid markers to fit bounds');
         }
@@ -339,7 +373,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
               </div>
             </div>
           ) : (
-            <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
+            <div ref={mapContainer} className="absolute inset-0 rounded-lg" style={{ minHeight: "400px" }} />
           )}
         </div>
         

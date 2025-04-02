@@ -1,10 +1,7 @@
 
-import { useState, useEffect } from 'react';
-import { Cloud, CloudRain, Sun, CloudSun, Loader2, CloudDrizzle, Wind, Info, Snowflake, CloudFog, CloudLightning } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useToast } from '@/components/ui/use-toast';
+import { useEffect, useState } from 'react';
+import { Cloud, CloudRain, CloudSnow, Sun, Thermometer, Wind, CloudFog, CloudLightning } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface WeatherProps {
   location: string;
@@ -12,201 +9,160 @@ interface WeatherProps {
 }
 
 interface WeatherData {
-  condition: string;
-  temperature: number;
+  temp: number;
+  tempMin: number;
+  tempMax: number;
   humidity: number;
+  description: string;
+  icon: string;
   windSpeed: number;
-  icon: React.ReactNode;
+  location: string;
+  time: string;
 }
 
-// OpenWeatherMap API key
-const API_KEY = "562c360f0d7884a7ec779f34559a11fb";
-
-const Weather = ({ location, className }: WeatherProps) => {
-  const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [loading, setLoading] = useState(true);
+const Weather = ({ location, className = '' }: WeatherProps) => {
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
-
-  // Helper function to get weather icon based on OpenWeatherMap condition code
-  const getWeatherIcon = (weatherId: number) => {
-    // Weather condition codes: https://openweathermap.org/weather-conditions
-    if (weatherId >= 200 && weatherId < 300) {
-      return <CloudLightning className="h-8 w-8 text-yellow-500" />;
-    } else if (weatherId >= 300 && weatherId < 400) {
-      return <CloudDrizzle className="h-8 w-8 text-blue-400" />;
-    } else if (weatherId >= 500 && weatherId < 600) {
-      return <CloudRain className="h-8 w-8 text-blue-600" />;
-    } else if (weatherId >= 600 && weatherId < 700) {
-      return <Snowflake className="h-8 w-8 text-blue-200" />;
-    } else if (weatherId >= 700 && weatherId < 800) {
-      return <CloudFog className="h-8 w-8 text-gray-400" />;
-    } else if (weatherId === 800) {
-      return <Sun className="h-8 w-8 text-yellow-500" />;
-    } else if (weatherId > 800) {
-      return <CloudSun className="h-8 w-8 text-blue-400" />;
-    } else {
-      return <Cloud className="h-8 w-8 text-gray-400" />;
-    }
-  };
-
-  // Helper function to convert weather condition code to text
-  const getWeatherCondition = (weatherId: number, description: string) => {
-    // Capitalize first letter of description
-    return description.charAt(0).toUpperCase() + description.slice(1);
-  };
 
   useEffect(() => {
-    // Reset for new location
-    setLoading(true);
-    setError(null);
-    
-    const fetchWeatherData = async () => {
+    const fetchWeather = async () => {
+      if (!location) return;
+      
+      setLoading(true);
+      setError(null);
+      
       try {
         console.log(`Fetching weather for ${location}...`);
+        // Format the query to include "India" to improve location accuracy
+        const formattedLocation = `${location}, Navi Mumbai, India`;
+        const API_KEY = '562c360f0d7884a7ec779f34559a11fb'; // OpenWeatherMap API key
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(formattedLocation)}&units=metric&appid=${API_KEY}`;
         
-        // Encode location and add India to improve search results
-        const searchLocation = `${location}, Navi Mumbai, India`;
-        const encodedLocation = encodeURIComponent(searchLocation);
+        console.log('Weather API URL:', url);
         
-        // Use HTTPS for the API call
-        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodedLocation}&units=metric&appid=${API_KEY}`;
-        console.log("Weather API URL:", url);
-        
-        // Add a timeout to the fetch request
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        
-        const response = await fetch(url, { 
-          signal: controller.signal,
-          mode: 'cors' // Ensure CORS is enabled
-        });
-        
-        clearTimeout(timeoutId);
+        const response = await fetch(url);
         
         if (!response.ok) {
-          throw new Error(`API returned status ${response.status}`);
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch weather data');
         }
         
         const data = await response.json();
-        console.log("Weather data received:", data);
+        console.log('Weather data received:', data);
         
-        // Extract and format relevant weather data
-        const weatherData: WeatherData = {
-          condition: getWeatherCondition(data.weather[0].id, data.weather[0].description),
-          temperature: Math.round(data.main.temp),
+        setWeatherData({
+          temp: Math.round(data.main.temp),
+          tempMin: Math.round(data.main.temp_min),
+          tempMax: Math.round(data.main.temp_max),
           humidity: data.main.humidity,
-          windSpeed: Math.round(data.wind.speed * 3.6), // Convert m/s to km/h
-          icon: getWeatherIcon(data.weather[0].id),
-        };
-        
-        setWeather(weatherData);
-        setLoading(false);
-      } catch (err: any) {
-        console.error("Error fetching weather data:", err);
-        setError(`Could not fetch weather data for ${location}`);
-        setLoading(false);
-        
-        // Fallback to a default weather if API fails
-        setWeather({
-          condition: "Partly Cloudy",
-          temperature: 28,
-          humidity: 65,
-          windSpeed: 12,
-          icon: <CloudSun className="h-8 w-8 text-blue-400" />
+          description: data.weather[0].description,
+          icon: data.weather[0].icon,
+          windSpeed: data.wind.speed,
+          location: data.name,
+          time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
         });
+      } catch (err) {
+        console.error('Weather fetch error:', err);
+        setError('Could not load weather data. Using fallback data.');
         
-        console.log("Using fallback weather data");
-        
-        // Don't show error toast, just use the fallback silently
-        // toast({
-        //   title: "Weather data error",
-        //   description: `Could not load weather for ${location}. Using default data.`,
-        //   variant: "destructive",
-        // });
+        // Use fallback data
+        setWeatherData({
+          temp: 32,
+          tempMin: 30,
+          tempMax: 34,
+          humidity: 55,
+          description: 'partly cloudy',
+          icon: '02d',
+          windSpeed: 2.5,
+          location: location,
+          time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+        });
+      } finally {
+        setLoading(false);
       }
     };
     
-    // Only fetch if we have a location
-    if (location && location.trim() !== '') {
-      fetchWeatherData();
-    } else {
-      // Handle empty location
-      setError("Location not specified");
-      setLoading(false);
-      
-      // Use default data for empty location
-      setWeather({
-        condition: "Partly Cloudy",
-        temperature: 28,
-        humidity: 65,
-        windSpeed: 12,
-        icon: <CloudSun className="h-8 w-8 text-blue-400" />
-      });
-    }
+    fetchWeather();
+    
+    // Refresh weather data every 30 minutes
+    const intervalId = setInterval(fetchWeather, 30 * 60 * 1000);
+    
+    return () => clearInterval(intervalId);
   }, [location]);
+  
+  // Determine which weather icon to display based on the weather code
+  const getWeatherIcon = () => {
+    if (!weatherData) return <Cloud className="h-8 w-8" />;
+    
+    const iconCode = weatherData.icon;
+    
+    if (iconCode.includes('01')) return <Sun className="h-8 w-8 text-yellow-500" />; // clear
+    if (iconCode.includes('02') || iconCode.includes('03')) return <Cloud className="h-8 w-8 text-gray-400" />; // few/scattered clouds
+    if (iconCode.includes('04')) return <Cloud className="h-8 w-8 text-gray-600" />; // broken/overcast clouds
+    if (iconCode.includes('09') || iconCode.includes('10')) return <CloudRain className="h-8 w-8 text-blue-500" />; // rain
+    if (iconCode.includes('11')) return <CloudLightning className="h-8 w-8 text-purple-500" />; // thunderstorm
+    if (iconCode.includes('13')) return <CloudSnow className="h-8 w-8 text-blue-200" />; // snow
+    if (iconCode.includes('50')) return <CloudFog className="h-8 w-8 text-gray-400" />; // mist/fog
+    
+    return <Cloud className="h-8 w-8" />; // default
+  };
 
   return (
-    <Card className={cn("overflow-hidden", className)}>
-      <CardHeader className="bg-primary/5 p-4">
-        <CardTitle className="text-sm font-medium flex items-center justify-between">
-          <span>Current Weather in {location}</span>
-          <div className="flex items-center">
-            {weather && weather.icon}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 ml-2 text-muted-foreground cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">Weather data from OpenWeatherMap</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </CardTitle>
-      </CardHeader>
+    <Card className={`overflow-hidden ${className}`}>
       <CardContent className="p-4">
         {loading ? (
-          <div className="flex items-center justify-center h-20">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center h-20">
-            <p className="text-sm text-muted-foreground">Using default weather data</p>
-            {weather && (
-              <div className="space-y-2 mt-2 w-full">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Condition</span>
-                  <span className="font-medium">{weather.condition}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Temperature</span>
-                  <span className="font-medium">{weather.temperature}°C</span>
+          <div className="flex items-center justify-center h-32">
+            <div className="animate-pulse flex space-x-4">
+              <div className="rounded-full bg-slate-200 h-10 w-10"></div>
+              <div className="flex-1 space-y-4 py-1">
+                <div className="h-4 bg-slate-200 rounded w-3/4"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-slate-200 rounded"></div>
+                  <div className="h-4 bg-slate-200 rounded w-5/6"></div>
                 </div>
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-sm">Condition</span>
-              <span className="font-medium">{weather?.condition}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-sm">Temperature</span>
-              <span className="font-medium">{weather?.temperature}°C</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-sm">Humidity</span>
-              <span className="font-medium">{weather?.humidity}%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-sm">Wind</span>
-              <span className="font-medium">{weather?.windSpeed} km/h</span>
             </div>
           </div>
-        )}
+        ) : weatherData ? (
+          <div>
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-medium">{weatherData.location}</h3>
+                <p className="text-xs text-muted-foreground">{weatherData.time}</p>
+              </div>
+              {getWeatherIcon()}
+            </div>
+            
+            <div className="mt-4 flex items-center">
+              <div className="text-4xl font-bold">{weatherData.temp}°C</div>
+              <div className="ml-3 space-y-1">
+                <div className="flex text-xs items-center">
+                  <Thermometer className="h-3 w-3 mr-1" />
+                  <span>High: {weatherData.tempMax}°C</span>
+                </div>
+                <div className="flex text-xs items-center">
+                  <Thermometer className="h-3 w-3 mr-1" />
+                  <span>Low: {weatherData.tempMin}°C</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-3 flex justify-between items-center text-sm">
+              <div className="flex items-center">
+                <Wind className="h-4 w-4 mr-1" />
+                <span>{weatherData.windSpeed} m/s</span>
+              </div>
+              <div className="capitalize">{weatherData.description}</div>
+              <div>{weatherData.humidity}% humidity</div>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center h-32">
+            <Cloud className="h-8 w-8 text-muted-foreground mb-2" />
+            <p className="text-sm text-center text-muted-foreground">{error}</p>
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );
