@@ -66,7 +66,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     localStorage.setItem('mapboxAPIKey', e.target.value);
   };
   
-  // Initialize the map
+  // Initialize the map when the dialog is opened
   useEffect(() => {
     if (!isOpen || !mapContainer.current || map.current) return;
 
@@ -88,6 +88,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         
         setError(null);
         
+        // Create map instance
         map.current = new mapboxgl.default.Map({
           container: mapContainer.current!,
           style: 'mapbox://styles/mapbox/streets-v12',
@@ -98,6 +99,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         map.current.addControl(new mapboxgl.default.NavigationControl(), 'top-right');
         
         map.current.on('load', () => {
+          console.log('Map loaded');
           setMapLoaded(true);
         });
       } catch (err) {
@@ -113,6 +115,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
       if (map.current) {
         map.current.remove();
         map.current = null;
+        setMapLoaded(false);
       }
     };
   }, [isOpen]);
@@ -123,23 +126,28 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     
     const addMarkers = async () => {
       try {
+        console.log('Adding markers for locations:', locations);
         const mapboxgl = await import('mapbox-gl');
         
         // Create a bounds object to fit all markers
         const bounds = new mapboxgl.default.LngLatBounds();
         let dayColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'];
+        let markersAdded = false;
         
         // Add markers for each location with day color coding
         for (const day of itinerary) {
           const dayColor = dayColors[(day.day - 1) % dayColors.length];
+          console.log(`Processing day ${day.day} with color ${dayColor}`);
           
           for (const activity of day.activities) {
+            console.log(`Processing activity: ${activity.title} at ${activity.location}`);
             // Get coordinates for the location
-            let coordinates: [number, number] = [73.0169, 19.0330]; // Default Navi Mumbai
+            let coordinates: [number, number] | null = null;
             
             // Look for exact location match first
             if (locationCoordinates[activity.location]) {
               coordinates = locationCoordinates[activity.location];
+              console.log(`Found exact coordinates for ${activity.location}:`, coordinates);
             } else {
               // Try partial matching for locations that contain the name
               const locationKey = Object.keys(locationCoordinates).find(
@@ -148,7 +156,15 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
               
               if (locationKey) {
                 coordinates = locationCoordinates[locationKey];
+                console.log(`Found partial match coordinates for ${activity.location} using ${locationKey}:`, coordinates);
+              } else {
+                console.log(`No coordinates found for location: ${activity.location}`);
               }
+            }
+            
+            if (!coordinates) {
+              console.log(`Skipping marker for ${activity.location} due to missing coordinates`);
+              continue;
             }
             
             // Create a popup with activity details
@@ -184,18 +200,23 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
               .setLngLat(coordinates)
               .setPopup(popup)
               .addTo(map.current!);
-              
+            
             // Extend bounds to include this location
             bounds.extend(coordinates);
+            markersAdded = true;
+            console.log(`Added marker for ${activity.location}`);
           }
         }
         
         // Fit the map to show all markers with padding
-        if (!bounds.isEmpty()) {
+        if (markersAdded && !bounds.isEmpty()) {
+          console.log('Fitting map to bounds');
           map.current!.fitBounds(bounds, {
             padding: 50,
             maxZoom: 14
           });
+        } else {
+          console.log('No valid markers to fit bounds');
         }
       } catch (err) {
         console.error('Error adding markers:', err);
@@ -204,7 +225,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     };
     
     addMarkers();
-  }, [mapLoaded, itinerary]);
+  }, [mapLoaded, itinerary, locations]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -233,8 +254,10 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
                 />
                 <Button 
                   onClick={() => {
-                    map.current?.remove();
-                    map.current = null;
+                    if (map.current) {
+                      map.current.remove();
+                      map.current = null;
+                    }
                     setMapLoaded(false);
                     setError(null);
                   }}
