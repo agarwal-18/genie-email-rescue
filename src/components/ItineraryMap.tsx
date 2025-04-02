@@ -9,8 +9,10 @@ import {
   DialogFooter,
   DialogClose
 } from '@/components/ui/dialog';
-import L from 'leaflet'; // Import Leaflet
-import 'leaflet/dist/leaflet.css'; // Import Leaflet CSS
+
+// Ensure Leaflet is only imported on the client side
+const L = typeof window !== 'undefined' ? require('leaflet') : null;
+if (L) require('leaflet/dist/leaflet.css');
 
 interface ItineraryActivity {
   time: string;
@@ -52,23 +54,27 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   };
 
   // Default fallback coordinates for Navi Mumbai
-  const defaultCoordinates: [number, number] = [19.0330, 73.0169];
+  const defaultCoordinates: [19.0330, 73.0169];
 
   // Initialize the map when the dialog is opened
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !mapContainer.current || !L) return;
 
-    if (map.current) {
-      map.current.remove();
+    try {
+      if (map.current) {
+        map.current.remove();
+      }
+
+      map.current = L.map(mapContainer.current).setView(defaultCoordinates, 12);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map.current);
+
+      setMapLoaded(true);
+    } catch (error) {
+      console.error('Error initializing map:', error);
     }
-
-    map.current = L.map(mapContainer.current!).setView(defaultCoordinates, 12);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map.current);
-
-    setMapLoaded(true);
 
     return () => {
       if (map.current) {
@@ -81,18 +87,22 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
 
   // Add markers for each location when map is loaded
   useEffect(() => {
-    if (!mapLoaded || !map.current) return;
+    if (!mapLoaded || !map.current || !L) return;
 
-    const bounds = L.latLngBounds([]);
+    try {
+      const bounds = L.latLngBounds([]);
 
-    locations.forEach(location => {
-      const coordinates = locationCoordinates[location] || defaultCoordinates;
-      const marker = L.marker(coordinates).addTo(map.current!);
-      marker.bindPopup(`<b>${location}</b>`).openPopup();
-      bounds.extend(coordinates);
-    });
+      locations.forEach(location => {
+        const coordinates = locationCoordinates[location] || defaultCoordinates;
+        const marker = L.marker(coordinates).addTo(map.current!);
+        marker.bindPopup(`<b>${location}</b>`).openPopup();
+        bounds.extend(coordinates);
+      });
 
-    map.current.fitBounds(bounds);
+      map.current.fitBounds(bounds);
+    } catch (error) {
+      console.error('Error adding markers:', error);
+    }
   }, [mapLoaded, locations]);
 
   return (
@@ -118,4 +128,3 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
 };
 
 export default ItineraryMap;
-
