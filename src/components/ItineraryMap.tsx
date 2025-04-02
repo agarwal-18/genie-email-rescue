@@ -68,7 +68,19 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   
   // Initialize the map when the dialog is opened
   useEffect(() => {
-    if (!isOpen || !mapContainer.current || map.current) return;
+    // Make sure we only initialize when the dialog is open and the map container exists
+    if (!isOpen || !mapContainer.current) {
+      console.log('Dialog not open or map container not ready');
+      return;
+    }
+    
+    // Don't reinitialize if map already exists
+    if (map.current) {
+      console.log('Map already exists, skipping initialization');
+      return;
+    }
+    
+    console.log('Initializing map...');
 
     const initMap = async () => {
       try {
@@ -76,19 +88,25 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         const storedKey = localStorage.getItem('mapboxAPIKey');
         if (storedKey) {
           setMapboxAPIKey(storedKey);
+          console.log('Found stored API key');
+        } else {
+          console.log('No stored API key found');
         }
 
         // Dynamic import of mapbox-gl
+        console.log('Importing mapbox-gl...');
         const mapboxgl = await import('mapbox-gl');
         await import('mapbox-gl/dist/mapbox-gl.css');
         
         // Set the Mapbox API key
         const apiKey = storedKey || 'pk.eyJ1IjoiZGVtb3VzZXIiLCJhIjoiY2xxNjk5NWJmMDJrNjJrcnZ1c2J2dmRjZSJ9.x-AxEddLuzAlmgdwu_CM5w'; // Default public demo key
         mapboxgl.default.accessToken = apiKey;
+        console.log('Setting mapbox access token');
         
         setError(null);
         
         // Create map instance
+        console.log('Creating map instance...');
         map.current = new mapboxgl.default.Map({
           container: mapContainer.current!,
           style: 'mapbox://styles/mapbox/streets-v12',
@@ -99,7 +117,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         map.current.addControl(new mapboxgl.default.NavigationControl(), 'top-right');
         
         map.current.on('load', () => {
-          console.log('Map loaded');
+          console.log('Map loaded successfully');
           setMapLoaded(true);
         });
       } catch (err) {
@@ -113,6 +131,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     // Cleanup
     return () => {
       if (map.current) {
+        console.log('Cleaning up map instance');
         map.current.remove();
         map.current = null;
         setMapLoaded(false);
@@ -122,7 +141,12 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   
   // Add markers for each location when map is loaded
   useEffect(() => {
-    if (!mapLoaded || !map.current) return;
+    if (!mapLoaded || !map.current) {
+      console.log('Map not loaded yet or map instance is null');
+      return;
+    }
+    
+    console.log('Map is loaded, adding markers...');
     
     const addMarkers = async () => {
       try {
@@ -151,7 +175,8 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
             } else {
               // Try partial matching for locations that contain the name
               const locationKey = Object.keys(locationCoordinates).find(
-                key => activity.location.includes(key) || key.includes(activity.location)
+                key => activity.location.toLowerCase().includes(key.toLowerCase()) || 
+                      key.toLowerCase().includes(activity.location.toLowerCase())
               );
               
               if (locationKey) {
@@ -159,6 +184,9 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
                 console.log(`Found partial match coordinates for ${activity.location} using ${locationKey}:`, coordinates);
               } else {
                 console.log(`No coordinates found for location: ${activity.location}`);
+                // Fallback to Navi Mumbai central coordinates
+                coordinates = [73.0169, 19.0330];
+                console.log(`Using fallback coordinates for ${activity.location}:`, coordinates);
               }
             }
             
@@ -211,10 +239,15 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         // Fit the map to show all markers with padding
         if (markersAdded && !bounds.isEmpty()) {
           console.log('Fitting map to bounds');
-          map.current!.fitBounds(bounds, {
-            padding: 50,
-            maxZoom: 14
-          });
+          setTimeout(() => {
+            if (map.current) {
+              map.current.fitBounds(bounds, {
+                padding: 50,
+                maxZoom: 14
+              });
+              console.log('Map fitted to bounds');
+            }
+          }, 500); // Small delay to ensure markers are added
         } else {
           console.log('No valid markers to fit bounds');
         }

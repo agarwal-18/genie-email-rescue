@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { MapPin, Clock, Calendar, Map, Menu, Copy, Share2, Download, Printer } from 'lucide-react';
@@ -48,6 +47,7 @@ const Itinerary = () => {
   const [searchParams] = useSearchParams();
 
   const handleGenerateItinerary = (newItinerary: ItineraryDay[]) => {
+    console.log("New itinerary generated:", newItinerary);
     setItinerary(newItinerary);
     
     // Extract unique locations from the itinerary activities
@@ -56,11 +56,14 @@ const Itinerary = () => {
       day.activities.forEach(activity => {
         if (activity.location) {
           locations.add(activity.location);
+          console.log(`Added location: ${activity.location}`);
         }
       });
     });
     
-    setSelectedLocations(Array.from(locations));
+    const locationArray = Array.from(locations);
+    console.log("Extracted locations:", locationArray);
+    setSelectedLocations(locationArray);
   };
 
   const handleShare = () => {
@@ -86,6 +89,8 @@ const Itinerary = () => {
 
   const handleOpenMap = () => {
     if (itinerary.length > 0) {
+      console.log("Opening map with itinerary:", itinerary);
+      console.log("Locations for map:", selectedLocations);
       setIsMapOpen(true);
     } else {
       toast({
