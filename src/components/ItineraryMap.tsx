@@ -191,28 +191,22 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
             const el = document.createElement('div');
             el.className = 'marker';
             el.style.backgroundColor = dayColor;
-            el.style.width = '20px';
-            el.style.height = '20px';
+            el.style.width = '10px';
+            el.style.height = '10px';
             el.style.borderRadius = '50%';
-            el.style.border = '2px solid white';
-            el.style.cursor = 'pointer';
 
             new mapboxgl.default.Marker(el)
               .setLngLat(coordinates)
               .setPopup(popup)
-              .addTo(map.current!);
+              .addTo(map.current);
 
             bounds.extend(coordinates);
           });
         });
 
-        if (!bounds.isEmpty()) {
-          console.log('Fitting map bounds to markers');
-          map.current.fitBounds(bounds, { padding: 50 });
-        }
+        map.current.fitBounds(bounds, { padding: 50 });
       } catch (err) {
         console.error('Error adding markers:', err);
-        setError('Could not add location markers to the map.');
       }
     };
 
