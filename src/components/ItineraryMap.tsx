@@ -48,41 +48,15 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
 
   // Navi Mumbai locations with coordinates
   const locationCoordinates: Record<string, [number, number]> = {
-    'Vashi': [73.0071, 19.0754],
-    'Belapur': [73.0358, 19.0235],
-    'Kharghar': [73.0785, 19.0477],
-    'Nerul': [73.0157, 19.0377],
-    'Panvel': [73.1088, 18.9894],
-    'Airoli': [72.9985, 19.1557],
-    'Ghansoli': [73.0085, 19.1162],
-    'Kopar Khairane': [73.0071, 19.1050],
-    'Sanpada': [73.0119, 19.0506],
-    'Turbhe': [73.0224, 19.0897],
-    'Seawoods': [73.0185, 19.0142],
-    'DY Patil Stadium': [73.0282, 19.0446],
-    'Central Park': [73.0169, 19.0343],
-    'Inorbit Mall': [73.0169, 19.0343],
-    'Wonder Park': [73.0074, 19.0137],
-    'Mini Seashore': [73.0215, 19.0240],
-    'Akshar Dhaam': [72.9962, 19.1030],
-    'Wonders Park': [73.0074, 19.0137],
-    'APMC Market': [73.0166, 19.0680],
-    'Parsik Hill': [73.0299, 19.0303],
-    'Palm Beach Road': [73.0222, 19.0037],
-    'Jewel of Navi Mumbai': [73.0173, 19.0340],
-    'Sagar Vihar': [73.0083, 19.0633],
-    'Golf Course': [73.0081, 19.0157],
-    'Uran Beach': [72.9387, 18.8841],
-    'Ulwe City': [73.0206, 18.9953],
-    'NMMC Park': [73.0169, 19.0343],
-    'Shilp Chowk': [73.0157, 19.0366],
-    'NMMC Garden': [73.0169, 19.0343],
-    'Town Hall': [73.0152, 19.0345],
-    'Nerul Lake': [73.0206, 19.0377],
-    'DPS Lake': [73.0148, 19.0421],
-    'Marina Bay Park': [73.0177, 19.0142],
-    'Belapur Fort': [73.0358, 19.0235]
+    'Vashi': [73.0169, 19.0330],
+    'Nerul': [73.0223, 19.0337],
+    'Belapur': [73.0250, 19.0180],
+    'Kharghar': [73.0650, 19.0330],
+    // Add more known locations here
   };
+
+  // Default fallback coordinates for Navi Mumbai
+  const defaultCoordinates: [number, number] = [73.0169, 19.0330];
   
   // Handle API key input change
   const handleAPIKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -177,7 +151,11 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
               return;
             }
 
-            const coordinates = locationCoordinates[activity.location] || [73.0169, 19.0330];
+            const coordinates = locationCoordinates[activity.location] || defaultCoordinates;
+            if (coordinates === defaultCoordinates) {
+              console.warn(`Using default coordinates for location: ${activity.location}`);
+            }
+
             console.log(`Adding marker for location: ${activity.location}`, coordinates);
 
             const popup = new mapboxgl.default.Popup({ offset: 25 }).setHTML(`
@@ -191,8 +169,8 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
             const el = document.createElement('div');
             el.className = 'marker';
             el.style.backgroundColor = dayColor;
-            el.style.width = '10px';
-            el.style.height = '10px';
+            el.style.width = '12px';
+            el.style.height = '12px';
             el.style.borderRadius = '50%';
 
             new mapboxgl.default.Marker(el)
