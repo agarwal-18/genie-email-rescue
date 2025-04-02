@@ -38,11 +38,33 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   const map = useRef<MapboxMap | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mapboxAPIKey, setMapboxAPIKey] = useState<string>("");
   
   // Get all unique locations from itinerary
   const locations = itinerary.flatMap(day => 
     day.activities.map(activity => activity.location)
   ).filter((value, index, self) => self.indexOf(value) === index);
+
+  // Navi Mumbai locations with coordinates
+  const locationCoordinates: Record<string, [number, number]> = {
+    'Vashi': [73.0071, 19.0754],
+    'Belapur': [73.0358, 19.0235],
+    'Kharghar': [73.0785, 19.0477],
+    'Nerul': [73.0157, 19.0377],
+    'Panvel': [73.1088, 18.9894],
+    'Airoli': [72.9985, 19.1557],
+    'Ghansoli': [73.0085, 19.1162],
+    'Kopar Khairane': [73.0071, 19.1050],
+    'Sanpada': [73.0119, 19.0506],
+    'Turbhe': [73.0224, 19.0897],
+    'Seawoods': [73.0185, 19.0142]
+  };
+  
+  // Handle API key input change
+  const handleAPIKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMapboxAPIKey(e.target.value);
+    localStorage.setItem('mapboxAPIKey', e.target.value);
+  };
   
   // Initialize the map
   useEffect(() => {
@@ -50,12 +72,19 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
 
     const initMap = async () => {
       try {
+        // Check for stored API key
+        const storedKey = localStorage.getItem('mapboxAPIKey');
+        if (storedKey) {
+          setMapboxAPIKey(storedKey);
+        }
+
         // Dynamic import of mapbox-gl
         const mapboxgl = await import('mapbox-gl');
         await import('mapbox-gl/dist/mapbox-gl.css');
         
-        // Initialize Mapbox
-        mapboxgl.default.accessToken = '562c360f0d7884a7ec779f34559a11fb'; // Using weather API key as placeholder
+        // Set the Mapbox API key
+        const apiKey = storedKey || 'pk.eyJ1IjoiZGVtb3VzZXIiLCJhIjoiY2xxNjk5NWJmMDJrNjJrcnZ1c2J2dmRjZSJ9.x-AxEddLuzAlmgdwu_CM5w'; // Default public demo key
+        mapboxgl.default.accessToken = apiKey;
         
         setError(null);
         
@@ -98,51 +127,60 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         
         // Create a bounds object to fit all markers
         const bounds = new mapboxgl.default.LngLatBounds();
+        let dayColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'];
         
-        // Add markers for each location
+        // Add markers for each location with day color coding
         for (const day of itinerary) {
+          const dayColor = dayColors[(day.day - 1) % dayColors.length];
+          
           for (const activity of day.activities) {
-            // Use a simple geocoding approach for demo
-            // In a real app, you would use a proper geocoding service
-            const location = activity.location;
-            
-            // Get approximate coordinates for Navi Mumbai locations
-            // This is a simplified approach - in production, use geocoding
+            // Get coordinates for the location
             let coordinates: [number, number] = [73.0169, 19.0330]; // Default Navi Mumbai
             
-            if (location.includes('Vashi')) {
-              coordinates = [73.0071, 19.0754];
-            } else if (location.includes('Belapur')) {
-              coordinates = [73.0358, 19.0235];
-            } else if (location.includes('Kharghar')) {
-              coordinates = [73.0785, 19.0477];
-            } else if (location.includes('Nerul')) {
-              coordinates = [73.0157, 19.0377];
-            } else if (location.includes('Panvel')) {
-              coordinates = [73.1088, 18.9894];
-            } else if (location.includes('Airoli')) {
-              coordinates = [72.9985, 19.1557];
-            } else if (location.includes('Ghansoli')) {
-              coordinates = [73.0085, 19.1162];
-            } else if (location.includes('Kopar Khairane')) {
-              coordinates = [73.0071, 19.1050];
-            } else if (location.includes('Sanpada')) {
-              coordinates = [73.0119, 19.0506];
-            } else if (location.includes('Turbhe')) {
-              coordinates = [73.0224, 19.0897];
-            } else if (location.includes('Ulwe')) {
-              coordinates = [73.0454, 18.9775];
+            // Look for exact location match first
+            if (locationCoordinates[activity.location]) {
+              coordinates = locationCoordinates[activity.location];
+            } else {
+              // Try partial matching for locations that contain the name
+              const locationKey = Object.keys(locationCoordinates).find(
+                key => activity.location.includes(key) || key.includes(activity.location)
+              );
+              
+              if (locationKey) {
+                coordinates = locationCoordinates[locationKey];
+              }
             }
             
-            // Create a popup
+            // Create a popup with activity details
             const popup = new mapboxgl.default.Popup({ offset: 25 })
               .setHTML(`
-                <h3 class="font-medium">${activity.title}</h3>
-                <p class="text-sm">${activity.time} - Day ${day.day}</p>
+                <div class="p-2">
+                  <h3 class="font-medium text-sm">${activity.title}</h3>
+                  <p class="text-xs text-gray-500">${activity.time} - Day ${day.day}</p>
+                  <p class="text-xs mt-1">${activity.location}</p>
+                </div>
               `);
             
+            // Create a custom element for the marker
+            const el = document.createElement('div');
+            el.className = 'marker';
+            el.style.backgroundColor = dayColor;
+            el.style.width = '20px';
+            el.style.height = '20px';
+            el.style.borderRadius = '50%';
+            el.style.border = '2px solid white';
+            el.style.boxShadow = '0 0 10px rgba(0,0,0,0.3)';
+            el.style.cursor = 'pointer';
+            el.style.display = 'flex';
+            el.style.alignItems = 'center';
+            el.style.justifyContent = 'center';
+            el.style.color = 'white';
+            el.style.fontSize = '10px';
+            el.style.fontWeight = 'bold';
+            el.textContent = day.day.toString();
+            
             // Create marker
-            new mapboxgl.default.Marker({ color: '#0ea5e9' })
+            new mapboxgl.default.Marker(el)
               .setLngLat(coordinates)
               .setPopup(popup)
               .addTo(map.current!);
@@ -152,7 +190,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
           }
         }
         
-        // Fit the map to show all markers
+        // Fit the map to show all markers with padding
         if (!bounds.isEmpty()) {
           map.current!.fitBounds(bounds, {
             padding: 50,
@@ -182,9 +220,31 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
           {error ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted/20 text-center p-4">
               <p className="text-destructive mb-2">{error}</p>
-              <p className="text-sm text-muted-foreground">
-                Consider installing <a href="https://www.mapbox.com/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Mapbox</a> for full mapping functionality.
+              <p className="text-sm text-muted-foreground mb-4">
+                You may need to provide a valid Mapbox API key.
               </p>
+              <div className="w-full max-w-md">
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border rounded-md mb-2"
+                  placeholder="Enter Mapbox API Key"
+                  value={mapboxAPIKey}
+                  onChange={handleAPIKeyChange}
+                />
+                <Button 
+                  onClick={() => {
+                    map.current?.remove();
+                    map.current = null;
+                    setMapLoaded(false);
+                    setError(null);
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                >
+                  Retry with new API Key
+                </Button>
+              </div>
             </div>
           ) : (
             <div ref={mapContainer} className="absolute inset-0 rounded-lg" />

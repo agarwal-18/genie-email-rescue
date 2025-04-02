@@ -33,42 +33,30 @@ const PlaceCard = ({
 }: PlaceCardProps) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
-  const maxRetries = 2;
 
   useEffect(() => {
-    // Reset state when image URL changes
+    // Reset loading state when image changes
     setLoaded(false);
     setError(false);
     
     const img = new Image();
-    img.src = `${image}${image.includes('?') ? '&' : '?'}cache=${Date.now()}`;
+    img.src = image;
     
-    const onLoad = () => {
+    img.onload = () => {
       setLoaded(true);
       setError(false);
     };
     
-    const onError = () => {
-      // If we haven't reached max retries, try again with a different cache buster
-      if (retryCount < maxRetries) {
-        setRetryCount(prev => prev + 1);
-        // Use a slightly different URL to bypass cache
-        img.src = `${image}${image.includes('?') ? '&' : '?'}cache=${Date.now() + retryCount}`;
-      } else {
-        setError(true);
-        setLoaded(true); // Mark as loaded to remove loading state
-      }
+    img.onerror = () => {
+      setError(true);
+      setLoaded(true); // Mark as loaded to remove loading state
     };
-    
-    img.onload = onLoad;
-    img.onerror = onError;
 
     return () => {
       img.onload = null;
       img.onerror = null;
     };
-  }, [image, retryCount]);
+  }, [image]);
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -122,6 +110,7 @@ const PlaceCard = ({
             src={image}
             alt={name}
             className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+            loading="lazy"
           />
         )}
       </div>
