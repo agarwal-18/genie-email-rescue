@@ -159,10 +159,11 @@ const Itinerary = () => {
     if (itinerary.length > 0) {
       console.log("Opening map with itinerary:", itinerary);
 
-      // Filter out activities with invalid or missing locations
       const validLocations = itinerary.flatMap(day =>
         day.activities.filter(activity => activity.location)
       );
+
+      console.log("Valid locations for map:", validLocations);
 
       if (validLocations.length === 0) {
         toast({
