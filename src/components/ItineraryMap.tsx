@@ -11,13 +11,10 @@ import {
 } from '@/components/ui/dialog';
 
 // Ensure Leaflet is only imported on the client side
-const L = typeof window !== 'undefined' ? require('leaflet') : null;
-if (L) {
-  try {
-    require('leaflet/dist/leaflet.css');
-  } catch (error) {
-    console.error('Error loading Leaflet CSS:', error);
-  }
+let L: typeof import('leaflet') | null = null;
+if (typeof window !== 'undefined') {
+  L = require('leaflet');
+  require('leaflet/dist/leaflet.css');
 }
 
 interface ItineraryActivity {
@@ -60,7 +57,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   };
 
   // Default fallback coordinates for Navi Mumbai
-  const defaultCoordinates = { lat: 19.033, lng: 73.029 }; // Example coordinates for Navi Mumbai
+  const defaultCoordinates = { lat: 19.033, lng: 73.029 };
 
   // Initialize the map when the dialog is opened
   useEffect(() => {
