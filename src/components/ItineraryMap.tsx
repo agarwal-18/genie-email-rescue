@@ -146,6 +146,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
 
     return () => {
       if (map.current) {
+        console.log('Cleaning up map instance');
         map.current.remove();
         map.current = null;
         setMapLoaded(false);
@@ -177,6 +178,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
             }
 
             const coordinates = locationCoordinates[activity.location] || [73.0169, 19.0330];
+            console.log(`Adding marker for location: ${activity.location}`, coordinates);
 
             const popup = new mapboxgl.default.Popup({ offset: 25 }).setHTML(`
               <div>
@@ -205,6 +207,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         });
 
         if (!bounds.isEmpty()) {
+          console.log('Fitting map bounds to markers');
           map.current.fitBounds(bounds, { padding: 50 });
         }
       } catch (err) {
