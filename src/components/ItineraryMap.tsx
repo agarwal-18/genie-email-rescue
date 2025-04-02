@@ -12,7 +12,13 @@ import {
 
 // Ensure Leaflet is only imported on the client side
 const L = typeof window !== 'undefined' ? require('leaflet') : null;
-if (L) require('leaflet/dist/leaflet.css');
+if (L) {
+  try {
+    require('leaflet/dist/leaflet.css');
+  } catch (error) {
+    console.error('Error loading Leaflet CSS:', error);
+  }
+}
 
 interface ItineraryActivity {
   time: string;
@@ -58,7 +64,10 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
 
   // Initialize the map when the dialog is opened
   useEffect(() => {
-    if (!isOpen || !mapContainer.current || !L) return;
+    if (!isOpen || !mapContainer.current || !L) {
+      console.warn('Map initialization skipped: Missing prerequisites.');
+      return;
+    }
 
     try {
       if (map.current) {
@@ -87,7 +96,10 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
 
   // Add markers for each location when map is loaded
   useEffect(() => {
-    if (!mapLoaded || !map.current || !L) return;
+    if (!mapLoaded || !map.current || !L) {
+      console.warn('Marker addition skipped: Map not loaded.');
+      return;
+    }
 
     try {
       const bounds = L.latLngBounds([]);
