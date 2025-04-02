@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -71,14 +70,11 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
 
   useEffect(() => {
     if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to create an itinerary.",
-        variant: "destructive"
-      });
-      navigate('/login');
+      console.log("No user logged in for itinerary generator");
+      // We'll allow users to generate itineraries without logging in,
+      // but saving will require login
     }
-  }, [user, navigate, toast]);
+  }, [user]);
 
   const handleLocationToggle = (location: string) => {
     if (selectedLocations.includes(location)) {
@@ -147,11 +143,24 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
   };
 
   const saveItinerary = async () => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to save your itinerary.",
+        variant: "destructive"
+      });
+      navigate('/login');
+      return;
+    }
     
     setIsSaving(true);
     
     try {
+      console.log("Starting itinerary save process...");
+      console.log("User:", user.id);
+      console.log("Itinerary title:", itineraryTitle);
+      console.log("Selected locations:", selectedLocations);
+      
       // Convert start date to ISO string for database storage
       const startDateIso = startDate ? startDate.toISOString() : null;
       
@@ -173,10 +182,17 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
         .select()
         .single();
       
-      if (itineraryError) throw itineraryError;
+      if (itineraryError) {
+        console.error("Error saving itinerary:", itineraryError);
+        throw itineraryError;
+      }
+      
+      console.log("Itinerary saved successfully:", itineraryData);
       
       // Save each activity
       if (itineraryData) {
+        console.log("Saving activities for itinerary:", itineraryData.id);
+        
         const activitiesData = itinerary.flatMap((day, index) => 
           day.activities.map((activity: any) => ({
             itinerary_id: itineraryData.id,
@@ -190,16 +206,26 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
           }))
         );
         
+        console.log("Activities to save:", activitiesData.length);
+        
         const { error: activitiesError } = await supabase
           .from('itinerary_activities')
           .insert(activitiesData);
         
-        if (activitiesError) throw activitiesError;
+        if (activitiesError) {
+          console.error("Error saving activities:", activitiesError);
+          throw activitiesError;
+        }
+        
+        console.log("Activities saved successfully");
         
         toast({
           title: "Itinerary saved",
           description: "Your itinerary has been saved successfully."
         });
+        
+        // Navigate to saved itineraries view
+        navigate('/saved-itineraries');
       }
     } catch (error: any) {
       console.error('Error saving itinerary:', error);
@@ -404,7 +430,7 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
           <Checkbox 
             id="includeFood" 
             checked={includeFood}
-            onCheckedChange={(checked: boolean) => setIncludeFood(checked)}
+            onCheckedChange={(checked) => setIncludeFood(checked === true)}
           />
           <Label htmlFor="includeFood">Include Food Recommendations</Label>
         </div>

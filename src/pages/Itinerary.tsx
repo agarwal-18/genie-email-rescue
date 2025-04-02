@@ -38,6 +38,43 @@ interface ItineraryDay {
   activities: ItineraryActivity[];
 }
 
+// Sample location images for different parts of Navi Mumbai
+const locationImages: Record<string, string> = {
+  'Vashi': 'https://images.unsplash.com/photo-1600596763590-bcb204490b8c?q=80&w=800',
+  'Belapur': 'https://images.unsplash.com/photo-1600596763590-bcb204490b8c?q=80&w=800',
+  'Kharghar': 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800',
+  'Nerul': 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800',
+  'Panvel': 'https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=800',
+  'Airoli': 'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?q=80&w=800',
+  'Ghansoli': 'https://images.unsplash.com/photo-1523712999610-f77fbcfc3843?q=80&w=800',
+  'Kopar Khairane': 'https://images.unsplash.com/photo-1482881497185-d4a9ddbe4151?q=80&w=800',
+  'Sanpada': 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=800',
+  'Turbhe': 'https://images.unsplash.com/photo-1458668383970-8ddd3927deed?q=80&w=800',
+  'Seawoods': 'https://images.unsplash.com/photo-1504893524553-b855bce32c67?q=80&w=800',
+  'DY Patil Stadium': 'https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?q=80&w=800',
+  'Central Park': 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?q=80&w=800',
+  'Inorbit Mall': 'https://images.unsplash.com/photo-1500673922987-e212871fec22?q=80&w=800',
+  'Wonder Park': 'https://images.unsplash.com/photo-1472396961693-142e6e269027?q=80&w=800',
+  'Mini Seashore': 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?q=80&w=800',
+  'Akshar Dhaam': 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?q=80&w=800',
+  'Wonders Park': 'https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?q=80&w=800',
+  'APMC Market': 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=800',
+  'Parsik Hill': 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=800',
+  'Palm Beach Road': 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=800',
+  'Jewel of Navi Mumbai': 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800',
+  'Sagar Vihar': 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=800',
+  'Golf Course': 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=800'
+};
+
+// Default image if location doesn't have a specific one
+const defaultImages = [
+  'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?q=80&w=800',
+  'https://images.unsplash.com/photo-1458668383970-8ddd3927deed?q=80&w=800',
+  'https://images.unsplash.com/photo-1504893524553-b855bce32c67?q=80&w=800',
+  'https://images.unsplash.com/photo-1482881497185-d4a9ddbe4151?q=80&w=800',
+  'https://images.unsplash.com/photo-1426604966848-d7adac402bff?q=80&w=800'
+];
+
 const Itinerary = () => {
   const [itinerary, setItinerary] = useState<ItineraryDay[]>([]);
   const [selectedLocations, setSelectedLocations] = useState<string[]>(['Vashi']);
@@ -46,9 +83,40 @@ const Itinerary = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
 
+  // Helper function to get an image for a location
+  const getImageForLocation = (location: string): string => {
+    // If the location already has an image in our mapping, use that
+    if (locationImages[location]) {
+      return locationImages[location];
+    }
+    
+    // Otherwise, try to find any partial match
+    const partialMatch = Object.keys(locationImages).find(
+      key => location.toLowerCase().includes(key.toLowerCase()) ||
+            key.toLowerCase().includes(location.toLowerCase())
+    );
+    
+    if (partialMatch) {
+      return locationImages[partialMatch];
+    }
+    
+    // If no match, return a random default image
+    return defaultImages[Math.floor(Math.random() * defaultImages.length)];
+  };
+
   const handleGenerateItinerary = (newItinerary: ItineraryDay[]) => {
     console.log("New itinerary generated:", newItinerary);
-    setItinerary(newItinerary);
+    
+    // Add images to activities that don't have them
+    const itineraryWithImages = newItinerary.map(day => ({
+      ...day,
+      activities: day.activities.map(activity => ({
+        ...activity,
+        image: activity.image || getImageForLocation(activity.location)
+      }))
+    }));
+    
+    setItinerary(itineraryWithImages);
     
     // Extract unique locations from the itinerary activities
     const locations = new Set<string>();
@@ -213,15 +281,19 @@ const Itinerary = () => {
                                         {activity.description}
                                       </p>
                                       
-                                      {activity.image && (
-                                        <div className="mt-3 rounded-lg overflow-hidden h-40">
-                                          <img 
-                                            src={activity.image} 
-                                            alt={activity.title}
-                                            className="w-full h-full object-cover"
-                                          />
-                                        </div>
-                                      )}
+                                      {/* Always display an image */}
+                                      <div className="mt-3 rounded-lg overflow-hidden h-40">
+                                        <img 
+                                          src={activity.image || getImageForLocation(activity.location)} 
+                                          alt={activity.title}
+                                          className="w-full h-full object-cover"
+                                          onError={(e) => {
+                                            // If image fails to load, use a default one
+                                            console.log(`Image failed to load for ${activity.location}, using fallback`);
+                                            e.currentTarget.src = defaultImages[0];
+                                          }}
+                                        />
+                                      </div>
                                     </div>
                                   </div>
                                 ))}

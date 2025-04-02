@@ -57,7 +57,30 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     'Kopar Khairane': [73.0071, 19.1050],
     'Sanpada': [73.0119, 19.0506],
     'Turbhe': [73.0224, 19.0897],
-    'Seawoods': [73.0185, 19.0142]
+    'Seawoods': [73.0185, 19.0142],
+    'DY Patil Stadium': [73.0282, 19.0446],
+    'Central Park': [73.0169, 19.0343],
+    'Inorbit Mall': [73.0169, 19.0343],
+    'Wonder Park': [73.0074, 19.0137],
+    'Mini Seashore': [73.0215, 19.0240],
+    'Akshar Dhaam': [72.9962, 19.1030],
+    'Wonders Park': [73.0074, 19.0137],
+    'APMC Market': [73.0166, 19.0680],
+    'Parsik Hill': [73.0299, 19.0303],
+    'Palm Beach Road': [73.0222, 19.0037],
+    'Jewel of Navi Mumbai': [73.0173, 19.0340],
+    'Sagar Vihar': [73.0083, 19.0633],
+    'Golf Course': [73.0081, 19.0157],
+    'Uran Beach': [72.9387, 18.8841],
+    'Ulwe City': [73.0206, 18.9953],
+    'NMMC Park': [73.0169, 19.0343],
+    'Shilp Chowk': [73.0157, 19.0366],
+    'NMMC Garden': [73.0169, 19.0343],
+    'Town Hall': [73.0152, 19.0345],
+    'Nerul Lake': [73.0206, 19.0377],
+    'DPS Lake': [73.0148, 19.0421],
+    'Marina Bay Park': [73.0177, 19.0142],
+    'Belapur Fort': [73.0358, 19.0235]
   };
   
   // Handle API key input change
@@ -68,6 +91,10 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   
   // Initialize the map when the dialog is opened
   useEffect(() => {
+    console.log('Map dialog open state:', isOpen);
+    console.log('Map container ref:', mapContainer.current);
+    console.log('Map ref state:', map.current);
+    
     // Make sure we only initialize when the dialog is open and the map container exists
     if (!isOpen || !mapContainer.current) {
       console.log('Dialog not open or map container not ready');
@@ -98,10 +125,10 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         const mapboxgl = await import('mapbox-gl');
         await import('mapbox-gl/dist/mapbox-gl.css');
         
-        // Set the Mapbox API key
-        const apiKey = storedKey || 'pk.eyJ1IjoiZGVtb3VzZXIiLCJhIjoiY2xxNjk5NWJmMDJrNjJrcnZ1c2J2dmRjZSJ9.x-AxEddLuzAlmgdwu_CM5w'; // Default public demo key
+        // Set the Mapbox API key - use a default public token if none provided
+        const apiKey = storedKey || 'pk.eyJ1IjoiZGVtb3VzZXIiLCJhIjoiY2xxNmEzMTRnMG9oZTJpcXd2MDFyYTFzNiJ9.MZImMlpgVPaKLjHZW4246A';
         mapboxgl.default.accessToken = apiKey;
-        console.log('Setting mapbox access token');
+        console.log('Setting mapbox access token:', apiKey.substring(0, 10) + '...');
         
         setError(null);
         
@@ -120,13 +147,21 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
           console.log('Map loaded successfully');
           setMapLoaded(true);
         });
+
+        map.current.on('error', (e) => {
+          console.error('Map error:', e);
+          setError(`Map error: ${e.error?.message || 'Unknown error'}`);
+        });
       } catch (err) {
         console.error('Error initializing map:', err);
         setError('Could not load the map. Please try again later.');
       }
     };
 
-    initMap();
+    // Small delay to ensure the container is fully rendered
+    setTimeout(() => {
+      initMap();
+    }, 500);
     
     // Cleanup
     return () => {
@@ -184,9 +219,10 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
                 console.log(`Found partial match coordinates for ${activity.location} using ${locationKey}:`, coordinates);
               } else {
                 console.log(`No coordinates found for location: ${activity.location}`);
-                // Fallback to Navi Mumbai central coordinates
-                coordinates = [73.0169, 19.0330];
-                console.log(`Using fallback coordinates for ${activity.location}:`, coordinates);
+                // Fallback to Navi Mumbai central coordinates with a small random offset
+                const randomOffset = () => (Math.random() - 0.5) * 0.02; // Small random offset
+                coordinates = [73.0169 + randomOffset(), 19.0330 + randomOffset()];
+                console.log(`Using fallback coordinates for ${activity.location} with random offset:`, coordinates);
               }
             }
             
@@ -232,7 +268,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
             // Extend bounds to include this location
             bounds.extend(coordinates);
             markersAdded = true;
-            console.log(`Added marker for ${activity.location}`);
+            console.log(`Added marker for ${activity.location} at coordinates:`, coordinates);
           }
         }
         
@@ -247,7 +283,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
               });
               console.log('Map fitted to bounds');
             }
-          }, 500); // Small delay to ensure markers are added
+          }, 1000); // Longer delay to ensure markers are added
         } else {
           console.log('No valid markers to fit bounds');
         }
