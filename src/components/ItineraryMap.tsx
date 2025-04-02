@@ -66,40 +66,29 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   
   // Initialize the map when the dialog is opened
   useEffect(() => {
-    if (!isOpen || !mapContainer.current) {
-      console.log('Map dialog not open or map container not ready');
-      return;
-    }
+    if (!isOpen) return;
 
-    if (map.current) {
-      console.log('Map already initialized');
-      return;
-    }
-
-    console.log('Initializing map...');
     const initMap = async () => {
       try {
-        const storedKey = localStorage.getItem('mapboxAPIKey');
-        const apiKey = storedKey || 'pk.eyJ1IjoibmF2aXRyaXBwbGFubmVyIiwiYSI6ImNsczFheWZxNjAxd3Uyam9pNWNjMnp0Y3MifQ.c15i4R6fWG7YoYBHcaCvVA';
-
         const mapboxgl = await import('mapbox-gl');
-        await import('mapbox-gl/dist/mapbox-gl.css');
-
-        mapboxgl.default.accessToken = apiKey;
-
-        if (!mapContainer.current) {
-          setError('Map container reference is null');
+        if (!mapboxAPIKey) {
+          console.error('Mapbox API key is missing. Please set it in localStorage.');
+          setError('Mapbox API key is missing.');
           return;
         }
 
-        map.current = new mapboxgl.default.Map({
-          container: mapContainer.current,
-          style: 'mapbox://styles/mapbox/streets-v12',
-          center: [73.0169, 19.0330],
-          zoom: 11,
-        });
+        mapboxgl.default.accessToken = mapboxAPIKey;
 
-        map.current.addControl(new mapboxgl.default.NavigationControl(), 'top-right');
+        if (map.current) {
+          map.current.remove();
+        }
+
+        map.current = new mapboxgl.default.Map({
+          container: mapContainer.current!,
+          style: 'mapbox://styles/mapbox/streets-v11',
+          center: defaultCoordinates,
+          zoom: 12,
+        });
 
         map.current.on('load', () => {
           console.log('Map loaded successfully');
