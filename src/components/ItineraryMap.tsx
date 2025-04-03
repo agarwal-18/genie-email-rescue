@@ -80,38 +80,53 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
       return;
     }
     
-    // Don't reinitialize if map already loaded
-    if (mapLoaded) {
-      return;
+    // Clear previous map if any
+    if (mapContainer.current) {
+      mapContainer.current.innerHTML = '';
     }
-    
+
     const initMap = async () => {
       try {
+        console.log("Initializing map...");
         // Set up map container dimensions
         if (mapContainer.current) {
           mapContainer.current.style.width = '100%';
           mapContainer.current.style.height = '400px';
           mapContainer.current.style.zIndex = '10';
-          mapContainer.current.innerHTML = '';
         }
         
-        // Load required libraries
-        const [L] = await Promise.all([
-          import('leaflet').then(module => module.default),
-          import('leaflet/dist/leaflet.css')
-        ]);
+        // Import leaflet dynamically
+        const L = await import('leaflet').then(module => module.default || module);
         
-        // Create map instance
-        const map = L.map(mapContainer.current!).setView([19.0330, 73.0169], 12);
+        // Need to import CSS manually since it won't be included in the dynamic import
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
+        link.crossOrigin = '';
+        document.head.appendChild(link);
         
-        // Add OpenStreetMap layer
+        console.log("Leaflet loaded:", !!L);
+        
+        // Create map instance - default to Navi Mumbai center if no coordinates
+        const map = L.map(mapContainer.current, {
+          center: [19.0330, 73.0169], // Navi Mumbai coordinates
+          zoom: 12,
+        });
+        
+        // Add OpenStreetMap tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors'
+          maxZoom: 19,
+          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
         
+        console.log("Map created and tile layer added");
+        
         // Add markers for each location
-        let markers = L.featureGroup();
+        let markers: any[] = [];
         const dayColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'];
+        
+        console.log("Processing itinerary days:", itinerary.length);
         
         // Process activities and add markers
         for (const day of itinerary) {
@@ -144,7 +159,9 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
               continue;
             }
             
-            // Create custom marker icon
+            console.log(`Adding marker for ${activity.title} at [${coordinates[1]}, ${coordinates[0]}]`);
+            
+            // Create marker with custom icon
             const markerIcon = L.divIcon({
               html: `<div style="
                 background-color: ${dayColor}; 
@@ -173,23 +190,31 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
                 </div>
               `);
             
-            markers.addLayer(marker);
+            marker.addTo(map);
+            markers.push(marker);
           }
         }
         
-        // Add all markers to map
-        if (markers.getLayers().length > 0) {
-          markers.addTo(map);
-          map.fitBounds(markers.getBounds(), { padding: [30, 30] });
+        console.log("Added markers:", markers.length);
+        
+        // If we have markers, fit the map to show all of them
+        if (markers.length > 0) {
+          const group = new L.featureGroup(markers);
+          map.fitBounds(group.getBounds(), {
+            padding: [30, 30]
+          });
         }
         
         setMapLoaded(true);
         setError(null);
         
+        console.log("Map initialization complete");
+        
         // Clean up function
         return () => {
           map.remove();
           setMapLoaded(false);
+          document.head.removeChild(link);
         };
       } catch (err) {
         console.error('Error initializing map:', err);
@@ -227,7 +252,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
               </p>
             </div>
           ) : (
-            <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
+            <div ref={mapContainer} className="absolute inset-0 rounded-lg border" />
           )}
         </div>
         

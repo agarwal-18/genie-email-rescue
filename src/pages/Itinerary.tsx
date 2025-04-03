@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { MapPin, Clock, Calendar, Map, Menu, Copy, Share2, Download, Printer, Save } from 'lucide-react';
@@ -15,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { toast as sonnerToast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
@@ -94,6 +95,7 @@ const Itinerary = () => {
   const navigate = useNavigate();
   const { saveItinerary, fetchItineraryById, downloadItineraryAsPdf, updateItinerary } = useItinerary();
   const itineraryContentRef = useRef<HTMLDivElement>(null);
+  const [hasShownLoadToast, setHasShownLoadToast] = useState(false);
 
   // Helper function to get an image for a location
   const getImageForLocation = (location: string): string => {
@@ -120,9 +122,11 @@ const Itinerary = () => {
   useEffect(() => {
     const loadSavedItinerary = async () => {
       const idParam = searchParams.get('id');
-      if (idParam && user) {
+      if (idParam && user && !hasShownLoadToast) {
         try {
+          console.log("Loading saved itinerary with ID:", idParam);
           const result = await fetchItineraryById(idParam);
+          
           if (result) {
             setItineraryId(idParam);
             setEditMode(true);
@@ -153,6 +157,7 @@ const Itinerary = () => {
             });
             
             setSelectedLocations(Array.from(locations));
+            setHasShownLoadToast(true);
             
             toast({
               title: "Itinerary loaded",
@@ -171,7 +176,7 @@ const Itinerary = () => {
     };
     
     loadSavedItinerary();
-  }, [searchParams, user, fetchItineraryById, toast]);
+  }, [searchParams, user, fetchItineraryById, toast, hasShownLoadToast]);
 
   const handleGenerateItinerary = (newItinerary: ItineraryDay[], settings: any) => {
     console.log("New itinerary generated:", newItinerary);
@@ -458,6 +463,7 @@ const Itinerary = () => {
                       setEditMode(false);
                       setItineraryId(null);
                       setItinerarySettings(null);
+                      setHasShownLoadToast(false);
                     }}>
                       <Clock className="h-4 w-4 mr-2" />
                       <span>Reset Planner</span>

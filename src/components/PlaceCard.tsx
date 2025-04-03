@@ -48,6 +48,7 @@ const PlaceCard = ({
     };
     
     img.onerror = () => {
+      console.log(`Error loading image for: ${name}`);
       setError(true);
       setLoaded(true); // Mark as loaded to remove loading state
     };
@@ -56,7 +57,7 @@ const PlaceCard = ({
       img.onload = null;
       img.onerror = null;
     };
-  }, [image]);
+  }, [image, name]);
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -78,13 +79,30 @@ const PlaceCard = ({
       "Inorbit Mall": "https://images.unsplash.com/photo-1581417478175-a9ef18f210c2?q=80&w=800"
     };
     
+    // Check for exact match with the name
     if (specificLocationImages[name]) {
+      console.log(`Found specific image for ${name}`);
       return specificLocationImages[name];
     }
     
-    // Then check for location-based matches
+    // Check for partial matches in name
     for (const [key, url] of Object.entries(specificLocationImages)) {
-      if (location.includes(key) || name.includes(key)) {
+      if (name.includes(key) || key.includes(name)) {
+        console.log(`Found partial match for ${name} with ${key}`);
+        return url;
+      }
+    }
+    
+    // Check for exact match with the location
+    if (specificLocationImages[location]) {
+      console.log(`Found specific image for location ${location}`);
+      return specificLocationImages[location];
+    }
+    
+    // Check for partial matches in location
+    for (const [key, url] of Object.entries(specificLocationImages)) {
+      if (location.includes(key) || key.includes(location)) {
+        console.log(`Found partial match for location ${location} with ${key}`);
         return url;
       }
     }
@@ -125,6 +143,10 @@ const PlaceCard = ({
             src={getFallbackImage()}
             alt={name}
             className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+            onError={(e) => {
+              console.log(`Fallback image also failed for ${name}, using default`);
+              e.currentTarget.src = "https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3";
+            }}
           />
         ) : (
           <img 

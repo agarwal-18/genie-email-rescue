@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast as sonnerToast } from "sonner";
@@ -417,86 +417,144 @@ export function useItinerary() {
         throw new Error("Could not find the itinerary content element");
       }
       
-      // Use html2canvas with improved settings for better capture
-      const canvas = await html2canvas(element, {
-        scale: 2, // Higher scale for better quality
-        useCORS: true, // Allow cross-origin images
-        logging: false,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
-        scrollY: -window.scrollY, // Fix for scrolled content
-        allowTaint: true, // Allow tainted canvas
-        onclone: (clonedDoc) => {
-          // Make sure cloned element is fully visible for capture
-          const clonedElement = clonedDoc.getElementById(elementId);
-          if (clonedElement) {
-            clonedElement.style.height = 'auto';
-            clonedElement.style.overflow = 'visible';
-            clonedElement.style.transform = 'none';
-            
-            // Make all tabs visible in the clone
-            const tabContents = clonedElement.querySelectorAll('[role="tabpanel"]');
-            tabContents.forEach((tab: HTMLElement) => {
-              tab.style.display = 'block';
-              tab.style.visibility = 'visible';
-              tab.style.position = 'static';
-              tab.style.opacity = '1';
-            });
-          }
-        }
+      console.log("Found element to capture");
+      
+      // Prepare the element for capturing
+      const originalStyles = {
+        height: element.style.height,
+        overflow: element.style.overflow,
+        transform: element.style.transform,
+      };
+      
+      // Make all tab panels visible for capture
+      const tabPanels = element.querySelectorAll('[role="tabpanel"]');
+      const hiddenTabPanels = Array.from(tabPanels).filter(
+        panel => window.getComputedStyle(panel).display === 'none'
+      );
+      
+      const originalTabStyles = hiddenTabPanels.map(panel => {
+        const styles = {
+          display: (panel as HTMLElement).style.display,
+          position: (panel as HTMLElement).style.position,
+          visibility: (panel as HTMLElement).style.visibility,
+          opacity: (panel as HTMLElement).style.opacity,
+          transform: (panel as HTMLElement).style.transform,
+          element: panel
+        };
+        
+        // Show the panel for capture
+        (panel as HTMLElement).style.display = 'block';
+        (panel as HTMLElement).style.position = 'static';
+        (panel as HTMLElement).style.visibility = 'visible';
+        (panel as HTMLElement).style.opacity = '1';
+        (panel as HTMLElement).style.transform = 'none';
+        
+        return styles;
       });
       
-      // Calculate dimensions
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 295; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      // Create a clone of the element to avoid modifying the original DOM
+      const clone = element.cloneNode(true) as HTMLElement;
+      clone.style.position = 'absolute';
+      clone.style.top = '-9999px';
+      clone.style.left = '-9999px';
+      clone.style.height = 'auto';
+      clone.style.width = element.offsetWidth + 'px';
+      clone.style.overflow = 'visible';
+      clone.style.transform = 'none';
+      document.body.appendChild(clone);
+      
+      // Make all tab panels visible in the clone
+      const cloneTabPanels = clone.querySelectorAll('[role="tabpanel"]');
+      cloneTabPanels.forEach(panel => {
+        (panel as HTMLElement).style.display = 'block';
+        (panel as HTMLElement).style.position = 'static';
+        (panel as HTMLElement).style.visibility = 'visible';
+        (panel as HTMLElement).style.opacity = '1';
+        (panel as HTMLElement).style.transform = 'none';
+      });
+      
+      console.log("Prepared element for capture");
+      
+      // Use html2canvas with improved settings for better capture
+      const result = await Promise.all(
+        Array.from(cloneTabPanels).map(async (tabPanel, index) => {
+          const canvas = await html2canvas(tabPanel as HTMLElement, {
+            scale: 2, // Higher scale for better quality
+            useCORS: true, // Allow cross-origin images
+            logging: false,
+            backgroundColor: '#ffffff', // White background
+            allowTaint: true,
+          });
+          
+          return {
+            canvas,
+            day: index + 1
+          };
+        })
+      );
+      
+      console.log(`Captured ${result.length} days`);
       
       // Create PDF
       const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 180; // A bit smaller than A4 width (210mm) to have margins
       
       // Add title
-      pdf.setFontSize(16);
+      pdf.setFontSize(20);
       pdf.text(itineraryData.title, 15, 15);
       
       // Add date
       pdf.setFontSize(10);
-      pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 15, 22);
+      pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 15, 25);
       
-      // If the content is too long for one page, split it across multiple pages
-      let heightLeft = imgHeight;
-      let position = 30; // starting position
+      // Add each day to the PDF
+      let currentY = 35;
       
-      // Add the first part of the image
-      pdf.addImage(
-        canvas.toDataURL('image/jpeg', 0.8), // slightly reduced quality for file size
-        'JPEG', 
-        0, 
-        position, 
-        imgWidth, 
-        imgHeight
-      );
-      
-      // For multi-page support if needed (will add pages as necessary)
-      heightLeft -= pageHeight - position;
-      
-      // Add new pages if content overflows
-      while (heightLeft > 0) {
-        position = 0; // Reset position for new page
-        pdf.addPage();
+      for (let i = 0; i < result.length; i++) {
+        const { canvas, day } = result[i];
+        
+        // Add a new page if we're not on the first day
+        if (i > 0) {
+          pdf.addPage();
+          currentY = 15;
+        }
+        
+        // Add day header
+        pdf.setFontSize(16);
+        pdf.text(`Day ${day}`, 15, currentY);
+        currentY += 10;
+        
+        // Calculate image height while maintaining aspect ratio
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        // Add the image
         pdf.addImage(
-          canvas.toDataURL('image/jpeg', 0.8),
+          canvas.toDataURL('image/jpeg', 0.95),
           'JPEG',
-          0,
-          position - (pageHeight - 30),
+          15,
+          currentY,
           imgWidth,
           imgHeight
         );
-        heightLeft -= pageHeight;
       }
       
-      // Save the PDF
-      pdf.save(`${itineraryData.title.replace(/\s+/g, '_')}_itinerary.pdf`);
+      // Clean up
+      document.body.removeChild(clone);
       
+      // Restore original styles for tab panels
+      originalTabStyles.forEach(style => {
+        (style.element as HTMLElement).style.display = style.display;
+        (style.element as HTMLElement).style.position = style.position;
+        (style.element as HTMLElement).style.visibility = style.visibility;
+        (style.element as HTMLElement).style.opacity = style.opacity;
+        (style.element as HTMLElement).style.transform = style.transform;
+      });
+      
+      // Save the PDF
+      const fileName = `${itineraryData.title.replace(/\s+/g, '_')}_itinerary.pdf`;
+      pdf.save(fileName);
+      
+      console.log(`PDF saved as ${fileName}`);
       sonnerToast.success("Itinerary downloaded successfully!");
       
       return true;
