@@ -324,7 +324,8 @@ const Itinerary = () => {
             <div className="md:col-span-5 lg:col-span-4 md:sticky md:top-24 h-fit">
               <ItineraryGenerator 
                 onGenerate={handleGenerateItinerary}
-                initialData={editMode ? itinerarySettings : undefined}
+                // Pass initialData only if in edit mode
+                {...(editMode ? { initialData: itinerarySettings } : {})}
               />
               
               {/* Weather Widget */}

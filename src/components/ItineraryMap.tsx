@@ -88,27 +88,44 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     const initMap = async () => {
       try {
         console.log("Initializing map...");
+        
         // Set up map container dimensions
         if (mapContainer.current) {
           mapContainer.current.style.width = '100%';
           mapContainer.current.style.height = '400px';
-          mapContainer.current.style.zIndex = '10';
         }
         
-        // Import leaflet dynamically
-        const L = await import('leaflet').then(module => module.default || module);
+        // Load Leaflet CSS
+        if (!document.getElementById('leaflet-css')) {
+          const link = document.createElement('link');
+          link.id = 'leaflet-css';
+          link.rel = 'stylesheet';
+          link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+          document.head.appendChild(link);
+        }
         
-        // Need to import CSS manually since it won't be included in the dynamic import
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-        link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
-        link.crossOrigin = '';
-        document.head.appendChild(link);
+        // Load Leaflet script if it's not already loaded
+        let L: any;
+        if (typeof window.L === 'undefined') {
+          await new Promise<void>((resolve) => {
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            script.onload = () => resolve();
+            document.head.appendChild(script);
+          });
+          L = window.L;
+        } else {
+          L = window.L;
+        }
         
-        console.log("Leaflet loaded:", !!L);
+        // Ensure Leaflet is loaded before proceeding
+        if (!L) {
+          throw new Error("Failed to load Leaflet library");
+        }
         
-        // Create map instance - default to Navi Mumbai center if no coordinates
+        console.log("Leaflet loaded successfully");
+        
+        // Create map instance - default to Navi Mumbai center
         const map = L.map(mapContainer.current, {
           center: [19.0330, 73.0169], // Navi Mumbai coordinates
           zoom: 12,
@@ -120,21 +137,21 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
           attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
         
-        console.log("Map created and tile layer added");
+        console.log("Map created with tile layer");
         
         // Add markers for each location
-        let markers: any[] = [];
+        const markers: any[] = [];
         const dayColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'];
         
-        console.log("Processing itinerary days:", itinerary.length);
+        console.log("Processing itinerary with", itinerary.length, "days");
         
         // Process activities and add markers
-        for (const day of itinerary) {
+        itinerary.forEach(day => {
           const dayColor = dayColors[(day.day - 1) % dayColors.length];
           
-          for (const activity of day.activities) {
+          day.activities.forEach(activity => {
             // Get coordinates for the location
-            let coordinates: [number, number] | null = null;
+            let coordinates: [number, number] | undefined;
             
             // Look for exact location match first
             if (locationCoordinates[activity.location]) {
@@ -155,9 +172,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
               }
             }
             
-            if (!coordinates) {
-              continue;
-            }
+            if (!coordinates) return;
             
             console.log(`Adding marker for ${activity.title} at [${coordinates[1]}, ${coordinates[0]}]`);
             
@@ -192,14 +207,14 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
             
             marker.addTo(map);
             markers.push(marker);
-          }
-        }
+          });
+        });
         
-        console.log("Added markers:", markers.length);
+        console.log("Added", markers.length, "markers to map");
         
         // If we have markers, fit the map to show all of them
         if (markers.length > 0) {
-          const group = new L.featureGroup(markers);
+          const group = L.featureGroup(markers);
           map.fitBounds(group.getBounds(), {
             padding: [30, 30]
           });
@@ -207,15 +222,6 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         
         setMapLoaded(true);
         setError(null);
-        
-        console.log("Map initialization complete");
-        
-        // Clean up function
-        return () => {
-          map.remove();
-          setMapLoaded(false);
-          document.head.removeChild(link);
-        };
       } catch (err) {
         console.error('Error initializing map:', err);
         setError(`Could not load the map: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -227,7 +233,6 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
       initMap();
     }, 500);
     
-    // Cleanup function
     return () => {
       clearTimeout(timeoutId);
     };
@@ -270,5 +275,12 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     </Dialog>
   );
 };
+
+// Add Leaflet to the window global type
+declare global {
+  interface Window {
+    L: any;
+  }
+}
 
 export default ItineraryMap;

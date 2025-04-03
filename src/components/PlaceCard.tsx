@@ -79,7 +79,7 @@ const PlaceCard = ({
       "Inorbit Mall": "https://images.unsplash.com/photo-1581417478175-a9ef18f210c2?q=80&w=800"
     };
     
-    // Check for exact match with the name
+    // Check if name exactly matches any of our specific locations
     if (specificLocationImages[name]) {
       console.log(`Found specific image for ${name}`);
       return specificLocationImages[name];
@@ -87,13 +87,13 @@ const PlaceCard = ({
     
     // Check for partial matches in name
     for (const [key, url] of Object.entries(specificLocationImages)) {
-      if (name.includes(key) || key.includes(name)) {
+      if (name.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(name.toLowerCase())) {
         console.log(`Found partial match for ${name} with ${key}`);
         return url;
       }
     }
     
-    // Check for exact match with the location
+    // Check if location exactly matches any of our specific locations
     if (specificLocationImages[location]) {
       console.log(`Found specific image for location ${location}`);
       return specificLocationImages[location];
@@ -101,7 +101,7 @@ const PlaceCard = ({
     
     // Check for partial matches in location
     for (const [key, url] of Object.entries(specificLocationImages)) {
-      if (location.includes(key) || key.includes(location)) {
+      if (location.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(location.toLowerCase())) {
         console.log(`Found partial match for location ${location} with ${key}`);
         return url;
       }
