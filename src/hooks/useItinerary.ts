@@ -192,7 +192,7 @@ export function useItinerary() {
     interests: string[];
     transportation: string;
     include_food: boolean;
-    locations: string[];
+    locations?: string[]; // Make locations optional
   }, itinerary: ItineraryDay[]) => {
     if (!user) {
       toast({
@@ -208,26 +208,27 @@ export function useItinerary() {
       console.log("Starting itinerary save process...");
       console.log("User:", user.id);
       console.log("Itinerary title:", itineraryData.title);
-      console.log("Selected locations:", itineraryData.locations);
       
       // Convert start date to ISO string for database storage
       const startDateIso = itineraryData.start_date ? itineraryData.start_date.toISOString() : null;
       
-      // Save the itinerary
+      // Create the itinerary data object without the locations field
+      const itineraryInsertData = {
+        user_id: user.id,
+        title: itineraryData.title,
+        days: itineraryData.days,
+        start_date: startDateIso,
+        pace: itineraryData.pace,
+        budget: itineraryData.budget,
+        interests: itineraryData.interests,
+        transportation: itineraryData.transportation,
+        include_food: itineraryData.include_food
+      };
+      
+      // Save the itinerary without the locations field
       const { data: savedItinerary, error: itineraryError } = await supabase
         .from('user_itineraries')
-        .insert({
-          user_id: user.id,
-          title: itineraryData.title,
-          days: itineraryData.days,
-          start_date: startDateIso,
-          pace: itineraryData.pace,
-          budget: itineraryData.budget,
-          interests: itineraryData.interests,
-          transportation: itineraryData.transportation,
-          include_food: itineraryData.include_food,
-          locations: itineraryData.locations
-        })
+        .insert(itineraryInsertData)
         .select()
         .single();
       
@@ -306,13 +307,33 @@ export function useItinerary() {
         throw new Error("Could not find the itinerary content element");
       }
       
-      // Use html2canvas to take a screenshot of the element
+      // Use html2canvas with improved settings for better capture
       const canvas = await html2canvas(element, {
         scale: 2, // Higher scale for better quality
         useCORS: true, // Allow cross-origin images
         logging: false,
         windowWidth: element.scrollWidth,
         windowHeight: element.scrollHeight,
+        scrollY: -window.scrollY, // Fix for scrolled content
+        allowTaint: true, // Allow tainted canvas
+        onclone: (clonedDoc) => {
+          // Make sure cloned element is fully visible for capture
+          const clonedElement = clonedDoc.getElementById(elementId);
+          if (clonedElement) {
+            clonedElement.style.height = 'auto';
+            clonedElement.style.overflow = 'visible';
+            clonedElement.style.transform = 'none';
+            
+            // Make all tabs visible in the clone
+            const tabContents = clonedElement.querySelectorAll('[role="tabpanel"]');
+            tabContents.forEach((tab: HTMLElement) => {
+              tab.style.display = 'block';
+              tab.style.visibility = 'visible';
+              tab.style.position = 'static';
+              tab.style.opacity = '1';
+            });
+          }
+        }
       });
       
       // Calculate dimensions
@@ -331,15 +352,37 @@ export function useItinerary() {
       pdf.setFontSize(10);
       pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 15, 22);
       
-      // Add the image to the PDF
+      // If the content is too long for one page, split it across multiple pages
+      let heightLeft = imgHeight;
+      let position = 30; // starting position
+      
+      // Add the first part of the image
       pdf.addImage(
-        canvas.toDataURL('image/jpeg', 1.0), 
+        canvas.toDataURL('image/jpeg', 0.8), // slightly reduced quality for file size
         'JPEG', 
         0, 
-        30, 
+        position, 
         imgWidth, 
         imgHeight
       );
+      
+      // For multi-page support if needed (will add pages as necessary)
+      heightLeft -= pageHeight - position;
+      
+      // Add new pages if content overflows
+      while (heightLeft > 0) {
+        position = 0; // Reset position for new page
+        pdf.addPage();
+        pdf.addImage(
+          canvas.toDataURL('image/jpeg', 0.8),
+          'JPEG',
+          0,
+          position - (pageHeight - 30),
+          imgWidth,
+          imgHeight
+        );
+        heightLeft -= pageHeight;
+      }
       
       // Save the PDF
       pdf.save(`${itineraryData.title.replace(/\s+/g, '_')}_itinerary.pdf`);

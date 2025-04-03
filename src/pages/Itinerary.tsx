@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { MapPin, Clock, Calendar, Map, Menu, Copy, Share2, Download, Printer } from 'lucide-react';
@@ -56,7 +55,7 @@ const locationImages: Record<string, string> = {
   'Seawoods': 'https://images.unsplash.com/photo-1504893524553-b855bce32c67?q=80&w=800',
   'DY Patil Stadium': 'https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?q=80&w=800',
   'Central Park': 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?q=80&w=800',
-  'Inorbit Mall': 'https://images.unsplash.com/photo-1500673922987-e212871fec22?q=80&w=800',
+  'Inorbit Mall': 'https://images.unsplash.com/photo-1581417478175-a9ef18f210c2?q=80&w=800',
   'Wonder Park': 'https://images.unsplash.com/photo-1472396961693-142e6e269027?q=80&w=800',
   'Mini Seashore': 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?q=80&w=800',
   'Akshar Dhaam': 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?q=80&w=800',
@@ -67,12 +66,12 @@ const locationImages: Record<string, string> = {
   'Jewel of Navi Mumbai': 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800',
   'Sagar Vihar': 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=800',
   'Golf Course': 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=800',
-  // New additions for the missing locations
-  'Nerul Balaji Temple': 'https://images.unsplash.com/photo-1466442929976-97f336a657be?q=80&w=800',
-  'Flamingo Sanctuary': 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?q=80&w=800',
-  'Science Centre': 'https://images.unsplash.com/photo-1472396961693-142e6e269027?q=80&w=800',
-  'Raghuleela Mall': 'https://images.unsplash.com/photo-1500673922987-e212871fec22?q=80&w=800',
-  'Belapur Fort': 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=800'
+  // Fixed images for previously missing locations
+  'Nerul Balaji Temple': 'https://images.unsplash.com/photo-1602526432604-029a709e131c?q=80&w=800',
+  'Flamingo Sanctuary': 'https://images.unsplash.com/photo-1509022702721-0ce3c0c677b1?q=80&w=800', 
+  'Science Centre': 'https://images.unsplash.com/photo-1576086135878-bd1e26313586?q=80&w=800',
+  'Raghuleela Mall': 'https://images.unsplash.com/photo-1567958451986-2de427a3a0fc?q=80&w=800',
+  'Belapur Fort': 'https://images.unsplash.com/photo-1599408587288-6f9ef85db0ab?q=80&w=800'
 };
 
 // Default image if location doesn't have a specific one
@@ -171,13 +170,10 @@ const Itinerary = () => {
       return;
     }
 
-    const success = await saveItinerary(
-      {
-        ...itinerarySettings,
-        locations: selectedLocations
-      }, 
-      itinerary
-    );
+    // Create a copy of itinerary settings without the locations property
+    const { locations, ...settingsWithoutLocations } = itinerarySettings;
+    
+    const success = await saveItinerary(settingsWithoutLocations, itinerary);
 
     if (success) {
       navigate('/saved-itineraries');

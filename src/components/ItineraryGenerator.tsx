@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -34,12 +33,6 @@ const LOCATIONS = [
   'Sanpada',
   'Ulwe',
   'Kopar Khairane',
-  'Nerul Balaji Temple',
-  'Flamingo Sanctuary',
-  'Inorbit Mall',
-  'Science Centre',
-  'Raghuleela Mall',
-  'Belapur Fort',
 ];
 
 // Predefined interests list
@@ -137,8 +130,7 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
         budget,
         interests: selectedInterests,
         transportation,
-        include_food: includeFood,
-        locations: selectedLocations
+        include_food: includeFood
       };
       
       // If onGenerate callback is provided, pass the itinerary and settings
@@ -190,8 +182,7 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
       budget,
       interests: selectedInterests,
       transportation,
-      include_food: includeFood,
-      locations: selectedLocations
+      include_food: includeFood
     };
     
     const success = await saveItinerary(settings, itinerary);
