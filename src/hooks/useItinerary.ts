@@ -192,7 +192,6 @@ export function useItinerary() {
     interests: string[];
     transportation: string;
     include_food: boolean;
-    locations?: string[]; // Make locations optional
   }, itinerary: ItineraryDay[]) => {
     if (!user) {
       toast({
@@ -286,6 +285,117 @@ export function useItinerary() {
       toast({
         title: "Error saving itinerary",
         description: err.message || "There was an error saving your itinerary.",
+        variant: "destructive"
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateItinerary = async (
+    id: string,
+    itineraryData: {
+      title: string;
+      days: number;
+      start_date?: Date;
+      pace: string;
+      budget: string;
+      interests: string[];
+      transportation: string;
+      include_food: boolean;
+    },
+    itinerary: ItineraryDay[]
+  ) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to update your itinerary.",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    try {
+      setLoading(true);
+      console.log("Starting itinerary update process...");
+      console.log("User:", user.id);
+      console.log("Itinerary ID:", id);
+      console.log("Itinerary title:", itineraryData.title);
+      
+      // Convert start date to ISO string for database storage
+      const startDateIso = itineraryData.start_date ? itineraryData.start_date.toISOString() : null;
+      
+      // Update the itinerary
+      const { error: itineraryError } = await supabase
+        .from('user_itineraries')
+        .update({
+          title: itineraryData.title,
+          days: itineraryData.days,
+          start_date: startDateIso,
+          pace: itineraryData.pace,
+          budget: itineraryData.budget,
+          interests: itineraryData.interests,
+          transportation: itineraryData.transportation,
+          include_food: itineraryData.include_food,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .eq('user_id', user.id);
+      
+      if (itineraryError) {
+        console.error("Error updating itinerary:", itineraryError);
+        throw itineraryError;
+      }
+      
+      // Delete existing activities
+      const { error: deleteActivitiesError } = await supabase
+        .from('itinerary_activities')
+        .delete()
+        .eq('itinerary_id', id);
+      
+      if (deleteActivitiesError) {
+        console.error("Error deleting activities:", deleteActivitiesError);
+        throw deleteActivitiesError;
+      }
+      
+      // Save new activities
+      const activitiesData = itinerary.flatMap((day) => 
+        day.activities.map((activity) => ({
+          itinerary_id: id,
+          day: day.day,
+          time: activity.time,
+          title: activity.title,
+          location: activity.location,
+          description: activity.description || null,
+          image: activity.image || null,
+          category: activity.category || null
+        }))
+      );
+      
+      const { error: activitiesError } = await supabase
+        .from('itinerary_activities')
+        .insert(activitiesData);
+      
+      if (activitiesError) {
+        console.error("Error saving activities:", activitiesError);
+        throw activitiesError;
+      }
+      
+      // Refresh the itineraries list
+      await fetchItineraries();
+      
+      toast({
+        title: "Itinerary updated",
+        description: "Your itinerary has been updated successfully."
+      });
+      
+      return true;
+    } catch (err: any) {
+      console.error('Error updating itinerary:', err);
+      toast({
+        title: "Error updating itinerary",
+        description: err.message || "There was an error updating your itinerary.",
         variant: "destructive"
       });
       return false;
@@ -414,6 +524,7 @@ export function useItinerary() {
     fetchItineraryById,
     deleteItinerary,
     saveItinerary,
+    updateItinerary,
     downloadItineraryAsPdf
   };
 }

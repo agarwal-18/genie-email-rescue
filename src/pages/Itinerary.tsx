@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { MapPin, Clock, Calendar, Map, Menu, Copy, Share2, Download, Printer } from 'lucide-react';
+import { MapPin, Clock, Calendar, Map, Menu, Copy, Share2, Download, Printer, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,7 +39,7 @@ interface ItineraryDay {
   activities: ItineraryActivity[];
 }
 
-// New location images object with the previously missing places
+// Location images object with the previously missing places
 const locationImages: Record<string, string> = {
   'Vashi': 'https://images.unsplash.com/photo-1600596763590-bcb204490b8c?q=80&w=800',
   'Belapur': 'https://images.unsplash.com/photo-1600596763590-bcb204490b8c?q=80&w=800',
@@ -66,7 +65,6 @@ const locationImages: Record<string, string> = {
   'Jewel of Navi Mumbai': 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800',
   'Sagar Vihar': 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=800',
   'Golf Course': 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=800',
-  // Fixed images for previously missing locations
   'Nerul Balaji Temple': 'https://images.unsplash.com/photo-1602526432604-029a709e131c?q=80&w=800',
   'Flamingo Sanctuary': 'https://images.unsplash.com/photo-1509022702721-0ce3c0c677b1?q=80&w=800', 
   'Science Centre': 'https://images.unsplash.com/photo-1576086135878-bd1e26313586?q=80&w=800',
@@ -88,11 +86,13 @@ const Itinerary = () => {
   const [selectedLocations, setSelectedLocations] = useState<string[]>(['Vashi']);
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [itinerarySettings, setItinerarySettings] = useState<any>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [itineraryId, setItineraryId] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { saveItinerary, fetchItineraryById, downloadItineraryAsPdf } = useItinerary();
+  const { saveItinerary, fetchItineraryById, downloadItineraryAsPdf, updateItinerary } = useItinerary();
   const itineraryContentRef = useRef<HTMLDivElement>(null);
 
   // Helper function to get an image for a location
@@ -116,9 +116,70 @@ const Itinerary = () => {
     return defaultImages[Math.floor(Math.random() * defaultImages.length)];
   };
 
+  // Load saved itinerary if ID is provided in URL
+  useEffect(() => {
+    const loadSavedItinerary = async () => {
+      const idParam = searchParams.get('id');
+      if (idParam && user) {
+        try {
+          const result = await fetchItineraryById(idParam);
+          if (result) {
+            setItineraryId(idParam);
+            setEditMode(true);
+            
+            // Set the itinerary settings
+            setItinerarySettings({
+              title: result.details.title,
+              days: result.details.days,
+              start_date: result.details.start_date ? new Date(result.details.start_date) : undefined,
+              pace: result.details.pace || 'moderate',
+              budget: result.details.budget || 'medium',
+              interests: result.details.interests || ['Historical Sites', 'Shopping'],
+              transportation: result.details.transportation || 'public',
+              include_food: result.details.include_food !== null ? result.details.include_food : true
+            });
+            
+            // Set the itinerary
+            setItinerary(result.days);
+            
+            // Extract locations
+            const locations = new Set<string>();
+            result.days.forEach(day => {
+              day.activities.forEach(activity => {
+                if (activity.location) {
+                  locations.add(activity.location);
+                }
+              });
+            });
+            
+            setSelectedLocations(Array.from(locations));
+            
+            toast({
+              title: "Itinerary loaded",
+              description: "You're now viewing a saved itinerary that you can edit."
+            });
+          }
+        } catch (error) {
+          console.error("Error loading saved itinerary:", error);
+          toast({
+            title: "Error loading itinerary",
+            description: "Could not load the saved itinerary.",
+            variant: "destructive"
+          });
+        }
+      }
+    };
+    
+    loadSavedItinerary();
+  }, [searchParams, user, fetchItineraryById, toast]);
+
   const handleGenerateItinerary = (newItinerary: ItineraryDay[], settings: any) => {
     console.log("New itinerary generated:", newItinerary);
     console.log("Itinerary settings:", settings);
+    
+    // Reset edit mode when generating a new itinerary
+    setEditMode(false);
+    setItineraryId(null);
     
     // Store settings for saving later
     setItinerarySettings(settings);
@@ -140,7 +201,6 @@ const Itinerary = () => {
       day.activities.forEach(activity => {
         if (activity.location) {
           locations.add(activity.location);
-          console.log(`Added location: ${activity.location}`);
         }
       });
     });
@@ -170,10 +230,15 @@ const Itinerary = () => {
       return;
     }
 
-    // Create a copy of itinerary settings without the locations property
-    const { locations, ...settingsWithoutLocations } = itinerarySettings;
+    let success;
     
-    const success = await saveItinerary(settingsWithoutLocations, itinerary);
+    // If we're in edit mode, update the existing itinerary
+    if (editMode && itineraryId) {
+      success = await updateItinerary(itineraryId, itinerarySettings, itinerary);
+    } else {
+      // Otherwise create a new itinerary
+      success = await saveItinerary(itinerarySettings, itinerary);
+    }
 
     if (success) {
       navigate('/saved-itineraries');
@@ -245,14 +310,17 @@ const Itinerary = () => {
           <div className="max-w-4xl mx-auto text-center mb-10">
             <h1 className="text-4xl font-bold">Itinerary Planner</h1>
             <p className="mt-4 text-lg text-muted-foreground">
-              Create your perfect Navi Mumbai exploration plan in minutes
+              {editMode ? 'Edit your saved itinerary' : 'Create your perfect Navi Mumbai exploration plan in minutes'}
             </p>
           </div>
           
           <div className="grid md:grid-cols-12 gap-8">
             {/* Itinerary Generator */}
             <div className="md:col-span-5 lg:col-span-4 md:sticky md:top-24 h-fit">
-              <ItineraryGenerator onGenerate={handleGenerateItinerary} />
+              <ItineraryGenerator 
+                onGenerate={handleGenerateItinerary}
+                initialData={editMode ? itinerarySettings : undefined}
+              />
               
               {/* Weather Widget */}
               {selectedLocations.length > 0 && (
@@ -274,7 +342,9 @@ const Itinerary = () => {
               {itinerary.length > 0 ? (
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
-                    <h2 className="text-2xl font-bold">Your Itinerary</h2>
+                    <h2 className="text-2xl font-bold">
+                      {editMode ? 'Edit Itinerary' : 'Your Itinerary'}
+                    </h2>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm">
@@ -284,8 +354,8 @@ const Itinerary = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={handleSaveItinerary}>
-                          <Copy className="h-4 w-4 mr-2" />
-                          <span>Save Itinerary</span>
+                          <Save className="h-4 w-4 mr-2" />
+                          <span>{editMode ? 'Update Itinerary' : 'Save Itinerary'}</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleShare}>
                           <Share2 className="h-4 w-4 mr-2" />
@@ -383,7 +453,12 @@ const Itinerary = () => {
                       <Map className="h-4 w-4 mr-2" />
                       <span>View on Map</span>
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => setItinerary([])}>
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setItinerary([]);
+                      setEditMode(false);
+                      setItineraryId(null);
+                      setItinerarySettings(null);
+                    }}>
                       <Clock className="h-4 w-4 mr-2" />
                       <span>Reset Planner</span>
                     </Button>

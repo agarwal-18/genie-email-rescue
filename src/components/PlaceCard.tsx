@@ -66,8 +66,29 @@ const PlaceCard = ({
     }
   };
 
-  // Function to generate a fallback image based on the category
+  // Function to generate a fallback image based on the category or location name
   const getFallbackImage = () => {
+    // First check for specific locations that need images
+    const specificLocationImages: Record<string, string> = {
+      "Nerul Balaji Temple": "https://images.unsplash.com/photo-1602526432604-029a709e131c?q=80&w=800",
+      "Flamingo Sanctuary": "https://images.unsplash.com/photo-1509022702721-0ce3c0c677b1?q=80&w=800", 
+      "Science Centre": "https://images.unsplash.com/photo-1576086135878-bd1e26313586?q=80&w=800",
+      "Raghuleela Mall": "https://images.unsplash.com/photo-1567958451986-2de427a3a0fc?q=80&w=800",
+      "Belapur Fort": "https://images.unsplash.com/photo-1599408587288-6f9ef85db0ab?q=80&w=800",
+      "Inorbit Mall": "https://images.unsplash.com/photo-1581417478175-a9ef18f210c2?q=80&w=800"
+    };
+    
+    if (specificLocationImages[name]) {
+      return specificLocationImages[name];
+    }
+    
+    // Then check for location-based matches
+    for (const [key, url] of Object.entries(specificLocationImages)) {
+      if (location.includes(key) || name.includes(key)) {
+        return url;
+      }
+    }
+    
     // Map categories to relevant fallback images
     const categoryMap: Record<string, string> = {
       "Parks & Gardens": "https://images.unsplash.com/photo-1584479898061-15742e14f50d?ixlib=rb-4.0.3",
