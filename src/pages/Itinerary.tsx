@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+
+import { useState, useEffect, useRef } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { MapPin, Clock, Calendar, Map, Menu, Copy, Share2, Download, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,12 +18,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
+import { toast as sonnerToast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
 import ItineraryGenerator from '@/components/ItineraryGenerator';
 import TripTips from '@/components/TripTips';
 import Weather from '@/components/Weather';
 import ItineraryMap from '@/components/ItineraryMap';
+import { useItinerary } from '@/hooks/useItinerary';
 
 interface ItineraryActivity {
   time: string;
@@ -38,7 +41,7 @@ interface ItineraryDay {
   activities: ItineraryActivity[];
 }
 
-// Sample location images for different parts of Navi Mumbai
+// New location images object with the previously missing places
 const locationImages: Record<string, string> = {
   'Vashi': 'https://images.unsplash.com/photo-1600596763590-bcb204490b8c?q=80&w=800',
   'Belapur': 'https://images.unsplash.com/photo-1600596763590-bcb204490b8c?q=80&w=800',
@@ -63,7 +66,13 @@ const locationImages: Record<string, string> = {
   'Palm Beach Road': 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=800',
   'Jewel of Navi Mumbai': 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800',
   'Sagar Vihar': 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=800',
-  'Golf Course': 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=800'
+  'Golf Course': 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=800',
+  // New additions for the missing locations
+  'Nerul Balaji Temple': 'https://images.unsplash.com/photo-1466442929976-97f336a657be?q=80&w=800',
+  'Flamingo Sanctuary': 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?q=80&w=800',
+  'Science Centre': 'https://images.unsplash.com/photo-1472396961693-142e6e269027?q=80&w=800',
+  'Raghuleela Mall': 'https://images.unsplash.com/photo-1500673922987-e212871fec22?q=80&w=800',
+  'Belapur Fort': 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=800'
 };
 
 // Default image if location doesn't have a specific one
@@ -79,9 +88,13 @@ const Itinerary = () => {
   const [itinerary, setItinerary] = useState<ItineraryDay[]>([]);
   const [selectedLocations, setSelectedLocations] = useState<string[]>(['Vashi']);
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [itinerarySettings, setItinerarySettings] = useState<any>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { saveItinerary, fetchItineraryById, downloadItineraryAsPdf } = useItinerary();
+  const itineraryContentRef = useRef<HTMLDivElement>(null);
 
   // Helper function to get an image for a location
   const getImageForLocation = (location: string): string => {
@@ -104,8 +117,12 @@ const Itinerary = () => {
     return defaultImages[Math.floor(Math.random() * defaultImages.length)];
   };
 
-  const handleGenerateItinerary = (newItinerary: ItineraryDay[]) => {
+  const handleGenerateItinerary = (newItinerary: ItineraryDay[], settings: any) => {
     console.log("New itinerary generated:", newItinerary);
+    console.log("Itinerary settings:", settings);
+    
+    // Store settings for saving later
+    setItinerarySettings(settings);
     
     // Add images to activities that don't have them
     const itineraryWithImages = newItinerary.map(day => ({
@@ -134,6 +151,39 @@ const Itinerary = () => {
     setSelectedLocations(locationArray);
   };
 
+  const handleSaveItinerary = async () => {
+    if (!itinerarySettings) {
+      toast({
+        title: "Missing information",
+        description: "Please generate an itinerary first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to save your itinerary.",
+        variant: "destructive"
+      });
+      navigate('/login');
+      return;
+    }
+
+    const success = await saveItinerary(
+      {
+        ...itinerarySettings,
+        locations: selectedLocations
+      }, 
+      itinerary
+    );
+
+    if (success) {
+      navigate('/saved-itineraries');
+    }
+  };
+
   const handleShare = () => {
     const url = window.location.href;
     navigator.clipboard.writeText(url).catch(err => console.error('Failed to copy URL', err));
@@ -148,11 +198,32 @@ const Itinerary = () => {
     window.print();
   };
 
-  const handleDownload = () => {
-    toast({
-      title: "Itinerary downloaded",
-      description: "Your itinerary has been downloaded as a PDF.",
-    });
+  const handleDownload = async () => {
+    if (!itinerarySettings || itinerary.length === 0) {
+      toast({
+        title: "No itinerary available",
+        description: "Please generate an itinerary first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const success = await downloadItineraryAsPdf(
+      {
+        title: itinerarySettings.title || 'Navi Mumbai Itinerary',
+        days: itinerarySettings.days || itinerary.length,
+      },
+      itinerary,
+      'itinerary-content'
+    );
+
+    if (!success) {
+      toast({
+        title: "Download failed",
+        description: "There was a problem downloading your itinerary.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleOpenMap = () => {
@@ -216,6 +287,10 @@ const Itinerary = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={handleSaveItinerary}>
+                          <Copy className="h-4 w-4 mr-2" />
+                          <span>Save Itinerary</span>
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleShare}>
                           <Share2 className="h-4 w-4 mr-2" />
                           <span>Share</span>
@@ -232,78 +307,80 @@ const Itinerary = () => {
                     </DropdownMenu>
                   </div>
                   
-                  <Card className="border-none shadow-md">
-                    <CardHeader className="px-4 py-3 border-b">
-                      <Tabs defaultValue={`day-${itinerary[0].day}`}>
-                        <TabsList className="grid grid-flow-col auto-cols-fr">
+                  <div id="itinerary-content" ref={itineraryContentRef}>
+                    <Card className="border-none shadow-md">
+                      <CardHeader className="px-4 py-3 border-b">
+                        <Tabs defaultValue={`day-${itinerary[0].day}`}>
+                          <TabsList className="grid grid-flow-col auto-cols-fr">
+                            {itinerary.map((day) => (
+                              <TabsTrigger key={day.day} value={`day-${day.day}`}>
+                                Day {day.day}
+                              </TabsTrigger>
+                            ))}
+                          </TabsList>
+                          
                           {itinerary.map((day) => (
-                            <TabsTrigger key={day.day} value={`day-${day.day}`}>
-                              Day {day.day}
-                            </TabsTrigger>
+                            <TabsContent key={day.day} value={`day-${day.day}`} className="mt-4">
+                              <CardTitle className="flex items-center text-lg">
+                                <Calendar className="h-5 w-5 mr-2 text-primary" />
+                                <span>Day {day.day} Schedule</span>
+                              </CardTitle>
+                              
+                              <CardContent className="px-0 py-4">
+                                <div className="space-y-6">
+                                  {day.activities.map((activity, index) => (
+                                    <div key={index} className="relative pl-6 pb-6">
+                                      {/* Timeline connector */}
+                                      {index < day.activities.length - 1 && (
+                                        <div className="absolute left-3 top-3 bottom-0 w-0.5 bg-primary/20"></div>
+                                      )}
+                                      
+                                      {/* Time marker */}
+                                      <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                                        <div className="w-2 h-2 rounded-full bg-primary"></div>
+                                      </div>
+                                      
+                                      <div className="ml-4">
+                                        <div className="flex justify-between items-start">
+                                          <h3 className="font-medium">{activity.title}</h3>
+                                          <span className="text-sm px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                                            {activity.time}
+                                          </span>
+                                        </div>
+                                        
+                                        <div className="mt-1 flex items-center text-sm text-muted-foreground">
+                                          <MapPin className="h-3 w-3 mr-1" />
+                                          <span>{activity.location}</span>
+                                        </div>
+                                        
+                                        <p className="mt-2 text-sm text-muted-foreground">
+                                          {activity.description}
+                                        </p>
+                                        
+                                        {/* Always display an image */}
+                                        <div className="mt-3 rounded-lg overflow-hidden h-40">
+                                          <img 
+                                            src={activity.image || getImageForLocation(activity.location)} 
+                                            alt={activity.title}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                              // If image fails to load, use a default one
+                                              console.log(`Image failed to load for ${activity.location}, using fallback`);
+                                              e.currentTarget.src = defaultImages[0];
+                                            }}
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </CardContent>
+                            </TabsContent>
                           ))}
-                        </TabsList>
-                        
-                        {itinerary.map((day) => (
-                          <TabsContent key={day.day} value={`day-${day.day}`} className="mt-4">
-                            <CardTitle className="flex items-center text-lg">
-                              <Calendar className="h-5 w-5 mr-2 text-primary" />
-                              <span>Day {day.day} Schedule</span>
-                            </CardTitle>
-                            
-                            <CardContent className="px-0 py-4">
-                              <div className="space-y-6">
-                                {day.activities.map((activity, index) => (
-                                  <div key={index} className="relative pl-6 pb-6">
-                                    {/* Timeline connector */}
-                                    {index < day.activities.length - 1 && (
-                                      <div className="absolute left-3 top-3 bottom-0 w-0.5 bg-primary/20"></div>
-                                    )}
-                                    
-                                    {/* Time marker */}
-                                    <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-                                      <div className="w-2 h-2 rounded-full bg-primary"></div>
-                                    </div>
-                                    
-                                    <div className="ml-4">
-                                      <div className="flex justify-between items-start">
-                                        <h3 className="font-medium">{activity.title}</h3>
-                                        <span className="text-sm px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                                          {activity.time}
-                                        </span>
-                                      </div>
-                                      
-                                      <div className="mt-1 flex items-center text-sm text-muted-foreground">
-                                        <MapPin className="h-3 w-3 mr-1" />
-                                        <span>{activity.location}</span>
-                                      </div>
-                                      
-                                      <p className="mt-2 text-sm text-muted-foreground">
-                                        {activity.description}
-                                      </p>
-                                      
-                                      {/* Always display an image */}
-                                      <div className="mt-3 rounded-lg overflow-hidden h-40">
-                                        <img 
-                                          src={activity.image || getImageForLocation(activity.location)} 
-                                          alt={activity.title}
-                                          className="w-full h-full object-cover"
-                                          onError={(e) => {
-                                            // If image fails to load, use a default one
-                                            console.log(`Image failed to load for ${activity.location}, using fallback`);
-                                            e.currentTarget.src = defaultImages[0];
-                                          }}
-                                        />
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </CardContent>
-                          </TabsContent>
-                        ))}
-                      </Tabs>
-                    </CardHeader>
-                  </Card>
+                        </Tabs>
+                      </CardHeader>
+                    </Card>
+                  </div>
                   
                   <div className="flex justify-between items-center">
                     <Button variant="outline" size="sm" onClick={handleOpenMap}>

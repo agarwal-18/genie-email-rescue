@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -13,12 +14,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { generateItinerary } from '@/lib/data';
 import { Badge } from "@/components/ui/badge";
+import { useItinerary } from '@/hooks/useItinerary';
 
 interface ItineraryGeneratorProps {
-  onGenerate?: (itinerary: any[]) => void;
+  onGenerate?: (itinerary: any[], settings: any) => void;
 }
 
 // Predefined location options for Navi Mumbai
@@ -33,6 +34,12 @@ const LOCATIONS = [
   'Sanpada',
   'Ulwe',
   'Kopar Khairane',
+  'Nerul Balaji Temple',
+  'Flamingo Sanctuary',
+  'Inorbit Mall',
+  'Science Centre',
+  'Raghuleela Mall',
+  'Belapur Fort',
 ];
 
 // Predefined interests list
@@ -62,11 +69,11 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
   const [includeFood, setIncludeFood] = useState(true);
   const [itinerary, setItinerary] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [itineraryTitle, setItineraryTitle] = useState('Navi Mumbai Exploration');
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { saveItinerary } = useItinerary();
 
   useEffect(() => {
     if (!user) {
@@ -121,9 +128,22 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
       
       setItinerary(generatedItinerary);
       
-      // If onGenerate callback is provided, pass the itinerary
+      // Create settings object to pass to the parent component
+      const settings = {
+        title: itineraryTitle,
+        days: numberOfDays,
+        start_date: startDate,
+        pace,
+        budget,
+        interests: selectedInterests,
+        transportation,
+        include_food: includeFood,
+        locations: selectedLocations
+      };
+      
+      // If onGenerate callback is provided, pass the itinerary and settings
       if (onGenerate) {
-        onGenerate(generatedItinerary);
+        onGenerate(generatedItinerary, settings);
       }
       
       toast({
@@ -142,7 +162,7 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
     }
   };
 
-  const saveItinerary = async () => {
+  const saveItineraryHandler = async () => {
     if (!user) {
       toast({
         title: "Authentication required",
@@ -153,89 +173,31 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
       return;
     }
     
-    setIsSaving(true);
-    
-    try {
-      console.log("Starting itinerary save process...");
-      console.log("User:", user.id);
-      console.log("Itinerary title:", itineraryTitle);
-      console.log("Selected locations:", selectedLocations);
-      
-      // Convert start date to ISO string for database storage
-      const startDateIso = startDate ? startDate.toISOString() : null;
-      
-      // Save the itinerary
-      const { data: itineraryData, error: itineraryError } = await supabase
-        .from('user_itineraries')
-        .insert({
-          user_id: user.id,
-          title: itineraryTitle || `Trip to ${selectedLocations.join(', ')}`,
-          days: numberOfDays,
-          start_date: startDateIso,
-          pace: pace,
-          budget: budget,
-          interests: selectedInterests,
-          transportation: transportation,
-          include_food: includeFood,
-          locations: selectedLocations // Save multiple locations
-        })
-        .select()
-        .single();
-      
-      if (itineraryError) {
-        console.error("Error saving itinerary:", itineraryError);
-        throw itineraryError;
-      }
-      
-      console.log("Itinerary saved successfully:", itineraryData);
-      
-      // Save each activity
-      if (itineraryData) {
-        console.log("Saving activities for itinerary:", itineraryData.id);
-        
-        const activitiesData = itinerary.flatMap((day, index) => 
-          day.activities.map((activity: any) => ({
-            itinerary_id: itineraryData.id,
-            day: index + 1,
-            time: activity.time,
-            title: activity.title,
-            location: activity.location,
-            description: activity.description || null,
-            image: activity.image || null,
-            category: activity.category || null
-          }))
-        );
-        
-        console.log("Activities to save:", activitiesData.length);
-        
-        const { error: activitiesError } = await supabase
-          .from('itinerary_activities')
-          .insert(activitiesData);
-        
-        if (activitiesError) {
-          console.error("Error saving activities:", activitiesError);
-          throw activitiesError;
-        }
-        
-        console.log("Activities saved successfully");
-        
-        toast({
-          title: "Itinerary saved",
-          description: "Your itinerary has been saved successfully."
-        });
-        
-        // Navigate to saved itineraries view
-        navigate('/saved-itineraries');
-      }
-    } catch (error: any) {
-      console.error('Error saving itinerary:', error);
+    if (itinerary.length === 0) {
       toast({
-        title: "Error saving itinerary",
-        description: error.message || "There was an error saving your itinerary.",
+        title: "No itinerary generated",
+        description: "Please generate an itinerary first.",
         variant: "destructive"
       });
-    } finally {
-      setIsSaving(false);
+      return;
+    }
+    
+    const settings = {
+      title: itineraryTitle,
+      days: numberOfDays,
+      start_date: startDate,
+      pace,
+      budget,
+      interests: selectedInterests,
+      transportation,
+      include_food: includeFood,
+      locations: selectedLocations
+    };
+    
+    const success = await saveItinerary(settings, itinerary);
+    
+    if (success) {
+      navigate('/saved-itineraries');
     }
   };
 
@@ -341,9 +303,6 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
                 mode="single"
                 selected={startDate}
                 onSelect={setStartDate}
-                disabled={(date) =>
-                  date < new Date()
-                }
                 initialFocus
               />
             </PopoverContent>
@@ -438,12 +397,6 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
         <Button onClick={generateItineraryHandler} disabled={isLoading} className="w-full">
           {isLoading ? "Generating..." : "Generate Itinerary"}
         </Button>
-        
-        {itinerary.length > 0 && (
-          <Button variant="outline" onClick={saveItinerary} disabled={isSaving} className="w-full mt-2">
-            {isSaving ? "Saving..." : "Save Itinerary"}
-          </Button>
-        )}
       </div>
     </div>
   );
