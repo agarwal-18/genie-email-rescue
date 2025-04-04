@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { Star, Clock, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -75,7 +76,20 @@ const PlaceCard = ({
       "Science Centre": "https://images.unsplash.com/photo-1576086135878-bd1e26313586?q=80&w=800",
       "Raghuleela Mall": "https://images.unsplash.com/photo-1567958451986-2de427a3a0fc?q=80&w=800",
       "Belapur Fort": "https://images.unsplash.com/photo-1599408587288-6f9ef85db0ab?q=80&w=800",
-      "Inorbit Mall": "https://images.unsplash.com/photo-1581417478175-a9ef18f210c2?q=80&w=800"
+      "Inorbit Mall": "https://images.unsplash.com/photo-1581417478175-a9ef18f210c2?q=80&w=800",
+      "Vashi": "https://images.unsplash.com/photo-1600596763590-bcb204490b8c?q=80&w=800",
+      "Belapur": "https://images.unsplash.com/photo-1600596763590-bcb204490b8c?q=80&w=800",
+      "Kharghar": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800",
+      "Nerul": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800",
+      "Panvel": "https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=800",
+      "Airoli": "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?q=80&w=800",
+      "DY Patil Stadium": "https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?q=80&w=800",
+      "Central Park": "https://images.unsplash.com/photo-1426604966848-d7adac402bff?q=80&w=800",
+      "Wonder Park": "https://images.unsplash.com/photo-1472396961693-142e6e269027?q=80&w=800",
+      "Mini Seashore": "https://images.unsplash.com/photo-1433086966358-54859d0ed716?q=80&w=800",
+      "APMC Market": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=800",
+      "Parsik Hill": "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=800",
+      "Palm Beach Road": "https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=800"
     };
     
     // Check if location name contains any of the keys in specificLocationImages (case-insensitive)
