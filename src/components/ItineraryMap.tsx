@@ -1,6 +1,6 @@
 
 import { useEffect, useRef, useState } from 'react';
-import { Map as MapIcon, X } from 'lucide-react';
+import { Map as MapIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -33,9 +33,10 @@ interface ItineraryMapProps {
 
 const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const mapInstance = useRef<any>(null);
+  const mapInstance = useRef<L.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const leafletLoaded = useRef(false);
   
   // Get all unique locations from itinerary
   const locations = itinerary.flatMap(day => 
@@ -75,78 +76,80 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     'Belapur Fort': [73.0358, 19.0235]
   };
   
-  // Cleanup function for map
-  const cleanupMap = () => {
-    if (mapInstance.current) {
-      console.log("Cleaning up existing map");
-      mapInstance.current.remove();
-      mapInstance.current = null;
-    }
-  };
+  // Load Leaflet CSS and JS once
+  useEffect(() => {
+    if (leafletLoaded.current) return;
+
+    // Load Leaflet CSS
+    const loadCSS = () => {
+      if (!document.getElementById('leaflet-css')) {
+        const link = document.createElement('link');
+        link.id = 'leaflet-css';
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(link);
+      }
+    };
+
+    // Load Leaflet script
+    const loadScript = async () => {
+      if (!window.L) {
+        return new Promise<void>((resolve) => {
+          const script = document.createElement('script');
+          script.id = 'leaflet-js';
+          script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+          script.onload = () => {
+            leafletLoaded.current = true;
+            resolve();
+          };
+          document.head.appendChild(script);
+        });
+      }
+      return Promise.resolve();
+    };
+
+    loadCSS();
+    loadScript();
+  }, []);
   
-  // Effect to load and clean up the map
+  // Cleanup map on unmount
   useEffect(() => {
     return () => {
-      cleanupMap();
+      if (mapInstance.current) {
+        console.log("Cleaning up map on component unmount");
+        mapInstance.current.remove();
+        mapInstance.current = null;
+      }
     };
   }, []);
   
-  // Initialize the map when the dialog is opened
+  // Initialize the map when dialog is opened and Leaflet is loaded
   useEffect(() => {
-    if (!isOpen) {
+    if (!isOpen || !leafletLoaded.current) {
       return;
     }
     
-    // Ensure clean start
-    cleanupMap();
-    setMapLoaded(false);
+    // Clear previous error
     setError(null);
     
-    if (!mapContainer.current) {
-      console.error("Map container not found");
-      return;
-    }
-    
-    // Clear previous content
-    mapContainer.current.innerHTML = '';
-    
-    // Set up map container dimensions
-    mapContainer.current.style.width = '100%';
-    mapContainer.current.style.height = '400px';
-    
-    const initMap = async () => {
+    // Wait for the dialog to be fully rendered
+    const timeoutId = setTimeout(() => {
+      if (!mapContainer.current) {
+        console.error("Map container not found");
+        setError("Map container not found");
+        return;
+      }
+      
+      // Cleanup existing map if there is one
+      if (mapInstance.current) {
+        mapInstance.current.remove();
+        mapInstance.current = null;
+      }
+      
       try {
         console.log("Initializing map...");
         
-        // Load Leaflet CSS
-        if (!document.getElementById('leaflet-css')) {
-          const link = document.createElement('link');
-          link.id = 'leaflet-css';
-          link.rel = 'stylesheet';
-          link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-          document.head.appendChild(link);
-        }
-        
-        // Load Leaflet script if it's not already loaded
-        let L: any;
-        if (!window.L) {
-          await new Promise<void>((resolve) => {
-            const script = document.createElement('script');
-            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-            script.onload = () => resolve();
-            document.head.appendChild(script);
-          });
-          L = window.L;
-        } else {
-          L = window.L;
-        }
-        
-        // Ensure Leaflet is loaded before proceeding
-        if (!L) {
-          throw new Error("Failed to load Leaflet library");
-        }
-        
-        console.log("Leaflet loaded successfully");
+        const L = window.L;
         
         // Create map instance - default to Navi Mumbai center
         const map = L.map(mapContainer.current, {
@@ -168,8 +171,6 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         // Add markers for each location
         const markers: any[] = [];
         const dayColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'];
-        
-        console.log("Processing itinerary with", itinerary.length, "days");
         
         // Process activities and add markers
         itinerary.forEach(day => {
@@ -193,14 +194,12 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
                 coordinates = locationCoordinates[locationKey];
               } else {
                 // Fallback to Navi Mumbai central coordinates with a small random offset
-                const randomOffset = () => (Math.random() - 0.5) * 0.02; // Small random offset
+                const randomOffset = () => (Math.random() - 0.5) * 0.02;
                 coordinates = [73.0169 + randomOffset(), 19.0330 + randomOffset()];
               }
             }
             
             if (!coordinates) return;
-            
-            console.log(`Adding marker for ${activity.title} at [${coordinates[1]}, ${coordinates[0]}]`);
             
             // Create marker with custom icon
             const markerIcon = L.divIcon({
@@ -247,17 +246,11 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         }
         
         setMapLoaded(true);
-        setError(null);
       } catch (err) {
         console.error('Error initializing map:', err);
         setError(`Could not load the map: ${err instanceof Error ? err.message : 'Unknown error'}`);
       }
-    };
-    
-    // Initialize map with a small delay to ensure the container is fully rendered
-    const timeoutId = setTimeout(() => {
-      initMap();
-    }, 500);
+    }, 300); // Small delay to ensure dialog is rendered
     
     return () => {
       clearTimeout(timeoutId);
@@ -266,8 +259,10 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
 
   // Cleanup when dialog closes
   useEffect(() => {
-    if (!isOpen) {
-      cleanupMap();
+    if (!isOpen && mapInstance.current) {
+      console.log("Cleaning up map on dialog close");
+      mapInstance.current.remove();
+      mapInstance.current = null;
     }
   }, [isOpen]);
 

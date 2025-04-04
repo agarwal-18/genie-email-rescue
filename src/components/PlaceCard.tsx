@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Star, Clock, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -79,38 +78,13 @@ const PlaceCard = ({
       "Inorbit Mall": "https://images.unsplash.com/photo-1581417478175-a9ef18f210c2?q=80&w=800"
     };
     
-    // Check for exact matches in name (case insensitive)
-    const exactLocationMatch = Object.keys(specificLocationImages).find(
-      key => key.toLowerCase() === name.toLowerCase()
-    );
-    
-    if (exactLocationMatch) {
-      console.log(`Found exact image match for ${name}`);
-      return specificLocationImages[exactLocationMatch];
-    }
-    
-    // Check for partial matches in name
+    // Check if location name contains any of the keys in specificLocationImages (case-insensitive)
     for (const [key, url] of Object.entries(specificLocationImages)) {
-      if (name.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(name.toLowerCase())) {
-        console.log(`Found partial match for ${name} with ${key}`);
-        return url;
-      }
-    }
-    
-    // Check for exact matches in location (case insensitive)
-    const exactMatch = Object.keys(specificLocationImages).find(
-      key => key.toLowerCase() === location.toLowerCase()
-    );
-    
-    if (exactMatch) {
-      console.log(`Found exact image match for location ${location}`);
-      return specificLocationImages[exactMatch];
-    }
-    
-    // Check for partial matches in location
-    for (const [key, url] of Object.entries(specificLocationImages)) {
-      if (location.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(location.toLowerCase())) {
-        console.log(`Found partial match for location ${location} with ${key}`);
+      if (
+        location.toLowerCase().includes(key.toLowerCase()) || 
+        name.toLowerCase().includes(key.toLowerCase())
+      ) {
+        console.log(`Found match for ${name}/${location} with ${key}`);
         return url;
       }
     }

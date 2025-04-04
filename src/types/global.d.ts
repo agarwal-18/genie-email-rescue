@@ -8,7 +8,7 @@ declare global {
 
 // Explicitly define Leaflet for TypeScript
 declare namespace L {
-  function map(element: HTMLElement | string, options?: any): any;
+  function map(element: HTMLElement | string, options?: any): Map;
   function tileLayer(urlTemplate: string, options?: any): any;
   function marker(latLng: [number, number] | any, options?: any): any;
   function divIcon(options: any): any;
