@@ -13,6 +13,7 @@ declare module 'leaflet' {
   function marker(latLng: [number, number] | any, options?: any): any;
   function divIcon(options: any): any;
   function featureGroup(layers?: any[]): any;
+  function latLngBounds(): LatLngBounds;
   
   namespace control {
     function layers(baseLayers?: any, overlays?: any, options?: any): any;
@@ -27,6 +28,8 @@ declare module 'leaflet' {
     remove(): void;
     addControl(control: any): this;
     fitBounds(bounds: any, options?: any): this;
+    on(event: string, callback: Function): this;
+    invalidateSize(options?: boolean | any): this;
   }
 }
 

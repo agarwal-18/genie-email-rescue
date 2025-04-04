@@ -37,6 +37,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const leafletLoaded = useRef(false);
+  const markersRef = useRef<any[]>([]);
   
   // Get all unique locations from itinerary
   const locations = itinerary.flatMap(day => 
@@ -74,7 +75,21 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     'Science Centre': [73.0174, 19.0390],
     'Raghuleela Mall': [73.0077, 19.0720],
     'Belapur Fort': [73.0358, 19.0235],
-    'Navi Mumbai': [73.0401, 19.0185]
+    'Navi Mumbai': [73.0401, 19.0185],
+    'Shivaji Park': [73.0325, 19.0279],
+    'DLF Mall': [73.0140, 19.0446],
+    'Mindspace': [73.0238, 19.0556],
+    'CBD Belapur': [73.0358, 19.0235],
+    'Utsav Chowk': [73.0790, 19.0494],
+    'Kharghar Valley': [73.0783, 19.0434],
+    'Kharghar Hills': [73.0753, 19.0370],
+    'Central Avenue': [73.0141, 19.0353],
+    'Tata Hospital': [73.0799, 19.0307],
+    'Nerul Lake': [73.0163, 19.0326],
+    'Seawoods Grand Central': [73.0180, 19.0131],
+    'Pandavkada Falls': [73.0825, 19.0345],
+    'Little World Mall': [73.0187, 19.0421],
+    'Vashi Lake': [73.0042, 19.0701]
   };
   
   const leafletCssId = 'leaflet-css';
@@ -123,45 +138,69 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   // Cleanup map when component unmounts
   useEffect(() => {
     return () => {
-      if (mapInstance.current) {
-        mapInstance.current.remove();
-        mapInstance.current = null;
-      }
+      clearMapResources();
     };
   }, []);
   
+  // Clean up map resources
+  const clearMapResources = () => {
+    // Clear existing markers
+    markersRef.current.forEach(marker => {
+      if (marker && marker.remove) {
+        marker.remove();
+      }
+    });
+    markersRef.current = [];
+
+    // Remove map
+    if (mapInstance.current) {
+      mapInstance.current.remove();
+      mapInstance.current = null;
+    }
+  };
+  
   // Initialize the map when dialog is opened and Leaflet is loaded
   useEffect(() => {
-    if (!isOpen || !window.L) {
-      return;
-    }
+    // Don't do anything if dialog is not open
+    if (!isOpen) return;
     
     // Clear previous error
     setError(null);
     setMapLoaded(false);
     
-    // Give time for dialog to render completely
-    const timeoutId = setTimeout(() => {
+    // Function to initialize map once Leaflet is loaded
+    const initializeMap = () => {
+      // Check if the map container exists
       if (!mapContainer.current) {
         console.error("Map container not found");
         setError("Map container not found");
         return;
       }
       
-      // Cleanup existing map if there is one
-      if (mapInstance.current) {
-        mapInstance.current.remove();
-        mapInstance.current = null;
-      }
+      // Clean up existing map resources
+      clearMapResources();
       
       try {
         console.log("Initializing map...");
+        
+        // Check if Leaflet is loaded
+        if (!window.L) {
+          console.log("Leaflet not yet loaded, delaying map initialization");
+          return;
+        }
         
         // Create map instance centered on Navi Mumbai
         const map = window.L.map(mapContainer.current).setView([19.0330, 73.0169], 12);
         
         // Store the map instance for cleanup
         mapInstance.current = map;
+        
+        // Properly invalidate the map size after render
+        setTimeout(() => {
+          if (map) {
+            map.invalidateSize();
+          }
+        }, 100);
         
         // Add OpenStreetMap tile layer
         window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -173,6 +212,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         
         // Add markers for each activity location
         const markers: any[] = [];
+        const bounds = window.L.latLngBounds();
         const dayColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'];
         
         // Track seen locations to avoid duplicates
@@ -251,6 +291,10 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
             
             marker.addTo(map);
             markers.push(marker);
+            markersRef.current.push(marker);
+            
+            // Add location to bounds
+            bounds.extend([coordinates[1], coordinates[0]]);
           });
         });
         
@@ -261,10 +305,9 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         
         // If we have markers, fit the map to show all of them
         if (markers.length > 0) {
-          const group = window.L.featureGroup(markers);
-          map.fitBounds(group.getBounds(), {
-            padding: [30, 30],
-            maxZoom: 14
+          map.fitBounds(bounds, {
+            padding: [40, 40],
+            maxZoom: 13
           });
         }
         
@@ -273,18 +316,30 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         console.error('Error initializing map:', err);
         setError(`Could not load the map: ${err instanceof Error ? err.message : 'Unknown error'}`);
       }
-    }, 500); // Increased delay to ensure dialog is fully rendered
-    
-    return () => {
-      clearTimeout(timeoutId);
     };
-  }, [isOpen, itinerary, locations]);
+    
+    // Try initializing the map right away if Leaflet is already loaded
+    if (window.L) {
+      // Wait a moment for the dialog to be fully rendered
+      const timeoutId = setTimeout(initializeMap, 300);
+      return () => clearTimeout(timeoutId);
+    } else {
+      // Set up a periodic check for Leaflet loading
+      const intervalId = setInterval(() => {
+        if (window.L) {
+          clearInterval(intervalId);
+          initializeMap();
+        }
+      }, 200);
+      
+      return () => clearInterval(intervalId);
+    }
+  }, [isOpen, itinerary]);
 
-  // Cleanup when dialog closes
+  // Handle dialog close - cleanup map
   useEffect(() => {
-    if (!isOpen && mapInstance.current) {
-      mapInstance.current.remove();
-      mapInstance.current = null;
+    if (!isOpen) {
+      clearMapResources();
     }
   }, [isOpen]);
 
