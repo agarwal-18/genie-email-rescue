@@ -33,6 +33,7 @@ interface ItineraryMapProps {
 
 const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
+  const mapInstance = useRef<any>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -74,26 +75,48 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     'Belapur Fort': [73.0358, 19.0235]
   };
   
+  // Cleanup function for map
+  const cleanupMap = () => {
+    if (mapInstance.current) {
+      console.log("Cleaning up existing map");
+      mapInstance.current.remove();
+      mapInstance.current = null;
+    }
+  };
+  
+  // Effect to load and clean up the map
+  useEffect(() => {
+    return () => {
+      cleanupMap();
+    };
+  }, []);
+  
   // Initialize the map when the dialog is opened
   useEffect(() => {
-    if (!isOpen || !mapContainer.current) {
+    if (!isOpen) {
       return;
     }
     
-    // Clear previous map if any
-    if (mapContainer.current) {
-      mapContainer.current.innerHTML = '';
+    // Ensure clean start
+    cleanupMap();
+    setMapLoaded(false);
+    setError(null);
+    
+    if (!mapContainer.current) {
+      console.error("Map container not found");
+      return;
     }
-
+    
+    // Clear previous content
+    mapContainer.current.innerHTML = '';
+    
+    // Set up map container dimensions
+    mapContainer.current.style.width = '100%';
+    mapContainer.current.style.height = '400px';
+    
     const initMap = async () => {
       try {
         console.log("Initializing map...");
-        
-        // Set up map container dimensions
-        if (mapContainer.current) {
-          mapContainer.current.style.width = '100%';
-          mapContainer.current.style.height = '400px';
-        }
         
         // Load Leaflet CSS
         if (!document.getElementById('leaflet-css')) {
@@ -106,7 +129,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         
         // Load Leaflet script if it's not already loaded
         let L: any;
-        if (typeof window.L === 'undefined') {
+        if (!window.L) {
           await new Promise<void>((resolve) => {
             const script = document.createElement('script');
             script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
@@ -130,6 +153,9 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
           center: [19.0330, 73.0169], // Navi Mumbai coordinates
           zoom: 12,
         });
+        
+        // Store the map instance for cleanup
+        mapInstance.current = map;
         
         // Add OpenStreetMap tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -238,6 +264,13 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     };
   }, [isOpen, itinerary, locations]);
 
+  // Cleanup when dialog closes
+  useEffect(() => {
+    if (!isOpen) {
+      cleanupMap();
+    }
+  }, [isOpen]);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">
@@ -275,12 +308,5 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     </Dialog>
   );
 };
-
-// Add Leaflet to the window global type
-declare global {
-  interface Window {
-    L: any;
-  }
-}
 
 export default ItineraryMap;

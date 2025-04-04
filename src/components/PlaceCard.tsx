@@ -79,10 +79,14 @@ const PlaceCard = ({
       "Inorbit Mall": "https://images.unsplash.com/photo-1581417478175-a9ef18f210c2?q=80&w=800"
     };
     
-    // Check if name exactly matches any of our specific locations
-    if (specificLocationImages[name]) {
-      console.log(`Found specific image for ${name}`);
-      return specificLocationImages[name];
+    // Check for exact matches in name (case insensitive)
+    const exactLocationMatch = Object.keys(specificLocationImages).find(
+      key => key.toLowerCase() === name.toLowerCase()
+    );
+    
+    if (exactLocationMatch) {
+      console.log(`Found exact image match for ${name}`);
+      return specificLocationImages[exactLocationMatch];
     }
     
     // Check for partial matches in name
@@ -93,10 +97,14 @@ const PlaceCard = ({
       }
     }
     
-    // Check if location exactly matches any of our specific locations
-    if (specificLocationImages[location]) {
-      console.log(`Found specific image for location ${location}`);
-      return specificLocationImages[location];
+    // Check for exact matches in location (case insensitive)
+    const exactMatch = Object.keys(specificLocationImages).find(
+      key => key.toLowerCase() === location.toLowerCase()
+    );
+    
+    if (exactMatch) {
+      console.log(`Found exact image match for location ${location}`);
+      return specificLocationImages[exactMatch];
     }
     
     // Check for partial matches in location

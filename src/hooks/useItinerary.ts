@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -409,13 +410,12 @@ export function useItinerary() {
       days: number;
     }, 
     itinerary: ItineraryDay[], 
-    elementId: string = 'itinerary-content'
+    element: HTMLElement | null
   ) => {
     try {
       sonnerToast.loading("Generating PDF...");
       
       // Find the element to capture
-      const element = document.getElementById(elementId);
       if (!element) {
         throw new Error("Could not find the itinerary content element");
       }

@@ -96,6 +96,7 @@ const Itinerary = () => {
   const { saveItinerary, fetchItineraryById, downloadItineraryAsPdf, updateItinerary } = useItinerary();
   const itineraryContentRef = useRef<HTMLDivElement>(null);
   const [hasShownLoadToast, setHasShownLoadToast] = useState(false);
+  const loadedItineraryRef = useRef<string | null>(null);
 
   // Helper function to get an image for a location
   const getImageForLocation = (location: string): string => {
@@ -122,56 +123,61 @@ const Itinerary = () => {
   useEffect(() => {
     const loadSavedItinerary = async () => {
       const idParam = searchParams.get('id');
-      if (idParam && user && !hasShownLoadToast) {
-        try {
-          console.log("Loading saved itinerary with ID:", idParam);
-          const result = await fetchItineraryById(idParam);
+      
+      // Return early if any of these conditions are met
+      if (!idParam || !user || hasShownLoadToast || loadedItineraryRef.current === idParam) {
+        return;
+      }
+      
+      try {
+        console.log("Loading saved itinerary with ID:", idParam);
+        const result = await fetchItineraryById(idParam);
+        
+        if (result) {
+          setItineraryId(idParam);
+          setEditMode(true);
+          loadedItineraryRef.current = idParam;
           
-          if (result) {
-            setItineraryId(idParam);
-            setEditMode(true);
-            
-            // Set the itinerary settings
-            setItinerarySettings({
-              title: result.details.title,
-              days: result.details.days,
-              start_date: result.details.start_date ? new Date(result.details.start_date) : undefined,
-              pace: result.details.pace || 'moderate',
-              budget: result.details.budget || 'medium',
-              interests: result.details.interests || ['Historical Sites', 'Shopping'],
-              transportation: result.details.transportation || 'public',
-              include_food: result.details.include_food !== null ? result.details.include_food : true
+          // Set the itinerary settings
+          setItinerarySettings({
+            title: result.details.title,
+            days: result.details.days,
+            start_date: result.details.start_date ? new Date(result.details.start_date) : undefined,
+            pace: result.details.pace || 'moderate',
+            budget: result.details.budget || 'medium',
+            interests: result.details.interests || ['Historical Sites', 'Shopping'],
+            transportation: result.details.transportation || 'public',
+            include_food: result.details.include_food !== null ? result.details.include_food : true
+          });
+          
+          // Set the itinerary
+          setItinerary(result.days);
+          
+          // Extract locations
+          const locations = new Set<string>();
+          result.days.forEach(day => {
+            day.activities.forEach(activity => {
+              if (activity.location) {
+                locations.add(activity.location);
+              }
             });
-            
-            // Set the itinerary
-            setItinerary(result.days);
-            
-            // Extract locations
-            const locations = new Set<string>();
-            result.days.forEach(day => {
-              day.activities.forEach(activity => {
-                if (activity.location) {
-                  locations.add(activity.location);
-                }
-              });
-            });
-            
-            setSelectedLocations(Array.from(locations));
-            setHasShownLoadToast(true);
-            
-            toast({
-              title: "Itinerary loaded",
-              description: "You're now viewing a saved itinerary that you can edit."
-            });
-          }
-        } catch (error) {
-          console.error("Error loading saved itinerary:", error);
+          });
+          
+          setSelectedLocations(Array.from(locations));
+          setHasShownLoadToast(true);
+          
           toast({
-            title: "Error loading itinerary",
-            description: "Could not load the saved itinerary.",
-            variant: "destructive"
+            title: "Itinerary loaded",
+            description: "You're now viewing a saved itinerary that you can edit."
           });
         }
+      } catch (error) {
+        console.error("Error loading saved itinerary:", error);
+        toast({
+          title: "Error loading itinerary",
+          description: "Could not load the saved itinerary.",
+          variant: "destructive"
+        });
       }
     };
     
@@ -185,6 +191,7 @@ const Itinerary = () => {
     // Reset edit mode when generating a new itinerary
     setEditMode(false);
     setItineraryId(null);
+    loadedItineraryRef.current = null;
     
     // Store settings for saving later
     setItinerarySettings(settings);
@@ -280,7 +287,7 @@ const Itinerary = () => {
         days: itinerarySettings.days || itinerary.length,
       },
       itinerary,
-      'itinerary-content'
+      itineraryContentRef.current
     );
 
     if (!success) {
@@ -304,6 +311,15 @@ const Itinerary = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const handleResetItinerary = () => {
+    setItinerary([]);
+    setEditMode(false);
+    setItineraryId(null);
+    loadedItineraryRef.current = null;
+    setItinerarySettings(null);
+    setHasShownLoadToast(false);
   };
 
   return (
@@ -459,13 +475,7 @@ const Itinerary = () => {
                       <Map className="h-4 w-4 mr-2" />
                       <span>View on Map</span>
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => {
-                      setItinerary([]);
-                      setEditMode(false);
-                      setItineraryId(null);
-                      setItinerarySettings(null);
-                      setHasShownLoadToast(false);
-                    }}>
+                    <Button variant="outline" size="sm" onClick={handleResetItinerary}>
                       <Clock className="h-4 w-4 mr-2" />
                       <span>Reset Planner</span>
                     </Button>
