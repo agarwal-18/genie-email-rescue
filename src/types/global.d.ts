@@ -52,6 +52,8 @@ type User = {
   user_metadata?: {
     name?: string;
     avatar_url?: string;
+    location?: string;
+    bio?: string;
     [key: string]: any;
   };
 };
