@@ -1,7 +1,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import auth, itineraries, weather, places
+from .routers import auth, itineraries, weather, places, profile
 from .auth import get_current_user
 import importlib
 
@@ -25,7 +25,16 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(itineraries.router, prefix="/api")
 app.include_router(weather.router, prefix="/api")
 app.include_router(places.router, prefix="/api")
+app.include_router(profile.router, prefix="/api")
 
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Travel Planner API"}
+
+@app.get("/api/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "version": "1.0.0",
+        "api": "Travel Planner API",
+    }

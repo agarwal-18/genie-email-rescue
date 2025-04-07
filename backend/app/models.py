@@ -1,12 +1,12 @@
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 import uuid
 
 # User models
 class UserCreate(BaseModel):
-    email: str
+    email: EmailStr
     password: str
     name: Optional[str] = None
 
@@ -18,6 +18,21 @@ class UserResponse(BaseModel):
     
     class Config:
         orm_mode = True
+
+class UserProfileUpdate(BaseModel):
+    name: Optional[str] = None
+    location: Optional[str] = None
+    bio: Optional[str] = None
+    avatar_url: Optional[str] = None
+
+class UserProfileResponse(BaseModel):
+    id: str
+    email: str
+    name: Optional[str] = None
+    created_at: datetime
+    location: Optional[str] = None
+    bio: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 # Token models
 class Token(BaseModel):
@@ -69,3 +84,30 @@ class ItineraryResponse(BaseModel):
 class ItineraryDetail(BaseModel):
     details: ItineraryResponse
     days: List[ItineraryDay]
+
+# Weather models
+class WeatherRecommendation(BaseModel):
+    temperature: float
+    weather: str
+    recommendation: str
+    suggested_activities: List[str]
+
+# Place models
+class PlaceCategory(BaseModel):
+    id: str
+    name: str
+    icon: str
+    
+class Place(BaseModel):
+    id: str
+    name: str
+    location: str
+    description: str
+    image: str
+    rating: float
+    category: str
+    price_level: Optional[int] = None
+    coordinates: Optional[Dict[str, float]] = None
+    
+class NearbyPlace(Place):
+    distance: int
