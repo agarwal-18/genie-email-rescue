@@ -43,4 +43,17 @@ interface APIConfig {
   baseURL: string;
 }
 
+// User type definition
+type User = {
+  id: string;
+  email: string;
+  name?: string;
+  created_at: string;
+  user_metadata?: {
+    name?: string;
+    avatar_url?: string;
+    [key: string]: any;
+  };
+};
+
 export {};
