@@ -3,6 +3,25 @@
 
 This is the Python backend for the Travel Planner app, built with FastAPI and the Supabase Python SDK.
 
+## Project Structure
+
+- `app/` - Main application package
+  - `__init__.py` - Package initialization
+  - `main.py` - FastAPI application setup
+  - `config.py` - Configuration and environment variables
+  - `database.py` - Supabase client initialization
+  - `models.py` - Pydantic models for request/response validation
+  - `auth.py` - Authentication utilities
+  - `utils.py` - Utility functions
+  - `routers/` - API route handlers
+    - `auth.py` - Authentication routes
+    - `itineraries.py` - Itinerary management routes
+    - `weather.py` - Weather API integration
+    - `places.py` - Places and restaurants data
+- `data/` - JSON data files
+- `main.py` - Application entry point
+- `requirements.txt` - Python dependencies
+
 ## Setup
 
 1. Create a virtual environment:
@@ -29,7 +48,7 @@ WEATHER_API_KEY=562c360f0d7884a7ec779f34559a11fb
 
 5. Run the server:
 ```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+python main.py
 ```
 
 ## API Documentation
@@ -37,12 +56,6 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 Once the server is running, you can access the automatic API documentation at:
 - Swagger UI: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
-
-## Project Structure
-
-- `main.py`: The main application file with all FastAPI routes
-- `data/`: Contains JSON data files for places, restaurants, and itinerary templates
-- `requirements.txt`: Python dependencies
 
 ## Supabase Integration
 
