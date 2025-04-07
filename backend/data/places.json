@@ -1,0 +1,36 @@
+
+{
+  "places": [
+    {
+      "id": "1",
+      "name": "DY Patil Stadium",
+      "category": "Sports",
+      "description": "A state-of-the-art cricket stadium that hosts IPL matches and other sporting events.",
+      "image": "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=1473&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.6,
+      "location": "Nerul",
+      "duration": "3-4 hours",
+      "featured": true
+    },
+    {
+      "id": "2",
+      "name": "Central Park",
+      "category": "Parks & Gardens",
+      "description": "A large urban park with walking paths, gardens, and recreational facilities.",
+      "image": "https://images.unsplash.com/photo-1618773928121-c32242e63f39?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.3,
+      "location": "Kharghar",
+      "duration": "1-2 hours"
+    },
+    {
+      "id": "3",
+      "name": "Wonders Park",
+      "category": "Amusement",
+      "description": "A theme park with miniature replicas of world-famous monuments and attractions.",
+      "image": "https://images.unsplash.com/photo-1513889961551-628c1e5e2ee9?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.4,
+      "location": "Nerul",
+      "duration": "2-3 hours"
+    }
+  ]
+}

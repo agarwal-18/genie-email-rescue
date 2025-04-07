@@ -1,11 +1,11 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast as sonnerToast } from "sonner";
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { API_CONFIG } from '@/config';
+import axios from 'axios';
 
 interface ItineraryActivity {
   time: string;
@@ -39,8 +39,25 @@ export function useItinerary() {
   const [itineraries, setItineraries] = useState<SavedItinerary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const { toast } = useToast();
+
+  // Setup axios instance with authorization headers
+  const apiClient = axios.create({
+    baseURL: API_CONFIG.baseURL,
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+
+  // Add auth token to requests when available
+  useEffect(() => {
+    if (session?.access_token) {
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${session.access_token}`;
+    } else {
+      delete apiClient.defaults.headers.common['Authorization'];
+    }
+  }, [session]);
 
   const fetchItineraries = async () => {
     if (!user) {
@@ -54,13 +71,8 @@ export function useItinerary() {
       setError(null);
       console.log("Fetching itineraries for user:", user.id);
 
-      const { data, error } = await supabase
-        .from('user_itineraries')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false });
-
-      if (error) throw error;
+      const response = await apiClient.get('/itineraries');
+      const data = response.data;
 
       console.log("Fetched itineraries:", data);
       setItineraries(data || []);
@@ -84,53 +96,10 @@ export function useItinerary() {
       setLoading(true);
       setError(null);
 
-      // Get the itinerary details
-      const { data: itineraryData, error: itineraryError } = await supabase
-        .from('user_itineraries')
-        .select('*')
-        .eq('id', id)
-        .eq('user_id', user.id)
-        .single();
+      const response = await apiClient.get(`/itineraries/${id}`);
+      const data = response.data;
 
-      if (itineraryError) throw itineraryError;
-
-      // Get the activities
-      const { data: activitiesData, error: activitiesError } = await supabase
-        .from('itinerary_activities')
-        .select('*')
-        .eq('itinerary_id', id)
-        .order('day', { ascending: true })
-        .order('time', { ascending: true });
-
-      if (activitiesError) throw activitiesError;
-
-      // Format the data
-      const days: { [key: number]: ItineraryDay } = {};
-      
-      (activitiesData || []).forEach(activity => {
-        if (!days[activity.day]) {
-          days[activity.day] = {
-            day: activity.day,
-            activities: []
-          };
-        }
-        
-        days[activity.day].activities.push({
-          time: activity.time,
-          title: activity.title,
-          location: activity.location,
-          description: activity.description || '',
-          image: activity.image,
-          category: activity.category || ''
-        });
-      });
-      
-      const formattedItinerary = Object.values(days).sort((a, b) => a.day - b.day);
-
-      return {
-        details: itineraryData,
-        days: formattedItinerary
-      };
+      return data;
     } catch (err: any) {
       console.error('Error fetching itinerary by ID:', err);
       setError(err.message);
@@ -152,14 +121,8 @@ export function useItinerary() {
       setLoading(true);
       setError(null);
 
-      const { error } = await supabase
-        .from('user_itineraries')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
+      await apiClient.delete(`/itineraries/${id}`);
+      
       // Update the local state
       setItineraries(itineraries.filter(item => item.id !== id));
       
@@ -205,15 +168,12 @@ export function useItinerary() {
     try {
       setLoading(true);
       console.log("Starting itinerary save process...");
-      console.log("User:", user.id);
-      console.log("Itinerary title:", itineraryData.title);
       
       // Convert start date to ISO string for database storage
       const startDateIso = itineraryData.start_date ? itineraryData.start_date.toISOString() : null;
       
-      // Create the itinerary data object without the locations field
-      const itineraryInsertData = {
-        user_id: user.id,
+      // Prepare data for the API
+      const payload = {
         title: itineraryData.title,
         days: itineraryData.days,
         start_date: startDateIso,
@@ -224,62 +184,22 @@ export function useItinerary() {
         include_food: itineraryData.include_food
       };
       
-      // Save the itinerary without the locations field
-      const { data: savedItinerary, error: itineraryError } = await supabase
-        .from('user_itineraries')
-        .insert(itineraryInsertData)
-        .select()
-        .single();
+      const response = await apiClient.post('/itineraries', {
+        ...payload,
+        days: itinerary
+      });
       
-      if (itineraryError) {
-        console.error("Error saving itinerary:", itineraryError);
-        throw itineraryError;
-      }
+      console.log("Itinerary saved successfully:", response.data);
       
-      console.log("Itinerary saved successfully:", savedItinerary);
+      // Refresh the itineraries list
+      await fetchItineraries();
       
-      // Save each activity
-      if (savedItinerary) {
-        console.log("Saving activities for itinerary:", savedItinerary.id);
-        
-        const activitiesData = itinerary.flatMap((day) => 
-          day.activities.map((activity) => ({
-            itinerary_id: savedItinerary.id,
-            day: day.day,
-            time: activity.time,
-            title: activity.title,
-            location: activity.location,
-            description: activity.description || null,
-            image: activity.image || null,
-            category: activity.category || null
-          }))
-        );
-        
-        console.log("Activities to save:", activitiesData.length);
-        
-        const { error: activitiesError } = await supabase
-          .from('itinerary_activities')
-          .insert(activitiesData);
-        
-        if (activitiesError) {
-          console.error("Error saving activities:", activitiesError);
-          throw activitiesError;
-        }
-        
-        console.log("Activities saved successfully");
-        
-        // Refresh the itineraries list
-        await fetchItineraries();
-        
-        toast({
-          title: "Itinerary saved",
-          description: "Your itinerary has been saved successfully."
-        });
-        
-        return true;
-      }
+      toast({
+        title: "Itinerary saved",
+        description: "Your itinerary has been saved successfully."
+      });
       
-      return false;
+      return true;
     } catch (err: any) {
       console.error('Error saving itinerary:', err);
       toast({
@@ -319,68 +239,26 @@ export function useItinerary() {
     try {
       setLoading(true);
       console.log("Starting itinerary update process...");
-      console.log("User:", user.id);
-      console.log("Itinerary ID:", id);
-      console.log("Itinerary title:", itineraryData.title);
       
       // Convert start date to ISO string for database storage
       const startDateIso = itineraryData.start_date ? itineraryData.start_date.toISOString() : null;
       
-      // Update the itinerary
-      const { error: itineraryError } = await supabase
-        .from('user_itineraries')
-        .update({
-          title: itineraryData.title,
-          days: itineraryData.days,
-          start_date: startDateIso,
-          pace: itineraryData.pace,
-          budget: itineraryData.budget,
-          interests: itineraryData.interests,
-          transportation: itineraryData.transportation,
-          include_food: itineraryData.include_food,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id)
-        .eq('user_id', user.id);
+      // Prepare data for the API
+      const payload = {
+        title: itineraryData.title,
+        days: itineraryData.days,
+        start_date: startDateIso,
+        pace: itineraryData.pace,
+        budget: itineraryData.budget,
+        interests: itineraryData.interests,
+        transportation: itineraryData.transportation,
+        include_food: itineraryData.include_food
+      };
       
-      if (itineraryError) {
-        console.error("Error updating itinerary:", itineraryError);
-        throw itineraryError;
-      }
-      
-      // Delete existing activities
-      const { error: deleteActivitiesError } = await supabase
-        .from('itinerary_activities')
-        .delete()
-        .eq('itinerary_id', id);
-      
-      if (deleteActivitiesError) {
-        console.error("Error deleting activities:", deleteActivitiesError);
-        throw deleteActivitiesError;
-      }
-      
-      // Save new activities
-      const activitiesData = itinerary.flatMap((day) => 
-        day.activities.map((activity) => ({
-          itinerary_id: id,
-          day: day.day,
-          time: activity.time,
-          title: activity.title,
-          location: activity.location,
-          description: activity.description || null,
-          image: activity.image || null,
-          category: activity.category || null
-        }))
-      );
-      
-      const { error: activitiesError } = await supabase
-        .from('itinerary_activities')
-        .insert(activitiesData);
-      
-      if (activitiesError) {
-        console.error("Error saving activities:", activitiesError);
-        throw activitiesError;
-      }
+      await apiClient.put(`/itineraries/${id}`, {
+        ...payload,
+        days: itinerary
+      });
       
       // Refresh the itineraries list
       await fetchItineraries();

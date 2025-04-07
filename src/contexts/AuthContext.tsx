@@ -1,9 +1,23 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import axios from 'axios';
+import { API_CONFIG } from '@/config';
+
+// Mimic the Supabase types for backward compatibility
+type User = {
+  id: string;
+  email: string;
+  name?: string;
+  created_at: string;
+};
+
+type Session = {
+  access_token: string;
+  expires_at: number;
+  user: User;
+};
 
 type AuthContextType = {
   session: Session | null;
@@ -16,6 +30,14 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Create axios instance
+const apiClient = axios.create({
+  baseURL: API_CONFIG.baseURL,
+  headers: {
+    'Content-Type': 'application/json',
+  }
+});
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -23,40 +45,76 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Helper function to check if token is expired
+  const isTokenExpired = (expiresAt: number) => {
+    return Date.now() >= expiresAt * 1000;
+  };
+
+  // Handle session from localStorage on init
   useEffect(() => {
-    // Set up the auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
+    const storedSession = localStorage.getItem('session');
+    
+    if (storedSession) {
+      try {
+        const parsedSession = JSON.parse(storedSession) as Session;
         
-        if (event === 'SIGNED_IN') {
-          console.log('User signed in');
-        } else if (event === 'SIGNED_OUT') {
-          console.log('User signed out');
+        // Check if token is expired
+        if (parsedSession.expires_at && !isTokenExpired(parsedSession.expires_at)) {
+          setSession(parsedSession);
+          setUser(parsedSession.user);
+          
+          // Set axios auth header
+          apiClient.defaults.headers.common['Authorization'] = `Bearer ${parsedSession.access_token}`;
+        } else {
+          // Clear expired session
+          localStorage.removeItem('session');
         }
+      } catch (error) {
+        console.error('Error parsing stored session:', error);
+        localStorage.removeItem('session');
       }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    }
+    
+    setLoading(false);
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      // Use token endpoint to get access token (OAuth2 password flow)
+      const response = await apiClient.post('/token', 
+        new URLSearchParams({
+          'username': email,
+          'password': password,
+          'grant_type': 'password'
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        }
+      );
       
-      if (error) {
-        throw error;
-      }
+      const { access_token, token_type } = response.data;
+      
+      // Set auth header for subsequent requests
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      
+      // Fetch user data
+      const userResponse = await apiClient.get('/auth/me');
+      const userData = userResponse.data;
+      
+      // Create session object (similar to Supabase)
+      const newSession: Session = {
+        access_token,
+        expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // 30 minutes from now
+        user: userData
+      };
+      
+      // Store in localStorage
+      localStorage.setItem('session', JSON.stringify(newSession));
+      
+      setSession(newSession);
+      setUser(userData);
       
       toast({
         title: "Welcome back!",
@@ -65,9 +123,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       navigate('/');
     } catch (error: any) {
+      console.error('Sign in error:', error);
       toast({
         title: "Sign in failed",
-        description: error.message || "An error occurred during sign in.",
+        description: error.response?.data?.detail || error.message || "An error occurred during sign in.",
         variant: "destructive"
       });
     }
@@ -75,30 +134,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, name: string) => {
     try {
-      const { error } = await supabase.auth.signUp({ 
-        email, 
+      await apiClient.post('/auth/register', {
+        email,
         password,
-        options: {
-          data: {
-            name: name
-          }
-        }
+        name
       });
-      
-      if (error) {
-        throw error;
-      }
       
       toast({
         title: "Account created",
-        description: "Please check your email to confirm your account.",
+        description: "Your account has been created successfully. You can now sign in.",
       });
       
       navigate('/login');
     } catch (error: any) {
       toast({
         title: "Sign up failed",
-        description: error.message || "An error occurred during sign up.",
+        description: error.response?.data?.detail || error.message || "An error occurred during sign up.",
         variant: "destructive"
       });
     }
@@ -106,11 +157,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
+      // Clear auth header
+      delete apiClient.defaults.headers.common['Authorization'];
       
-      if (error) {
-        throw error;
-      }
+      // Clear stored session
+      localStorage.removeItem('session');
+      
+      // Reset state
+      setSession(null);
+      setUser(null);
       
       toast({
         title: "Signed out",

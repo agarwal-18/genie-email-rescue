@@ -14,6 +14,8 @@ declare module 'leaflet' {
   function divIcon(options: any): any;
   function featureGroup(layers?: any[]): any;
   function latLngBounds(): LatLngBounds;
+  function latLng(lat: number, lng: number): any;
+  function icon(options: any): any;
   
   namespace control {
     function layers(baseLayers?: any, overlays?: any, options?: any): any;
@@ -31,6 +33,14 @@ declare module 'leaflet' {
     on(event: string, callback: Function): this;
     invalidateSize(options?: boolean | any): this;
   }
+}
+
+// Backend API URL
+declare const API_BASE_URL: string;
+
+// Python backend server URL type
+interface APIConfig {
+  baseURL: string;
 }
 
 export {};

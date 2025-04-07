@@ -1,0 +1,45 @@
+
+{
+  "activities": [
+    {
+      "time": "8:00 AM",
+      "title": "DY Patil Stadium",
+      "location": "Nerul",
+      "description": "A state-of-the-art cricket stadium that hosts IPL matches and other sporting events.",
+      "image": "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=1473&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "category": "Sports"
+    },
+    {
+      "time": "12:00 PM",
+      "title": "Lunch at Gajali Restaurant",
+      "location": "Vashi",
+      "description": "Famous for its coastal Maharashtrian cuisine and fresh seafood dishes.",
+      "image": "https://images.unsplash.com/photo-1536392706976-e486e2ba97af?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "category": "Food"
+    },
+    {
+      "time": "2:00 PM",
+      "title": "Central Park",
+      "location": "Kharghar",
+      "description": "A large urban park with walking paths, gardens, and recreational facilities.",
+      "image": "https://images.unsplash.com/photo-1618773928121-c32242e63f39?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "category": "Parks & Gardens"
+    },
+    {
+      "time": "5:00 PM",
+      "title": "Wonders Park",
+      "location": "Nerul",
+      "description": "A theme park with miniature replicas of world-famous monuments and attractions.",
+      "image": "https://images.unsplash.com/photo-1513889961551-628c1e5e2ee9?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "category": "Amusement"
+    },
+    {
+      "time": "7:00 PM",
+      "title": "Dinner at Sigree Global Grill",
+      "location": "Nerul",
+      "description": "Renowned for its buffet spread featuring global cuisines with live grilling stations.",
+      "image": "https://images.unsplash.com/photo-1544148103-0773bf10d330?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "category": "Food"
+    }
+  ]
+}

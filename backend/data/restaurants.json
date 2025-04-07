@@ -1,0 +1,35 @@
+
+{
+  "restaurants": [
+    {
+      "id": "r1",
+      "name": "Gajali Restaurant",
+      "cuisine": "Seafood",
+      "description": "Famous for its coastal Maharashtrian cuisine and fresh seafood dishes.",
+      "image": "https://images.unsplash.com/photo-1536392706976-e486e2ba97af?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.5,
+      "location": "Vashi",
+      "price": "Mid-Range"
+    },
+    {
+      "id": "r2",
+      "name": "Sigree Global Grill",
+      "cuisine": "Multi-cuisine",
+      "description": "Renowned for its buffet spread featuring global cuisines with live grilling stations.",
+      "image": "https://images.unsplash.com/photo-1544148103-0773bf10d330?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.4,
+      "location": "Nerul",
+      "price": "Luxury"
+    },
+    {
+      "id": "r3",
+      "name": "Urban Tadka",
+      "cuisine": "North Indian",
+      "description": "Popular for its authentic North Indian dishes and Punjabi specialties.",
+      "image": "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.3,
+      "location": "Kharghar",
+      "price": "Mid-Range"
+    }
+  ]
+}
