@@ -1,10 +1,17 @@
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from ..database import supabase
 from ..models import Token, UserCreate, UserResponse
+from typing import Optional
+import random
+import string
 
 router = APIRouter(tags=["authentication"])
+
+def generate_verification_code():
+    """Generate a random 6-digit verification code"""
+    return ''.join(random.choices(string.digits, k=6))
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -31,9 +38,9 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         )
 
 @router.post("/auth/register", response_model=UserResponse)
-async def register_user(user_data: UserCreate):
+async def register_user(user_data: UserCreate, background_tasks: BackgroundTasks):
     try:
-        # Check if user exists
+        # Create user with email confirmation enabled
         user_response = supabase.auth.sign_up({
             "email": user_data.email,
             "password": user_data.password,

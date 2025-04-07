@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
+import { toast as sonnerToast } from 'sonner';
 import axios from 'axios';
 import { API_CONFIG } from '@/config';
 
@@ -11,6 +12,13 @@ type User = {
   email: string;
   name?: string;
   created_at: string;
+  user_metadata?: {
+    name?: string;
+    avatar_url?: string;
+    location?: string;
+    bio?: string;
+    [key: string]: any;
+  };
 };
 
 type Session = {
@@ -80,6 +88,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
+      setLoading(true);
       // Use token endpoint to get access token (OAuth2 password flow)
       const response = await apiClient.post('/token', 
         new URLSearchParams({
@@ -129,11 +138,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: error.response?.data?.detail || error.message || "An error occurred during sign in.",
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const signUp = async (email: string, password: string, name: string) => {
     try {
+      setLoading(true);
       await apiClient.post('/auth/register', {
         email,
         password,
@@ -142,7 +154,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       toast({
         title: "Account created",
-        description: "Your account has been created successfully. You can now sign in.",
+        description: "Your account has been created successfully. Please check your email for a verification link.",
+      });
+      
+      sonnerToast.success("Verification email sent", {
+        description: "Please check your inbox and verify your email address before signing in.",
+        duration: 6000
       });
       
       navigate('/login');
@@ -152,11 +169,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: error.response?.data?.detail || error.message || "An error occurred during sign up.",
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const signOut = async () => {
     try {
+      setLoading(true);
       // Clear auth header
       delete apiClient.defaults.headers.common['Authorization'];
       
@@ -179,6 +199,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: error.message || "An error occurred during sign out.",
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 

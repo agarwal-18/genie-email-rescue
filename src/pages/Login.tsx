@@ -1,29 +1,37 @@
 
 import { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { signIn, user, loading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
     if (!email || !password) {
+      setError("Please enter both email and password");
       return;
     }
     
-    await signIn(email, password);
+    try {
+      await signIn(email, password);
+    } catch (err: any) {
+      setError(err.message || "Failed to sign in");
+    }
   };
 
   // Redirect if already logged in
@@ -45,6 +53,13 @@ const Login = () => {
           </div>
           
           <div className="bg-card shadow-sm rounded-xl p-6 border animate-fade-up">
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -125,6 +140,10 @@ const Login = () => {
                 <Link to="/register" className="text-primary hover:underline">
                   Create account
                 </Link>
+              </div>
+              
+              <div className="text-center text-xs text-muted-foreground mt-4">
+                <p>By signing in, you agree to our Terms of Service and Privacy Policy</p>
               </div>
             </form>
           </div>

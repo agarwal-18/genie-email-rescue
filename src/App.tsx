@@ -10,6 +10,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import EmailVerification from "./pages/EmailVerification";
 import Places from "./pages/Places";
 import Itinerary from "./pages/Itinerary";
 import NotFound from "./pages/NotFound";
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/verify-email" element={<EmailVerification />} />
               <Route path="/places" element={<Places />} />
               <Route path="/itinerary" element={<ProtectedRoute><Itinerary /></ProtectedRoute>} />
               <Route path="/saved-itineraries" element={<ProtectedRoute><SavedItineraries /></ProtectedRoute>} />
