@@ -3,18 +3,14 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, ForeignKey, DateTime, Text, ARRAY, JSON
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship, Session
-from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
+from datetime import datetime, timedelta
 import os
-import jwt
-import uvicorn
-from dotenv import load_dotenv
 import json
 import requests
 from uuid import uuid4
+from dotenv import load_dotenv
+from supabase import create_client, Client
 
 # Load environment variables
 load_dotenv()
@@ -31,66 +27,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Database setup
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+# Supabase Configuration
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://jsoyxzwtacwkyvbclnqa.supabase.co")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzb3l4end0YWN3a3l2YmNsbnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMwODc1ODksImV4cCI6MjA1ODY2MzU4OX0.bLwE06v-5m5j_niHjTy8Vc4Dc25vFyjByUaKi0RSW9g")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")
 
-# JWT Configuration
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+# Initialize Supabase client
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# Models
-class User(Base):
-    __tablename__ = "users"
-    
-    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
-    email = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
-    name = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    
-    itineraries = relationship("UserItinerary", back_populates="user")
-
-class UserItinerary(Base):
-    __tablename__ = "user_itineraries"
-    
-    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
-    user_id = Column(String, ForeignKey("users.id"))
-    title = Column(String)
-    days = Column(Integer)
-    start_date = Column(DateTime, nullable=True)
-    pace = Column(String, nullable=True)
-    budget = Column(String, nullable=True)
-    interests = Column(ARRAY(String), nullable=True)
-    transportation = Column(String, nullable=True)
-    include_food = Column(Boolean, default=True, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    user = relationship("User", back_populates="itineraries")
-    activities = relationship("ItineraryActivity", back_populates="itinerary")
-
-class ItineraryActivity(Base):
-    __tablename__ = "itinerary_activities"
-    
-    id = Column(String, primary_key=True, default=lambda: str(uuid4()))
-    itinerary_id = Column(String, ForeignKey("user_itineraries.id"))
-    day = Column(Integer)
-    time = Column(String)
-    title = Column(String)
-    location = Column(String)
-    description = Column(Text, nullable=True)
-    image = Column(String, nullable=True)
-    category = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    
-    itinerary = relationship("UserItinerary", back_populates="activities")
-
-# Create tables
-Base.metadata.create_all(bind=engine)
+# Authentication token setup
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # Pydantic models
 class Token(BaseModel):
@@ -157,129 +103,133 @@ class ItineraryDetail(BaseModel):
     days: List[ItineraryDay]
 
 # Authentication utilities
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-def verify_password(plain_password, hashed_password):
-    # This is a simplified example. Use a proper password hashing library in production
-    return plain_password == hashed_password  # NEVER do this in production!
-
-def get_user(db: Session, email: str):
-    return db.query(User).filter(User.email == email).first()
-
-def authenticate_user(db: Session, email: str, password: str):
-    user = get_user(db, email)
-    if not user or not verify_password(password, user.hashed_password):
-        return False
-    return user
-
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
+        # Verify the JWT token using Supabase
+        user = supabase.auth.get_user(token)
+        if not user:
             raise credentials_exception
-        token_data = TokenData(email=email)
-    except jwt.PyJWTError:
+        return user.user
+    except Exception:
         raise credentials_exception
-    user = get_user(db, email=token_data.email)
-    if user is None:
-        raise credentials_exception
-    return user
 
 # Routes
 @app.post("/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = authenticate_user(db, form_data.username, form_data.password)
-    if not user:
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    try:
+        # Use Supabase to sign in
+        auth_response = supabase.auth.sign_in_with_password({"email": form_data.username, "password": form_data.password})
+        
+        if not auth_response.user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        return {
+            "access_token": auth_response.session.access_token,
+            "token_type": "bearer"
+        }
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail=f"Authentication error: {str(e)}",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
 
 @app.post("/api/auth/register", response_model=UserResponse)
-async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    existing_user = get_user(db, user_data.email)
-    if existing_user:
+async def register_user(user_data: UserCreate):
+    try:
+        # Check if user exists
+        user_response = supabase.auth.sign_up({
+            "email": user_data.email,
+            "password": user_data.password,
+            "options": {
+                "data": {
+                    "name": user_data.name
+                }
+            }
+        })
+        
+        if not user_response.user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Failed to create user"
+            )
+        
+        # Format response
+        user = user_response.user
+        return {
+            "id": user.id,
+            "email": user.email,
+            "name": user.user_metadata.get("name") if user.user_metadata else None,
+            "created_at": user.created_at
+        }
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+            detail=f"Registration error: {str(e)}"
         )
-    
-    # In production, hash the password
-    new_user = User(
-        email=user_data.email,
-        hashed_password=user_data.password,  # NEVER do this in production!
-        name=user_data.name
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user
 
 @app.get("/api/auth/me", response_model=UserResponse)
-async def get_user_me(current_user: User = Depends(get_current_user)):
-    return current_user
+async def get_user_me(current_user = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "name": current_user.user_metadata.get("name") if current_user.user_metadata else None,
+        "created_at": current_user.created_at
+    }
 
 @app.get("/api/itineraries", response_model=List[ItineraryResponse])
-async def get_user_itineraries(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    itineraries = db.query(UserItinerary).filter(UserItinerary.user_id == current_user.id).order_by(UserItinerary.updated_at.desc()).all()
-    return itineraries
+async def get_user_itineraries(current_user = Depends(get_current_user)):
+    # Use Supabase to fetch user itineraries
+    response = supabase.table("user_itineraries").select("*").eq("user_id", current_user.id).order("updated_at", desc=True).execute()
+    
+    if not response.data:
+        return []
+    
+    return response.data
 
 @app.get("/api/itineraries/{itinerary_id}", response_model=ItineraryDetail)
-async def get_itinerary_by_id(itinerary_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    itinerary = db.query(UserItinerary).filter(UserItinerary.id == itinerary_id, UserItinerary.user_id == current_user.id).first()
-    if not itinerary:
+async def get_itinerary_by_id(itinerary_id: str, current_user = Depends(get_current_user)):
+    # Get itinerary details
+    itinerary_response = supabase.table("user_itineraries").select("*").eq("id", itinerary_id).eq("user_id", current_user.id).execute()
+    
+    if not itinerary_response.data or len(itinerary_response.data) == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Itinerary not found"
         )
     
-    activities = db.query(ItineraryActivity).filter(ItineraryActivity.itinerary_id == itinerary_id).order_by(ItineraryActivity.day, ItineraryActivity.time).all()
+    itinerary = itinerary_response.data[0]
+    
+    # Get activities
+    activities_response = supabase.table("itinerary_activities").select("*").eq("itinerary_id", itinerary_id).order("day").order("time").execute()
+    activities = activities_response.data or []
     
     # Format data
     days = {}
     for activity in activities:
-        if activity.day not in days:
-            days[activity.day] = {
-                "day": activity.day,
+        if activity["day"] not in days:
+            days[activity["day"]] = {
+                "day": activity["day"],
                 "activities": []
             }
         
-        days[activity.day]["activities"].append({
-            "time": activity.time,
-            "title": activity.title,
-            "location": activity.location,
-            "description": activity.description or "",
-            "image": activity.image,
-            "category": activity.category or ""
+        days[activity["day"]]["activities"].append({
+            "time": activity["time"],
+            "title": activity["title"],
+            "location": activity["location"],
+            "description": activity["description"] or "",
+            "image": activity["image"],
+            "category": activity["category"] or ""
         })
     
     formatted_days = list(days.values())
@@ -294,58 +244,69 @@ async def get_itinerary_by_id(itinerary_id: str, current_user: User = Depends(ge
 async def create_itinerary(
     itinerary_data: ItineraryCreate, 
     days: List[ItineraryDay],
-    current_user: User = Depends(get_current_user), 
-    db: Session = Depends(get_db)
+    current_user = Depends(get_current_user)
 ):
     # Create itinerary
-    new_itinerary = UserItinerary(
-        user_id=current_user.id,
-        title=itinerary_data.title,
-        days=itinerary_data.days,
-        start_date=itinerary_data.start_date,
-        pace=itinerary_data.pace,
-        budget=itinerary_data.budget,
-        interests=itinerary_data.interests,
-        transportation=itinerary_data.transportation,
-        include_food=itinerary_data.include_food
-    )
-    db.add(new_itinerary)
-    db.commit()
-    db.refresh(new_itinerary)
+    itinerary_id = str(uuid4())
+    itinerary = {
+        "id": itinerary_id,
+        "user_id": current_user.id,
+        "title": itinerary_data.title,
+        "days": itinerary_data.days,
+        "start_date": itinerary_data.start_date.isoformat() if itinerary_data.start_date else None,
+        "pace": itinerary_data.pace,
+        "budget": itinerary_data.budget,
+        "interests": itinerary_data.interests,
+        "transportation": itinerary_data.transportation,
+        "include_food": itinerary_data.include_food
+    }
+    
+    itinerary_response = supabase.table("user_itineraries").insert(itinerary).execute()
+    
+    if not itinerary_response.data or len(itinerary_response.data) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create itinerary"
+        )
     
     # Create activities
+    activities = []
     for day in days:
         for activity in day.activities:
-            new_activity = ItineraryActivity(
-                itinerary_id=new_itinerary.id,
-                day=day.day,
-                time=activity.time,
-                title=activity.title,
-                location=activity.location,
-                description=activity.description,
-                image=activity.image,
-                category=activity.category
-            )
-            db.add(new_activity)
+            activities.append({
+                "id": str(uuid4()),
+                "itinerary_id": itinerary_id,
+                "day": day.day,
+                "time": activity.time,
+                "title": activity.title,
+                "location": activity.location,
+                "description": activity.description,
+                "image": activity.image,
+                "category": activity.category
+            })
     
-    db.commit()
-    return new_itinerary
+    if activities:
+        supabase.table("itinerary_activities").insert(activities).execute()
+    
+    return itinerary_response.data[0]
 
 @app.delete("/api/itineraries/{itinerary_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_itinerary(itinerary_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    itinerary = db.query(UserItinerary).filter(UserItinerary.id == itinerary_id, UserItinerary.user_id == current_user.id).first()
-    if not itinerary:
+async def delete_itinerary(itinerary_id: str, current_user = Depends(get_current_user)):
+    # First check if the itinerary exists and belongs to the user
+    check_response = supabase.table("user_itineraries").select("id").eq("id", itinerary_id).eq("user_id", current_user.id).execute()
+    
+    if not check_response.data or len(check_response.data) == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Itinerary not found"
         )
     
-    # Delete associated activities
-    db.query(ItineraryActivity).filter(ItineraryActivity.itinerary_id == itinerary_id).delete()
+    # Delete activities
+    supabase.table("itinerary_activities").delete().eq("itinerary_id", itinerary_id).execute()
     
     # Delete itinerary
-    db.delete(itinerary)
-    db.commit()
+    supabase.table("user_itineraries").delete().eq("id", itinerary_id).execute()
+    
     return {"status": "success"}
 
 @app.put("/api/itineraries/{itinerary_id}", response_model=ItineraryResponse)
@@ -353,48 +314,61 @@ async def update_itinerary(
     itinerary_id: str,
     itinerary_data: ItineraryCreate,
     days: List[ItineraryDay],
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user = Depends(get_current_user)
 ):
-    itinerary = db.query(UserItinerary).filter(UserItinerary.id == itinerary_id, UserItinerary.user_id == current_user.id).first()
-    if not itinerary:
+    # Check if itinerary exists and belongs to user
+    check_response = supabase.table("user_itineraries").select("id").eq("id", itinerary_id).eq("user_id", current_user.id).execute()
+    
+    if not check_response.data or len(check_response.data) == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Itinerary not found"
         )
     
     # Update itinerary
-    itinerary.title = itinerary_data.title
-    itinerary.days = itinerary_data.days
-    itinerary.start_date = itinerary_data.start_date
-    itinerary.pace = itinerary_data.pace
-    itinerary.budget = itinerary_data.budget
-    itinerary.interests = itinerary_data.interests
-    itinerary.transportation = itinerary_data.transportation
-    itinerary.include_food = itinerary_data.include_food
-    itinerary.updated_at = datetime.utcnow()
+    itinerary = {
+        "title": itinerary_data.title,
+        "days": itinerary_data.days,
+        "start_date": itinerary_data.start_date.isoformat() if itinerary_data.start_date else None,
+        "pace": itinerary_data.pace,
+        "budget": itinerary_data.budget,
+        "interests": itinerary_data.interests,
+        "transportation": itinerary_data.transportation,
+        "include_food": itinerary_data.include_food,
+        "updated_at": datetime.utcnow().isoformat()
+    }
+    
+    itinerary_response = supabase.table("user_itineraries").update(itinerary).eq("id", itinerary_id).execute()
+    
+    if not itinerary_response.data or len(itinerary_response.data) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update itinerary"
+        )
     
     # Delete existing activities
-    db.query(ItineraryActivity).filter(ItineraryActivity.itinerary_id == itinerary_id).delete()
+    supabase.table("itinerary_activities").delete().eq("itinerary_id", itinerary_id).execute()
     
     # Create new activities
+    activities = []
     for day in days:
         for activity in day.activities:
-            new_activity = ItineraryActivity(
-                itinerary_id=itinerary.id,
-                day=day.day,
-                time=activity.time,
-                title=activity.title,
-                location=activity.location,
-                description=activity.description,
-                image=activity.image,
-                category=activity.category
-            )
-            db.add(new_activity)
+            activities.append({
+                "id": str(uuid4()),
+                "itinerary_id": itinerary_id,
+                "day": day.day,
+                "time": activity.time,
+                "title": activity.title,
+                "location": activity.location,
+                "description": activity.description,
+                "image": activity.image,
+                "category": activity.category
+            })
     
-    db.commit()
-    db.refresh(itinerary)
-    return itinerary
+    if activities:
+        supabase.table("itinerary_activities").insert(activities).execute()
+    
+    return itinerary_response.data[0]
 
 @app.get("/api/weather")
 async def get_weather(city: str):
@@ -413,28 +387,61 @@ async def get_weather(city: str):
 
 @app.get("/api/places")
 async def get_places():
-    # This would typically fetch from a database
-    with open("data/places.json", "r") as f:
-        places = json.load(f)
-    return places
+    # Load data from file
+    try:
+        with open("backend/data/places.json", "r") as f:
+            places = json.load(f)
+        return places
+    except FileNotFoundError:
+        # If file is not found in the new path, try the original path
+        try:
+            with open("data/places.json", "r") as f:
+                places = json.load(f)
+            return places
+        except FileNotFoundError:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Places data file not found"
+            )
 
 @app.get("/api/restaurants")
 async def get_restaurants():
-    # This would typically fetch from a database
-    with open("data/restaurants.json", "r") as f:
-        restaurants = json.load(f)
-    return restaurants
+    # Load data from file
+    try:
+        with open("backend/data/restaurants.json", "r") as f:
+            restaurants = json.load(f)
+        return restaurants
+    except FileNotFoundError:
+        # If file is not found in the new path, try the original path
+        try:
+            with open("data/restaurants.json", "r") as f:
+                restaurants = json.load(f)
+            return restaurants
+        except FileNotFoundError:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Restaurants data file not found"
+            )
 
 # Data generation endpoints for itineraries
 @app.post("/api/generate-itinerary")
 async def generate_itinerary(options: Dict[str, Any]):
-    # This would implement the logic from lib/data.ts
-    # For now, we'll just return a placeholder
-    with open("data/itinerary_template.json", "r") as f:
-        template = json.load(f)
+    # Load template from file
+    try:
+        with open("backend/data/itinerary_template.json", "r") as f:
+            template = json.load(f)
+    except FileNotFoundError:
+        # If file is not found in the new path, try the original path
+        try:
+            with open("data/itinerary_template.json", "r") as f:
+                template = json.load(f)
+        except FileNotFoundError:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Itinerary template file not found"
+            )
     
     # Customize the template based on options
-    # This is a simplified version of what the actual implementation would do
     days = options.get("days", 3)
     result = []
     
@@ -446,6 +453,3 @@ async def generate_itinerary(options: Dict[str, Any]):
         result.append(day_data)
     
     return result
-
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
