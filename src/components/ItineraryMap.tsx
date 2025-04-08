@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { Map as MapIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,19 @@ import {
   DialogFooter,
   DialogClose
 } from '@/components/ui/dialog';
+
+// Declare Leaflet types globally
+declare global {
+  interface Window {
+    L: {
+      map: (container: HTMLElement, options?: any) => any;
+      tileLayer: (url: string, options?: any) => any;
+      latLngBounds: () => any;
+      marker: (latlng: [number, number], options?: any) => any;
+      divIcon: (options: any) => any;
+    }
+  }
+}
 
 interface ItineraryActivity {
   time: string;
