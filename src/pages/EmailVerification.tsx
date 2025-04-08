@@ -1,190 +1,191 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
-import Navbar from '@/components/Navbar';
-import { Mail, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, CheckCircle2, Mail } from 'lucide-react';
+import Navbar from '@/components/Navbar';
+import { API_CONFIG } from '@/config';
+import axios from 'axios';
 
+// Fix the missing 'index' property
 const EmailVerification = () => {
-  const [searchParams] = useSearchParams();
-  const [email, setEmail] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
+  const [email, setEmail] = useState<string>('');
+  const [code, setCode] = useState<string>('');
+  const [isVerifying, setIsVerifying] = useState<boolean>(false);
+  const [isResending, setIsResending] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<boolean>(false);
+  
   const navigate = useNavigate();
-
-  // Check if we have an email in the URL parameters
+  const location = useLocation();
+  const { toast } = useToast();
+  
   useEffect(() => {
-    const emailParam = searchParams.get('email');
+    // Extract email from URL if available
+    const params = new URLSearchParams(location.search);
+    const emailParam = params.get('email');
     if (emailParam) {
       setEmail(emailParam);
     }
-  }, [searchParams]);
-
+  }, [location]);
+  
   const handleVerify = async () => {
     if (!email) {
-      toast.error('Please enter your email address');
+      setError('Email is required');
       return;
     }
-
-    if (!verificationCode || verificationCode.length !== 6) {
-      toast.error('Please enter a valid verification code');
+    
+    if (!code || code.length !== 6) {
+      setError('Please enter a valid 6-digit verification code');
       return;
     }
-
-    setLoading(true);
+    
+    setError(null);
+    setIsVerifying(true);
+    
     try {
-      const { error } = await supabase.auth.verifyOtp({
+      const response = await axios.post(`${API_CONFIG.baseURL}/auth/verify-email`, {
         email,
-        token: verificationCode,
-        type: 'signup'
+        verification_code: code
       });
-
-      if (error) {
-        toast.error(error.message);
-      } else {
-        setIsVerified(true);
-        toast.success('Email verified successfully!');
-        setTimeout(() => {
-          navigate('/login');
-        }, 3000);
-      }
+      
+      setSuccess(true);
+      
+      toast({
+        title: "Email verified!",
+        description: "Your email has been successfully verified. You can now sign in.",
+      });
+      
+      // Redirect to login after a short delay
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (error: any) {
-      toast.error(error.message || 'Verification failed');
+      setError(error.response?.data?.detail || 'Failed to verify email. Please try again.');
     } finally {
-      setLoading(false);
+      setIsVerifying(false);
     }
   };
-
+  
   const handleResendCode = async () => {
     if (!email) {
-      toast.error('Please enter your email address');
+      setError('Email is required');
       return;
     }
-
-    setLoading(true);
+    
+    setError(null);
+    setIsResending(true);
+    
     try {
-      const { error } = await supabase.auth.resend({
-        email,
-        type: 'signup'
+      await axios.post(`${API_CONFIG.baseURL}/auth/resend-verification`, {
+        email
       });
-
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success('Verification code resent to your email');
-      }
+      
+      toast({
+        title: "Verification code resent",
+        description: "A new verification code has been sent to your email.",
+      });
     } catch (error: any) {
-      toast.error(error.message || 'Failed to resend code');
+      setError(error.response?.data?.detail || 'Failed to resend code. Please try again.');
     } finally {
-      setLoading(false);
+      setIsResending(false);
     }
   };
-
+  
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <div className="container mx-auto px-4 pt-16 pb-20">
-        <div className="max-w-md mx-auto mt-12">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold">Verify Your Email</h1>
-            <p className="text-muted-foreground mt-2">
+      <div className="container max-w-md mx-auto pt-16 pb-8 px-4">
+        <Card className="animate-fade-up">
+          <CardHeader className="space-y-1">
+            <div className="flex justify-center mb-2">
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Mail className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+            <CardTitle className="text-xl text-center">Verify Your Email</CardTitle>
+            <CardDescription className="text-center">
               Enter the verification code sent to your email
-            </p>
-          </div>
+            </CardDescription>
+          </CardHeader>
           
-          <div className="bg-card shadow-sm rounded-xl p-6 border animate-fade-up">
-            {isVerified ? (
-              <div className="py-8 text-center">
-                <div className="mb-4 flex justify-center">
-                  <CheckCircle2 className="h-16 w-16 text-primary" />
-                </div>
-                <h2 className="text-2xl font-bold mb-2">Email Verified!</h2>
-                <p className="text-muted-foreground mb-6">
-                  Your email has been successfully verified. You will be redirected to the login page shortly.
-                </p>
-                <Button asChild className="w-full">
-                  <div onClick={() => navigate('/login')} className="flex items-center justify-center">
-                    Go to Login <ArrowRight className="ml-2 h-4 w-4" />
-                  </div>
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="block text-sm font-medium">
-                      Email Address
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter your email"
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label htmlFor="code" className="block text-sm font-medium">
-                      Verification Code
-                    </label>
-                    <div className="flex justify-center my-4">
-                      <InputOTP
-                        maxLength={6}
-                        value={verificationCode}
-                        onChange={setVerificationCode}
-                        render={({ slots }) => (
-                          <InputOTPGroup>
-                            {slots.map((slot, index) => (
-                              <InputOTPSlot key={index} {...slot} />
-                            ))}
-                          </InputOTPGroup>
-                        )}
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                <Button 
-                  onClick={handleVerify} 
-                  className="w-full" 
-                  disabled={loading}
-                >
-                  {loading ? "Verifying..." : "Verify Email"}
-                </Button>
-                
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={handleResendCode}
-                    className="text-sm text-primary hover:underline"
-                    disabled={loading}
-                  >
-                    Didn't receive a code? Resend
-                  </button>
-                </div>
-                
-                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted p-3 rounded-md">
-                  <AlertCircle className="h-4 w-4 text-primary" />
-                  <p>
-                    Check your spam folder if you don't see the verification email in your inbox.
-                  </p>
-                </div>
-              </div>
+          <CardContent className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
-          </div>
-        </div>
+            
+            {success && (
+              <Alert className="bg-green-50 border-green-200">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-600">
+                  Email successfully verified! Redirecting you to login...
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Email</label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@example.com"
+                disabled={success}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Verification Code</label>
+              <div className="flex justify-center">
+                <InputOTP 
+                  maxLength={6} 
+                  value={code} 
+                  onChange={(value) => setCode(value)}
+                  disabled={success}
+                  pattern="^[0-9]+$"
+                >
+                  <InputOTPGroup>
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <InputOTPSlot 
+                        key={i} 
+                        index={i}
+                      />
+                    ))}
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+            </div>
+          </CardContent>
+          
+          <CardFooter className="flex flex-col gap-4">
+            <Button 
+              className="w-full" 
+              onClick={handleVerify}
+              disabled={isVerifying || success}
+            >
+              {isVerifying ? "Verifying..." : "Verify Email"}
+            </Button>
+            
+            <div className="text-center text-sm">
+              <button 
+                onClick={handleResendCode} 
+                className="text-primary hover:underline"
+                disabled={isResending || success}
+              >
+                {isResending ? "Sending..." : "Resend verification code"}
+              </button>
+            </div>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );
