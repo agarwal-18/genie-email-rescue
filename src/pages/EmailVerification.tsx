@@ -12,7 +12,6 @@ import Navbar from '@/components/Navbar';
 import { API_CONFIG } from '@/config';
 import axios from 'axios';
 
-// Fix the missing 'index' property
 const EmailVerification = () => {
   const [email, setEmail] = useState<string>('');
   const [code, setCode] = useState<string>('');
@@ -49,9 +48,9 @@ const EmailVerification = () => {
     setIsVerifying(true);
     
     try {
-      const response = await axios.post(`${API_CONFIG.baseURL}/auth/verify-email`, {
+      const response = await axios.post(`${API_CONFIG.baseURL}/auth/verify`, {
         email,
-        verification_code: code
+        code
       });
       
       setSuccess(true);
@@ -66,7 +65,13 @@ const EmailVerification = () => {
         navigate('/login');
       }, 2000);
     } catch (error: any) {
-      setError(error.response?.data?.detail || 'Failed to verify email. Please try again.');
+      let errorMessage = 'Failed to verify email. Please try again.';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      setError(errorMessage);
     } finally {
       setIsVerifying(false);
     }
@@ -91,7 +96,13 @@ const EmailVerification = () => {
         description: "A new verification code has been sent to your email.",
       });
     } catch (error: any) {
-      setError(error.response?.data?.detail || 'Failed to resend code. Please try again.');
+      let errorMessage = 'Failed to resend code. Please try again.';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      setError(errorMessage);
     } finally {
       setIsResending(false);
     }

@@ -38,12 +38,13 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Create axios instance
+// Create axios instance with timeout
 const apiClient = axios.create({
   baseURL: API_CONFIG.baseURL,
   headers: {
     'Content-Type': 'application/json',
-  }
+  },
+  timeout: 10000, // 10 second timeout
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -85,6 +86,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     setLoading(false);
   }, []);
+
+  const formatErrorMessage = (error: any): string => {
+    if (error.response?.data?.detail) {
+      return error.response.data.detail;
+    } else if (error.message === 'Network Error') {
+      return 'Unable to connect to the server. Please check your internet connection or try again later.';
+    } else if (error.code === 'ECONNABORTED') {
+      return 'Server request timed out. Please try again later.';
+    } else {
+      return error.message || 'An unknown error occurred';
+    }
+  };
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -135,7 +148,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error('Sign in error:', error);
       toast({
         title: "Sign in failed",
-        description: error.response?.data?.detail || error.message || "An error occurred during sign in.",
+        description: formatErrorMessage(error),
         variant: "destructive"
       });
     } finally {
@@ -162,11 +175,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         duration: 6000
       });
       
-      navigate('/login');
+      navigate('/verify-email?email=' + encodeURIComponent(email));
     } catch (error: any) {
       toast({
         title: "Sign up failed",
-        description: error.response?.data?.detail || error.message || "An error occurred during sign up.",
+        description: formatErrorMessage(error),
         variant: "destructive"
       });
     } finally {
@@ -196,7 +209,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error: any) {
       toast({
         title: "Sign out failed",
-        description: error.message || "An error occurred during sign out.",
+        description: formatErrorMessage(error),
         variant: "destructive"
       });
     } finally {

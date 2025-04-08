@@ -25,15 +25,16 @@ app = Flask(__name__, static_folder='dist' if IS_PRODUCTION else 'dist')
 
 # Configure CORS - more restrictive in production
 if IS_PRODUCTION:
-    # In production, only allow requests from your Vercel domain
+    # In production, allow requests from your Vercel domain
     allowed_origins = [
         'https://navi-trip-planner.vercel.app',  # Replace with your Vercel domain
-        'https://www.navi-trip-planner.vercel.app'  # Include www subdomain
+        'https://www.navi-trip-planner.vercel.app',  # Include www subdomain
+        '*'  # Allow all origins during development/testing - remove this in final production
     ]
-    CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
+    CORS(app, resources={r"/api/*": {"origins": allowed_origins}}, supports_credentials=True)
 else:
     # In development, allow all origins
-    CORS(app)
+    CORS(app, supports_credentials=True)
 
 # Configuration
 SECRET_KEY = os.getenv('JWT_SECRET_KEY', secrets.token_hex(32))
@@ -158,7 +159,7 @@ def login():
     auth = request.form
     
     if not auth or not auth.get('username') or not auth.get('password'):
-        return jsonify({'message': 'Could not verify', 'WWW-Authenticate': 'Bearer'}), 401
+        return jsonify({'detail': 'Could not verify', 'WWW-Authenticate': 'Bearer'}), 401
         
     email = auth.get('username')
     password = auth.get('password')
@@ -172,10 +173,10 @@ def login():
             break
             
     if not user:
-        return jsonify({'message': 'User not found', 'WWW-Authenticate': 'Bearer'}), 401
+        return jsonify({'detail': 'User not found', 'WWW-Authenticate': 'Bearer'}), 401
         
     if not user.get('email_verified', False):
-        return jsonify({'message': 'Email not verified', 'WWW-Authenticate': 'Bearer'}), 401
+        return jsonify({'detail': 'Email not verified. Please verify your email before signing in.', 'WWW-Authenticate': 'Bearer'}), 401
         
     if check_password_hash(user.get('password_hash', ''), password):
         # Generate token
@@ -189,14 +190,14 @@ def login():
             'token_type': 'bearer'
         }), 200
         
-    return jsonify({'message': 'Invalid credentials', 'WWW-Authenticate': 'Bearer'}), 401
+    return jsonify({'detail': 'Invalid credentials', 'WWW-Authenticate': 'Bearer'}), 401
 
 @app.route('/api/auth/register', methods=['POST'])
 def register():
     data = request.json
     
     if not data or not data.get('email') or not data.get('password'):
-        return jsonify({'message': 'Missing required fields'}), 400
+        return jsonify({'detail': 'Missing required fields'}), 400
         
     email = data.get('email')
     password = data.get('password')
@@ -204,12 +205,12 @@ def register():
     
     # Check if email is valid
     if not is_valid_email(email):
-        return jsonify({'message': 'Invalid email format'}), 400
+        return jsonify({'detail': 'Invalid email format'}), 400
         
     # Check if user already exists
     for user in users_db.values():
         if user.get('email') == email:
-            return jsonify({'message': 'User already exists'}), 400
+            return jsonify({'detail': 'User already exists with this email'}), 400
             
     # Create new user
     user_id = generate_uuid()
@@ -250,14 +251,19 @@ def verify_email():
     data = request.json
     
     if not data or not data.get('email') or not data.get('code'):
-        return jsonify({'message': 'Missing required fields'}), 400
+        return jsonify({'detail': 'Missing required fields'}), 400
         
     email = data.get('email')
     code = data.get('code')
     
     # Check if verification code is valid
-    if verification_codes.get(email) != code:
-        return jsonify({'message': 'Invalid verification code'}), 400
+    stored_code = verification_codes.get(email)
+    
+    if not stored_code:
+        return jsonify({'detail': 'No verification code found for this email. Please request a new code.'}), 400
+    
+    if stored_code != code:
+        return jsonify({'detail': 'Invalid verification code. Please check and try again.'}), 400
         
     # Update user verification status
     for user_id, user_data in users_db.items():
@@ -266,7 +272,35 @@ def verify_email():
             del verification_codes[email]
             return jsonify({'message': 'Email verified successfully'}), 200
             
-    return jsonify({'message': 'User not found'}), 404
+    return jsonify({'detail': 'User not found with this email'}), 404
+
+@app.route('/api/auth/resend-verification', methods=['POST'])
+def resend_verification():
+    data = request.json
+    
+    if not data or not data.get('email'):
+        return jsonify({'detail': 'Email is required'}), 400
+        
+    email = data.get('email')
+    
+    # Check if user exists
+    user_exists = False
+    for user in users_db.values():
+        if user.get('email') == email:
+            user_exists = True
+            break
+            
+    if not user_exists:
+        return jsonify({'detail': 'No user found with this email'}), 404
+        
+    # Generate new verification code
+    verification_code = ''.join(secrets.choice('0123456789') for _ in range(6))
+    verification_codes[email] = verification_code
+    
+    # In a real app, you would send this code via email
+    print(f"New verification code for {email}: {verification_code}")
+    
+    return jsonify({'message': 'Verification code sent successfully'}), 200
 
 @app.route('/api/auth/me', methods=['GET'])
 @token_required
@@ -800,23 +834,4 @@ def get_weather_recommendation():
         elif weather_id >= 600 and weather_id < 700:  # Snow
             if temp > 0:
                 recommendations["recommendation"] = "It's snowing but not too cold. Enjoy the winter scenery but have indoor backup plans."
-                recommendations["suggested_activities"] = indoor_activities + ["Take photos of snowy landmarks", "Build a snowman in a local park"]
-            else:
-                recommendations["recommendation"] = "It's cold and snowing. Best to stick to indoor activities today."
-                recommendations["suggested_activities"] = indoor_activities
-        elif weather_id >= 700 and weather_id < 800:  # Atmosphere (fog, haze, etc.)
-            recommendations["recommendation"] = "Visibility might be limited. Plan for activities that don't require clear views."
-            recommendations["suggested_activities"] = indoor_activities + ["Take a guided tour", "Visit nearby attractions"]
-        elif weather_id == 800:  # Clear sky
-            if temp > 30:
-                recommendations["recommendation"] = "It's clear but very hot. Stay hydrated and seek shade during outdoor activities."
-                recommendations["suggested_activities"] = ["Visit air-conditioned museums", "Enjoy water activities", "Have a picnic in shaded areas"]
-            elif temp > 15:
-                recommendations["recommendation"] = "Perfect weather for exploring outdoors!"
-                recommendations["suggested_activities"] = outdoor_activities
-            else:
-                recommendations["recommendation"] = "It's clear but cool. Dress in layers for outdoor activities."
-                recommendations["suggested_activities"] = outdoor_activities
-        else:  # Clouds
-            recommendations["recommendation"] = "Partly cloudy conditions, generally good for both indoor and outdoor activities."
-            recommendations["suggested_activities"] = outdoor_activities + indoor_activities[:2]
+                recommendations["suggested_activities"] = indoor_
