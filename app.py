@@ -23,9 +23,9 @@ CORS(app)
 
 # Configuration
 SECRET_KEY = os.getenv('JWT_SECRET_KEY', secrets.token_hex(32))
-WEATHER_API_KEY = os.getenv('WEATHER_API_KEY', 'YOUR_OPENWEATHERMAP_API_KEY')
-SUPABASE_URL = os.getenv('SUPABASE_URL', 'YOUR_SUPABASE_URL')
-SUPABASE_KEY = os.getenv('SUPABASE_KEY', 'YOUR_SUPABASE_KEY')
+WEATHER_API_KEY = os.getenv('WEATHER_API_KEY', '562c360f0d7884a7ec779f34559a11fb')
+SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://jsoyxzwtacwkyvbclnqa.supabase.co')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzb3l4end0YWN3a3l2YmNsbnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMwODc1ODksImV4cCI6MjA1ODY2MzU4OX0.bLwE06v-5m5j_niHjTy8Vc4Dc25vFyjByUaKi0RSW9g')
 
 # Mock database (replace with actual database in production)
 users_db = {}
@@ -58,6 +58,48 @@ def sanitize_input(text):
 def is_valid_email(email):
     # Basic validation - you may want to enhance this
     return '@' in email and '.' in email.split('@')[1]
+
+# Calculate travel time (placeholder)
+def calculate_travel_time(origin, destination):
+    # This is just a placeholder implementation
+    # In a real app, you'd use Google Maps, Mapbox or similar API
+    return 30  # Default 30 minutes
+
+# Format datetime
+def format_datetime(dt):
+    return dt.isoformat() if dt else None
+
+# Get date range
+def get_date_range(start_date, days):
+    return [start_date + timedelta(days=i) for i in range(days)]
+
+# Format currency
+def format_currency(amount, currency="USD"):
+    if currency == "USD":
+        return f"${amount:.2f}"
+    elif currency == "EUR":
+        return f"€{amount:.2f}"
+    elif currency == "GBP":
+        return f"£{amount:.2f}"
+    else:
+        return f"{amount:.2f} {currency}"
+
+# Chunk list into parts
+def chunk_list(lst, chunk_size):
+    return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
+
+# Get rating text
+def get_rating_text(rating):
+    if rating >= 4.5:
+        return "Excellent"
+    elif rating >= 4.0:
+        return "Very Good"
+    elif rating >= 3.5:
+        return "Good"
+    elif rating >= 3.0:
+        return "Average"
+    else:
+        return "Below Average"
 
 # JWT token required decorator
 def token_required(f):
@@ -760,6 +802,15 @@ def get_weather_recommendation():
         return jsonify(recommendations), 200
     except requests.exceptions.RequestException as e:
         return jsonify({'message': f'Failed to generate weather recommendation: {str(e)}'}), 500
+
+# Health check endpoint
+@app.route('/api/health')
+def health_check():
+    return jsonify({
+        'status': 'healthy',
+        'version': '1.0.0',
+        'api': 'Travel Planner API'
+    })
 
 # Serve static files for production build
 @app.route('/', defaults={'path': ''})
