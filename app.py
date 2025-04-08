@@ -1,4 +1,3 @@
-
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import os
@@ -17,9 +16,24 @@ from dateutil import parser
 # Load environment variables
 load_dotenv()
 
+# Get environment
+ENVIRONMENT = os.getenv('FLASK_ENV', 'development')
+IS_PRODUCTION = ENVIRONMENT == 'production'
+
 # Initialize Flask app
-app = Flask(__name__, static_folder='dist')
-CORS(app)
+app = Flask(__name__, static_folder='dist' if IS_PRODUCTION else 'dist')
+
+# Configure CORS - more restrictive in production
+if IS_PRODUCTION:
+    # In production, only allow requests from your Vercel domain
+    allowed_origins = [
+        'https://navi-trip-planner.vercel.app',  # Replace with your Vercel domain
+        'https://www.navi-trip-planner.vercel.app'  # Include www subdomain
+    ]
+    CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
+else:
+    # In development, allow all origins
+    CORS(app)
 
 # Configuration
 SECRET_KEY = os.getenv('JWT_SECRET_KEY', secrets.token_hex(32))
@@ -34,13 +48,21 @@ itineraries_db = {}
 activities_db = {}
 verification_codes = {}
 
+# Set up data directory
+data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+os.makedirs(data_dir, exist_ok=True)
+
 # Helper function to load JSON data
 def load_json_data(filename):
     try:
-        with open(f"data/{filename}", 'r', encoding='utf-8') as file:
+        file_path = os.path.join(data_dir, filename)
+        with open(file_path, 'r', encoding='utf-8') as file:
             return json.load(file)
     except FileNotFoundError:
-        print(f"Warning: Data file {filename} not found")
+        print(f"Warning: Data file {filename} not found at {file_path}")
+        # Create empty file if it doesn't exist
+        with open(file_path, 'w', encoding='utf-8') as file:
+            json.dump([], file)
         return []
 
 # Generate UUID
@@ -798,98 +820,3 @@ def get_weather_recommendation():
         else:  # Clouds
             recommendations["recommendation"] = "Partly cloudy conditions, generally good for both indoor and outdoor activities."
             recommendations["suggested_activities"] = outdoor_activities + indoor_activities[:2]
-        
-        return jsonify(recommendations), 200
-    except requests.exceptions.RequestException as e:
-        return jsonify({'message': f'Failed to generate weather recommendation: {str(e)}'}), 500
-
-# Health check endpoint
-@app.route('/api/health')
-def health_check():
-    return jsonify({
-        'status': 'healthy',
-        'version': '1.0.0',
-        'api': 'Travel Planner API'
-    })
-
-# Serve static files for production build
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def serve(path):
-    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, path)
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
-
-# Create data directory if it doesn't exist
-os.makedirs('data', exist_ok=True)
-
-# Ensure JSON data files exist
-data_files = ['places.json', 'restaurants.json', 'itinerary_template.json']
-for file in data_files:
-    file_path = f"data/{file}"
-    if not os.path.exists(file_path):
-        with open(file_path, 'w', encoding='utf-8') as f:
-            if file == 'places.json':
-                json.dump([
-                    {
-                        "id": "p1",
-                        "name": "Vashi Central Park",
-                        "description": "Beautiful park in the heart of Vashi",
-                        "image": "/images/places/vashi-park.jpg",
-                        "rating": 4.5,
-                        "category": "park"
-                    }
-                ], f, indent=2)
-            elif file == 'restaurants.json':
-                json.dump([
-                    {
-                        "id": "r1",
-                        "name": "Coastal Cuisine",
-                        "description": "Authentic seafood restaurant",
-                        "image": "/images/restaurants/coastal.jpg",
-                        "rating": 4.2,
-                        "category": "seafood"
-                    }
-                ], f, indent=2)
-            elif file == 'itinerary_template.json':
-                json.dump({
-                    "activities": [
-                        {
-                            "time": "09:00 AM",
-                            "title": "Morning Walk",
-                            "location": "Vashi Central Park",
-                            "description": "Start your day with a refreshing walk",
-                            "image": "/images/activities/morning-walk.jpg",
-                            "category": "outdoor"
-                        },
-                        {
-                            "time": "12:00 PM",
-                            "title": "Lunch Break",
-                            "location": "Coastal Cuisine",
-                            "description": "Enjoy seafood for lunch",
-                            "image": "/images/activities/lunch.jpg",
-                            "category": "food"
-                        },
-                        {
-                            "time": "03:00 PM",
-                            "title": "Shopping",
-                            "location": "Inorbit Mall",
-                            "description": "Explore the mall",
-                            "image": "/images/activities/shopping.jpg",
-                            "category": "shopping"
-                        },
-                        {
-                            "time": "07:00 PM",
-                            "title": "Dinner",
-                            "location": "Raghuleela Mall",
-                            "description": "Dinner at food court",
-                            "image": "/images/activities/dinner.jpg",
-                            "category": "food"
-                        }
-                    ]
-                }, f, indent=2)
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8000))
-    app.run(host='0.0.0.0', port=port, debug=True)

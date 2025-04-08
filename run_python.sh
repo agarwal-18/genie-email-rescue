@@ -6,10 +6,17 @@ if [ ! -d "venv" ]; then
   echo "Creating Python virtual environment..."
   python3 -m venv venv
   source venv/bin/activate
-  pip install -r requirements-python.txt
+  pip install -r requirements.txt
 else
   echo "Using existing Python virtual environment..."
   source venv/bin/activate
+fi
+
+# Check if this is a build command
+if [ "$1" == "build" ]; then
+  echo "Building for production..."
+  npm run build
+  exit 0
 fi
 
 # Start Python backend
