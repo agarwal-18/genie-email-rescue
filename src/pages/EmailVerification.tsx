@@ -48,7 +48,9 @@ const EmailVerification = () => {
     setIsVerifying(true);
     
     try {
-      const response = await axios.post(`${API_CONFIG.baseURL}/auth/verify`, {
+      console.log('Verifying email with URL:', `${API_CONFIG.baseURL}/auth/verify-email`);
+      
+      const response = await axios.post(`${API_CONFIG.baseURL}/auth/verify-email`, {
         email,
         code
       });
@@ -65,6 +67,7 @@ const EmailVerification = () => {
         navigate('/login');
       }, 2000);
     } catch (error: any) {
+      console.error('Verification error:', error);
       let errorMessage = 'Failed to verify email. Please try again.';
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
@@ -87,6 +90,8 @@ const EmailVerification = () => {
     setIsResending(true);
     
     try {
+      console.log('Resending verification code with URL:', `${API_CONFIG.baseURL}/auth/resend-verification`);
+      
       await axios.post(`${API_CONFIG.baseURL}/auth/resend-verification`, {
         email
       });
@@ -96,6 +101,7 @@ const EmailVerification = () => {
         description: "A new verification code has been sent to your email.",
       });
     } catch (error: any) {
+      console.error('Resend verification error:', error);
       let errorMessage = 'Failed to resend code. Please try again.';
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
