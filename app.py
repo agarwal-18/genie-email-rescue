@@ -720,7 +720,7 @@ def get_weather():
         response.raise_for_status()
         return jsonify(response.json()), 200
     except requests.exceptions.RequestException as e:
-        return jsonify({'message': f'Failed to fetch weather data: {str(e)}')}), 500
+        return jsonify({'message': f'Failed to fetch weather data: {str(e)}'}), 500
 
 @app.route('/api/weather/forecast', methods=['GET'])
 def get_weather_forecast():
