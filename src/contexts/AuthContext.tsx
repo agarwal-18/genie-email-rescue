@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -197,6 +196,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: formatErrorMessage(error),
         variant: "destructive"
       });
+      throw error; // Ensure the error is propagated
     } finally {
       setLoading(false);
     }

@@ -226,6 +226,9 @@ def register():
     # In a real app, you would send this code via email
     print(f"Verification code for {email}: {verification_code}")
     
+    # Simulate sending email (replace with actual email-sending logic)
+    send_verification_email(email, verification_code)
+    
     # Store user
     users_db[user_id] = {
         'email': email,
@@ -237,14 +240,16 @@ def register():
         'email_verified': False
     }
     
-    # In a real app, you would send verification email here
-    
     return jsonify({
         'id': user_id,
         'email': email,
         'name': name,
         'created_at': created_at
     }), 201
+
+def send_verification_email(email, code):
+    # Replace this with actual email-sending logic
+    print(f"Sending verification email to {email} with code: {code}")
 
 @app.route('/api/auth/verify', methods=['POST'])
 def verify_email():
