@@ -176,7 +176,7 @@ def login():
         return jsonify({'detail': 'User not found', 'WWW-Authenticate': 'Bearer'}), 401
         
     if not user.get('email_verified', False):
-        return jsonify({'detail': 'Email not verified. Please verify your email before signing in.', 'WWW-Authenticate': 'Bearer'}), 401
+        return jsonify({'detail': 'Email not verified. Please verify your email before signing in.'}), 401
         
     if check_password_hash(user.get('password_hash', ''), password):
         # Generate token
@@ -720,7 +720,7 @@ def get_weather():
         response.raise_for_status()
         return jsonify(response.json()), 200
     except requests.exceptions.RequestException as e:
-        return jsonify({'message': f'Failed to fetch weather data: {str(e)}'}), 500
+        return jsonify({'message': f'Failed to fetch weather data: {str(e)}')}), 500
 
 @app.route('/api/weather/forecast', methods=['GET'])
 def get_weather_forecast():
@@ -787,7 +787,7 @@ def get_weather_forecast():
         
         return jsonify(result), 200
     except requests.exceptions.RequestException as e:
-        return jsonify({'message': f'Failed to fetch weather forecast: {str(e)}'}), 500
+        return jsonify({'message': f'Failed to fetch weather forecast: {str(e)}')}), 500
 
 @app.route('/api/weather/recommendation', methods=['GET'])
 def get_weather_recommendation():
@@ -839,4 +839,31 @@ def get_weather_recommendation():
         elif weather_id >= 600 and weather_id < 700:  # Snow
             if temp > 0:
                 recommendations["recommendation"] = "It's snowing but not too cold. Enjoy the winter scenery but have indoor backup plans."
-                recommendations["suggested_activities"] = indoor_
+                recommendations["suggested_activities"] = indoor_activities + outdoor_activities
+            else:
+                recommendations["recommendation"] = "It's snowing and cold. Best to stay indoors."
+                recommendations["suggested_activities"] = indoor_activities
+        elif weather_id >= 700 and weather_id < 800:  # Atmosphere (mist, smoke, haze, etc.)
+            recommendations["recommendation"] = "The weather is a bit unclear. Consider indoor activities or proceed with caution outdoors."
+            recommendations["suggested_activities"] = indoor_activities + outdoor_activities
+        elif weather_id == 800:  # Clear sky
+            recommendations["recommendation"] = "The weather is clear and perfect for outdoor activities."
+            recommendations["suggested_activities"] = outdoor_activities
+        elif weather_id > 800:  # Clouds
+            recommendations["recommendation"] = "It's a bit cloudy but still good for outdoor activities."
+            recommendations["suggested_activities"] = outdoor_activities
+        
+        return jsonify(recommendations), 200
+    except requests.exceptions.RequestException as e:
+        return jsonify({'message': f'Failed to fetch weather data: {str(e)}')}), 500
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
+
+if __name__ == '__main__':
+    app.run(debug=not IS_PRODUCTION)
