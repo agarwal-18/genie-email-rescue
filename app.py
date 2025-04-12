@@ -855,7 +855,7 @@ def get_weather_recommendation():
         
         return jsonify(recommendations), 200
     except requests.exceptions.RequestException as e:
-        return jsonify({'message': f'Failed to fetch weather data: {str(e)}')}), 500
+        return jsonify({'message': f'Failed to fetch weather data: {str(e)}'}), 500
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
