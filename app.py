@@ -787,7 +787,7 @@ def get_weather_forecast():
         
         return jsonify(result), 200
     except requests.exceptions.RequestException as e:
-        return jsonify({'message': f'Failed to fetch weather forecast: {str(e)}')}), 500
+        return jsonify({'message': f'Failed to fetch weather forecast: {str(e)}'}), 500
 
 @app.route('/api/weather/recommendation', methods=['GET'])
 def get_weather_recommendation():
@@ -860,7 +860,7 @@ def get_weather_recommendation():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+    if (path != "" and os.path.exists(os.path.join(app.static_folder, path))):
         return send_from_directory(app.static_folder, path)
     else:
         return send_from_directory(app.static_folder, 'index.html')
