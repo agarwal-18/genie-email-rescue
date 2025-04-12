@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -37,13 +38,12 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Create axios instance with timeout and better error handling
+// Create axios instance
 const apiClient = axios.create({
   baseURL: API_CONFIG.baseURL,
   headers: {
     'Content-Type': 'application/json',
-  },
-  timeout: 15000, // 15 second timeout
+  }
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -86,32 +86,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(false);
   }, []);
 
-  const formatErrorMessage = (error: any): string => {
-    console.error('Error details:', error);
-    
-    if (error.response?.data?.detail) {
-      return error.response.data.detail;
-    } else if (error.message === 'Network Error') {
-      return 'Unable to connect to the server. Please check your internet connection or try again later.';
-    } else if (error.code === 'ECONNABORTED') {
-      return 'Server request timed out. Please try again later.';
-    } else if (error.response?.status === 401) {
-      return 'Invalid email or password. Please try again.';
-    } else if (error.response?.status === 422) {
-      return 'Invalid input data. Please check your information and try again.';
-    } else if (error.response?.status === 404) {
-      return 'The requested resource was not found. Please try again.';
-    } else {
-      return error.message || 'An unknown error occurred';
-    }
-  };
-
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
-      
-      console.log('Attempting to sign in with URL:', API_CONFIG.baseURL);
-      
       // Use token endpoint to get access token (OAuth2 password flow)
       const response = await apiClient.post('/token', 
         new URLSearchParams({
@@ -158,7 +135,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error('Sign in error:', error);
       toast({
         title: "Sign in failed",
-        description: formatErrorMessage(error),
+        description: error.response?.data?.detail || error.message || "An error occurred during sign in.",
         variant: "destructive"
       });
     } finally {
@@ -169,9 +146,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signUp = async (email: string, password: string, name: string) => {
     try {
       setLoading(true);
-      
-      console.log('Attempting to register with URL:', `${API_CONFIG.baseURL}/auth/register`);
-      
       await apiClient.post('/auth/register', {
         email,
         password,
@@ -188,15 +162,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         duration: 6000
       });
       
-      navigate('/verify-email?email=' + encodeURIComponent(email));
+      navigate('/login');
     } catch (error: any) {
-      console.error('Sign up error:', error);
       toast({
         title: "Sign up failed",
-        description: formatErrorMessage(error),
+        description: error.response?.data?.detail || error.message || "An error occurred during sign up.",
         variant: "destructive"
       });
-      throw error; // Ensure the error is propagated
     } finally {
       setLoading(false);
     }
@@ -224,7 +196,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error: any) {
       toast({
         title: "Sign out failed",
-        description: formatErrorMessage(error),
+        description: error.message || "An error occurred during sign out.",
         variant: "destructive"
       });
     } finally {

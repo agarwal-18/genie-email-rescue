@@ -1,3 +1,4 @@
+
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import os
@@ -16,31 +17,15 @@ from dateutil import parser
 # Load environment variables
 load_dotenv()
 
-# Get environment
-ENVIRONMENT = os.getenv('FLASK_ENV', 'development')
-IS_PRODUCTION = ENVIRONMENT == 'production'
-
 # Initialize Flask app
-app = Flask(__name__, static_folder='dist' if IS_PRODUCTION else 'dist')
-
-# Configure CORS - more restrictive in production
-if IS_PRODUCTION:
-    # In production, allow requests from your Vercel domain
-    allowed_origins = [
-        'https://navi-trip-planner.vercel.app',  # Replace with your Vercel domain
-        'https://www.navi-trip-planner.vercel.app',  # Include www subdomain
-        '*'  # Allow all origins during development/testing - remove this in final production
-    ]
-    CORS(app, resources={r"/api/*": {"origins": allowed_origins}}, supports_credentials=True)
-else:
-    # In development, allow all origins
-    CORS(app, supports_credentials=True)
+app = Flask(__name__, static_folder='dist')
+CORS(app)
 
 # Configuration
 SECRET_KEY = os.getenv('JWT_SECRET_KEY', secrets.token_hex(32))
-WEATHER_API_KEY = os.getenv('WEATHER_API_KEY', '562c360f0d7884a7ec779f34559a11fb')
-SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://jsoyxzwtacwkyvbclnqa.supabase.co')
-SUPABASE_KEY = os.getenv('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzb3l4end0YWN3a3l2YmNsbnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMwODc1ODksImV4cCI6MjA1ODY2MzU4OX0.bLwE06v-5m5j_niHjTy8Vc4Dc25vFyjByUaKi0RSW9g')
+WEATHER_API_KEY = os.getenv('WEATHER_API_KEY', 'YOUR_OPENWEATHERMAP_API_KEY')
+SUPABASE_URL = os.getenv('SUPABASE_URL', 'YOUR_SUPABASE_URL')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY', 'YOUR_SUPABASE_KEY')
 
 # Mock database (replace with actual database in production)
 users_db = {}
@@ -49,21 +34,13 @@ itineraries_db = {}
 activities_db = {}
 verification_codes = {}
 
-# Set up data directory
-data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
-os.makedirs(data_dir, exist_ok=True)
-
 # Helper function to load JSON data
 def load_json_data(filename):
     try:
-        file_path = os.path.join(data_dir, filename)
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(f"data/{filename}", 'r', encoding='utf-8') as file:
             return json.load(file)
     except FileNotFoundError:
-        print(f"Warning: Data file {filename} not found at {file_path}")
-        # Create empty file if it doesn't exist
-        with open(file_path, 'w', encoding='utf-8') as file:
-            json.dump([], file)
+        print(f"Warning: Data file {filename} not found")
         return []
 
 # Generate UUID
@@ -81,48 +58,6 @@ def sanitize_input(text):
 def is_valid_email(email):
     # Basic validation - you may want to enhance this
     return '@' in email and '.' in email.split('@')[1]
-
-# Calculate travel time (placeholder)
-def calculate_travel_time(origin, destination):
-    # This is just a placeholder implementation
-    # In a real app, you'd use Google Maps, Mapbox or similar API
-    return 30  # Default 30 minutes
-
-# Format datetime
-def format_datetime(dt):
-    return dt.isoformat() if dt else None
-
-# Get date range
-def get_date_range(start_date, days):
-    return [start_date + timedelta(days=i) for i in range(days)]
-
-# Format currency
-def format_currency(amount, currency="USD"):
-    if currency == "USD":
-        return f"${amount:.2f}"
-    elif currency == "EUR":
-        return f"€{amount:.2f}"
-    elif currency == "GBP":
-        return f"£{amount:.2f}"
-    else:
-        return f"{amount:.2f} {currency}"
-
-# Chunk list into parts
-def chunk_list(lst, chunk_size):
-    return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
-
-# Get rating text
-def get_rating_text(rating):
-    if rating >= 4.5:
-        return "Excellent"
-    elif rating >= 4.0:
-        return "Very Good"
-    elif rating >= 3.5:
-        return "Good"
-    elif rating >= 3.0:
-        return "Average"
-    else:
-        return "Below Average"
 
 # JWT token required decorator
 def token_required(f):
@@ -159,7 +94,7 @@ def login():
     auth = request.form
     
     if not auth or not auth.get('username') or not auth.get('password'):
-        return jsonify({'detail': 'Could not verify', 'WWW-Authenticate': 'Bearer'}), 401
+        return jsonify({'message': 'Could not verify', 'WWW-Authenticate': 'Bearer'}), 401
         
     email = auth.get('username')
     password = auth.get('password')
@@ -173,10 +108,10 @@ def login():
             break
             
     if not user:
-        return jsonify({'detail': 'User not found', 'WWW-Authenticate': 'Bearer'}), 401
+        return jsonify({'message': 'User not found', 'WWW-Authenticate': 'Bearer'}), 401
         
     if not user.get('email_verified', False):
-        return jsonify({'detail': 'Email not verified. Please verify your email before signing in.'}), 401
+        return jsonify({'message': 'Email not verified', 'WWW-Authenticate': 'Bearer'}), 401
         
     if check_password_hash(user.get('password_hash', ''), password):
         # Generate token
@@ -190,14 +125,14 @@ def login():
             'token_type': 'bearer'
         }), 200
         
-    return jsonify({'detail': 'Invalid credentials', 'WWW-Authenticate': 'Bearer'}), 401
+    return jsonify({'message': 'Invalid credentials', 'WWW-Authenticate': 'Bearer'}), 401
 
 @app.route('/api/auth/register', methods=['POST'])
 def register():
     data = request.json
     
     if not data or not data.get('email') or not data.get('password'):
-        return jsonify({'detail': 'Missing required fields'}), 400
+        return jsonify({'message': 'Missing required fields'}), 400
         
     email = data.get('email')
     password = data.get('password')
@@ -205,12 +140,12 @@ def register():
     
     # Check if email is valid
     if not is_valid_email(email):
-        return jsonify({'detail': 'Invalid email format'}), 400
+        return jsonify({'message': 'Invalid email format'}), 400
         
     # Check if user already exists
     for user in users_db.values():
         if user.get('email') == email:
-            return jsonify({'detail': 'User already exists with this email'}), 400
+            return jsonify({'message': 'User already exists'}), 400
             
     # Create new user
     user_id = generate_uuid()
@@ -226,9 +161,6 @@ def register():
     # In a real app, you would send this code via email
     print(f"Verification code for {email}: {verification_code}")
     
-    # Simulate sending email (replace with actual email-sending logic)
-    send_verification_email(email, verification_code)
-    
     # Store user
     users_db[user_id] = {
         'email': email,
@@ -240,6 +172,8 @@ def register():
         'email_verified': False
     }
     
+    # In a real app, you would send verification email here
+    
     return jsonify({
         'id': user_id,
         'email': email,
@@ -247,28 +181,19 @@ def register():
         'created_at': created_at
     }), 201
 
-def send_verification_email(email, code):
-    # Replace this with actual email-sending logic
-    print(f"Sending verification email to {email} with code: {code}")
-
 @app.route('/api/auth/verify', methods=['POST'])
 def verify_email():
     data = request.json
     
     if not data or not data.get('email') or not data.get('code'):
-        return jsonify({'detail': 'Missing required fields'}), 400
+        return jsonify({'message': 'Missing required fields'}), 400
         
     email = data.get('email')
     code = data.get('code')
     
     # Check if verification code is valid
-    stored_code = verification_codes.get(email)
-    
-    if not stored_code:
-        return jsonify({'detail': 'No verification code found for this email. Please request a new code.'}), 400
-    
-    if stored_code != code:
-        return jsonify({'detail': 'Invalid verification code. Please check and try again.'}), 400
+    if verification_codes.get(email) != code:
+        return jsonify({'message': 'Invalid verification code'}), 400
         
     # Update user verification status
     for user_id, user_data in users_db.items():
@@ -277,35 +202,7 @@ def verify_email():
             del verification_codes[email]
             return jsonify({'message': 'Email verified successfully'}), 200
             
-    return jsonify({'detail': 'User not found with this email'}), 404
-
-@app.route('/api/auth/resend-verification', methods=['POST'])
-def resend_verification():
-    data = request.json
-    
-    if not data or not data.get('email'):
-        return jsonify({'detail': 'Email is required'}), 400
-        
-    email = data.get('email')
-    
-    # Check if user exists
-    user_exists = False
-    for user in users_db.values():
-        if user.get('email') == email:
-            user_exists = True
-            break
-            
-    if not user_exists:
-        return jsonify({'detail': 'No user found with this email'}), 404
-        
-    # Generate new verification code
-    verification_code = ''.join(secrets.choice('0123456789') for _ in range(6))
-    verification_codes[email] = verification_code
-    
-    # In a real app, you would send this code via email
-    print(f"New verification code for {email}: {verification_code}")
-    
-    return jsonify({'message': 'Verification code sent successfully'}), 200
+    return jsonify({'message': 'User not found'}), 404
 
 @app.route('/api/auth/me', methods=['GET'])
 @token_required
@@ -839,24 +736,32 @@ def get_weather_recommendation():
         elif weather_id >= 600 and weather_id < 700:  # Snow
             if temp > 0:
                 recommendations["recommendation"] = "It's snowing but not too cold. Enjoy the winter scenery but have indoor backup plans."
-                recommendations["suggested_activities"] = indoor_activities + outdoor_activities
+                recommendations["suggested_activities"] = indoor_activities + ["Take photos of snowy landmarks", "Build a snowman in a local park"]
             else:
-                recommendations["recommendation"] = "It's snowing and cold. Best to stay indoors."
+                recommendations["recommendation"] = "It's cold and snowing. Best to stick to indoor activities today."
                 recommendations["suggested_activities"] = indoor_activities
-        elif weather_id >= 700 and weather_id < 800:  # Atmosphere (mist, smoke, haze, etc.)
-            recommendations["recommendation"] = "The weather is a bit unclear. Consider indoor activities or proceed with caution outdoors."
-            recommendations["suggested_activities"] = indoor_activities + outdoor_activities
+        elif weather_id >= 700 and weather_id < 800:  # Atmosphere (fog, haze, etc.)
+            recommendations["recommendation"] = "Visibility might be limited. Plan for activities that don't require clear views."
+            recommendations["suggested_activities"] = indoor_activities + ["Take a guided tour", "Visit nearby attractions"]
         elif weather_id == 800:  # Clear sky
-            recommendations["recommendation"] = "The weather is clear and perfect for outdoor activities."
-            recommendations["suggested_activities"] = outdoor_activities
-        elif weather_id > 800:  # Clouds
-            recommendations["recommendation"] = "It's a bit cloudy but still good for outdoor activities."
-            recommendations["suggested_activities"] = outdoor_activities
+            if temp > 30:
+                recommendations["recommendation"] = "It's clear but very hot. Stay hydrated and seek shade during outdoor activities."
+                recommendations["suggested_activities"] = ["Visit air-conditioned museums", "Enjoy water activities", "Have a picnic in shaded areas"]
+            elif temp > 15:
+                recommendations["recommendation"] = "Perfect weather for exploring outdoors!"
+                recommendations["suggested_activities"] = outdoor_activities
+            else:
+                recommendations["recommendation"] = "It's clear but cool. Dress in layers for outdoor activities."
+                recommendations["suggested_activities"] = outdoor_activities
+        else:  # Clouds
+            recommendations["recommendation"] = "Partly cloudy conditions, generally good for both indoor and outdoor activities."
+            recommendations["suggested_activities"] = outdoor_activities + indoor_activities[:2]
         
         return jsonify(recommendations), 200
     except requests.exceptions.RequestException as e:
-        return jsonify({'message': f'Failed to fetch weather data: {str(e)}'}), 500
+        return jsonify({'message': f'Failed to generate weather recommendation: {str(e)}'}), 500
 
+# Serve static files for production build
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
@@ -865,5 +770,75 @@ def serve(path):
     else:
         return send_from_directory(app.static_folder, 'index.html')
 
+# Create data directory if it doesn't exist
+os.makedirs('data', exist_ok=True)
+
+# Ensure JSON data files exist
+data_files = ['places.json', 'restaurants.json', 'itinerary_template.json']
+for file in data_files:
+    file_path = f"data/{file}"
+    if not os.path.exists(file_path):
+        with open(file_path, 'w', encoding='utf-8') as f:
+            if file == 'places.json':
+                json.dump([
+                    {
+                        "id": "p1",
+                        "name": "Vashi Central Park",
+                        "description": "Beautiful park in the heart of Vashi",
+                        "image": "/images/places/vashi-park.jpg",
+                        "rating": 4.5,
+                        "category": "park"
+                    }
+                ], f, indent=2)
+            elif file == 'restaurants.json':
+                json.dump([
+                    {
+                        "id": "r1",
+                        "name": "Coastal Cuisine",
+                        "description": "Authentic seafood restaurant",
+                        "image": "/images/restaurants/coastal.jpg",
+                        "rating": 4.2,
+                        "category": "seafood"
+                    }
+                ], f, indent=2)
+            elif file == 'itinerary_template.json':
+                json.dump({
+                    "activities": [
+                        {
+                            "time": "09:00 AM",
+                            "title": "Morning Walk",
+                            "location": "Vashi Central Park",
+                            "description": "Start your day with a refreshing walk",
+                            "image": "/images/activities/morning-walk.jpg",
+                            "category": "outdoor"
+                        },
+                        {
+                            "time": "12:00 PM",
+                            "title": "Lunch Break",
+                            "location": "Coastal Cuisine",
+                            "description": "Enjoy seafood for lunch",
+                            "image": "/images/activities/lunch.jpg",
+                            "category": "food"
+                        },
+                        {
+                            "time": "03:00 PM",
+                            "title": "Shopping",
+                            "location": "Inorbit Mall",
+                            "description": "Explore the mall",
+                            "image": "/images/activities/shopping.jpg",
+                            "category": "shopping"
+                        },
+                        {
+                            "time": "07:00 PM",
+                            "title": "Dinner",
+                            "location": "Raghuleela Mall",
+                            "description": "Dinner at food court",
+                            "image": "/images/activities/dinner.jpg",
+                            "category": "food"
+                        }
+                    ]
+                }, f, indent=2)
+
 if __name__ == '__main__':
-    app.run(debug=not IS_PRODUCTION)
+    port = int(os.environ.get('PORT', 8000))
+    app.run(host='0.0.0.0', port=port, debug=True)

@@ -2,21 +2,28 @@
 #!/bin/bash
 
 # Create virtual environment if it doesn't exist
-if [ ! -d "venv" ]; then
+if [ ! -d "backend/venv" ]; then
   echo "Creating Python virtual environment..."
-  python3 -m venv venv
+  cd backend
+  python -m venv venv
   source venv/bin/activate
-  pip install -r requirements-python.txt
+  pip install -r requirements.txt
+  cd ..
 else
   echo "Using existing Python virtual environment..."
+  cd backend
   source venv/bin/activate
+  cd ..
 fi
 
 # Start Python backend
-python app.py &
+cd backend
+source venv/bin/activate
+python main.py &
 BACKEND_PID=$!
 
 # Start frontend
+cd ..
 npm run dev &
 FRONTEND_PID=$!
 
