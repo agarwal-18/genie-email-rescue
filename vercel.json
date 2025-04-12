@@ -18,14 +18,4 @@
     },
     {
       "src": "/(.*)",
-      "dest": "dist/$1"
-    }
-  ],
-  "env": {
-    "FLASK_ENV": "production",
-    "JWT_SECRET_KEY": "@jwt_secret_key",
-    "WEATHER_API_KEY": "@weather_api_key",
-    "SUPABASE_URL": "@supabase_url",
-    "SUPABASE_KEY": "@supabase_key"
-  }
-}
+      "dest": "dist/$1"    }  ],  "env": {    "FLASK_ENV": "production",    "JWT_SECRET_KEY": "@jwt_secret_key",    "WEATHER_API_KEY": "@weather_api_key",    "SUPABASE_URL": "@supabase_url",    "SUPABASE_KEY": "@supabase_key"  }}
