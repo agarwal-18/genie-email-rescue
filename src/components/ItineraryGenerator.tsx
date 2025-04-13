@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -182,13 +183,24 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
       budget,
       interests: selectedInterests,
       transportation,
-      include_food: includeFood
+      include_food: includeFood,
+      user_id: user.id  // Add the user_id field
     };
     
-    const success = await saveItinerary(settings, itinerary);
+    const itineraryId = await saveItinerary(settings, itinerary);
     
-    if (success) {
+    if (itineraryId) {
+      toast({
+        title: "Itinerary saved",
+        description: "Your itinerary has been saved successfully."
+      });
       navigate('/saved-itineraries');
+    } else {
+      toast({
+        title: "Error saving itinerary",
+        description: "There was an error saving your itinerary. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 

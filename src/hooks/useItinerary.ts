@@ -5,12 +5,18 @@ import { supabase, type UserItinerary } from '@/integrations/supabase/client';
 import type { ItineraryActivity as IActivity } from '@/integrations/supabase/client';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { API_CONFIG } from '@/config';
 
 // Local type definition that won't conflict with imported one
 type ItineraryDay = {
   day: number;
   activities: IActivity[];
 };
+
+export interface ItineraryDetail {
+  details: UserItinerary;
+  days: ItineraryDay[];
+}
 
 export function useItinerary() {
   const [loading, setLoading] = useState(false);
@@ -208,8 +214,6 @@ export function useItinerary() {
       setLoading(false);
     }
   };
-
-  // Add missing functions that were causing build errors
   
   const saveItinerary = async (itinerary: Omit<UserItinerary, 'id' | 'created_at' | 'updated_at'>, activities: Omit<IActivity, 'id' | 'created_at'>[]): Promise<string | null> => {
     setLoading(true);
@@ -241,7 +245,7 @@ export function useItinerary() {
     }
   };
   
-  const fetchItineraryById = async (id: string): Promise<{itinerary: UserItinerary | null, activities: ItineraryDay[]}> => {
+  const fetchItineraryById = async (id: string): Promise<ItineraryDetail> => {
     setLoading(true);
     setError(null);
     try {
@@ -260,14 +264,14 @@ export function useItinerary() {
       const activities = await getItineraryActivities(id);
       
       return {
-        itinerary: itineraryData,
-        activities
+        details: itineraryData,
+        days: activities
       };
     } catch (err: any) {
       setError(err.message);
       return {
-        itinerary: null,
-        activities: []
+        details: {} as UserItinerary,
+        days: []
       };
     } finally {
       setLoading(false);
@@ -320,11 +324,14 @@ export function useItinerary() {
     }
   };
   
-  const downloadItineraryAsPdf = async (elementId: string, fileName: string = 'itinerary.pdf'): Promise<boolean> => {
+  const downloadItineraryAsPdf = async (
+    itineraryInfo: { title: string; days: number },
+    itineraryDays: ItineraryDay[],
+    element: HTMLElement | null
+  ): Promise<boolean> => {
     try {
-      const element = document.getElementById(elementId);
       if (!element) {
-        throw new Error(`Element with ID ${elementId} not found`);
+        throw new Error('Element not found for PDF generation');
       }
       
       const canvas = await html2canvas(element, {
@@ -340,23 +347,20 @@ export function useItinerary() {
         format: 'a4'
       });
       
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 295; // A4 height in mm
+      // Add title
+      pdf.setFontSize(16);
+      pdf.text(itineraryInfo.title, 15, 15);
+      
+      // Add date
+      pdf.setFontSize(10);
+      pdf.text(`Generated on ${new Date().toLocaleDateString()}`, 15, 22);
+      
+      const imgWidth = 180; // A4 width with margins
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
       
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      pdf.addImage(imgData, 'PNG', 15, 25, imgWidth, imgHeight);
       
-      // Add new pages if the content is longer than one page
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-      
+      const fileName = `${itineraryInfo.title.replace(/\s+/g, '_')}.pdf`;
       pdf.save(fileName);
       return true;
     } catch (err: any) {

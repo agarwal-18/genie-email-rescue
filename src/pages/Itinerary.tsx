@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { MapPin, Clock, Calendar, Map, Menu, Copy, Share2, Download, Printer, Save } from 'lucide-react';
@@ -17,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { toast as sonnerToast } from 'sonner';
+import { sonnerToast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
 import ItineraryGenerator from '@/components/ItineraryGenerator';
@@ -25,6 +24,7 @@ import TripTips from '@/components/TripTips';
 import Weather from '@/components/Weather';
 import ItineraryMap from '@/components/ItineraryMap';
 import { useItinerary } from '@/hooks/useItinerary';
+import type { ItineraryDetail } from '@/hooks/useItinerary';
 
 interface ItineraryActivity {
   time: string;
@@ -242,14 +242,30 @@ const Itinerary = () => {
       return;
     }
 
+    // Make sure user_id is included
+    const settingsWithUserId = {
+      ...itinerarySettings,
+      user_id: user.id
+    };
+
     let success;
     
     // If we're in edit mode, update the existing itinerary
     if (editMode && itineraryId) {
-      success = await updateItinerary(itineraryId, itinerarySettings, itinerary);
+      success = await updateItinerary(itineraryId, settingsWithUserId);
     } else {
+      // We need to flatten the activities from the day structure to a flat list
+      const flattenedActivities = itinerary.flatMap(day => 
+        day.activities.map(activity => ({
+          ...activity,
+          day: day.day,
+          itinerary_id: '', // This will be set by the saveItinerary function
+        }))
+      );
+
       // Otherwise create a new itinerary
-      success = await saveItinerary(itinerarySettings, itinerary);
+      const itineraryId = await saveItinerary(settingsWithUserId, flattenedActivities);
+      success = !!itineraryId;
     }
 
     if (success) {

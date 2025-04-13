@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
@@ -39,7 +38,8 @@ const UserProfile = () => {
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const { user: currentUser } = useAuth();
-  const { itineraries } = useItinerary();
+  const { getUserItineraries } = useItinerary();
+  const [userItineraries, setUserItineraries] = useState<UserItinerary[]>([]);
   const isCurrentUserProfile = !userId || userId === currentUser?.id;
 
   useEffect(() => {
@@ -53,6 +53,10 @@ const UserProfile = () => {
           setLoading(false);
           return;
         }
+
+        // Get user's itineraries
+        const itineraries = await getUserItineraries(targetUserId);
+        setUserItineraries(itineraries);
 
         // Get itineraries count
         const { count: itinerariesCount, error: itinerariesError } = await supabase
@@ -89,7 +93,7 @@ const UserProfile = () => {
           location: 'Navi Mumbai',
           memberSince: currentUser?.created_at || '2023-05-20',
           bio: 'Loves exploring local food and hidden gems in Navi Mumbai.',
-          savedItineraries: itinerariesCount || itineraries.length || 3,
+          savedItineraries: itinerariesCount || userItineraries.length || 3,
           forumPosts: forumPostsCount,
           hoursExplored: hoursExplored,
           avatarUrl: currentUser?.user_metadata?.avatar_url
@@ -104,7 +108,7 @@ const UserProfile = () => {
     };
 
     fetchUserProfileData();
-  }, [userId, currentUser, itineraries]);
+  }, [userId, currentUser, getUserItineraries, userItineraries.length]);
 
   if (loading) {
     return (
