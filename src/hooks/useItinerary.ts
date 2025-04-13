@@ -1,7 +1,10 @@
+
 import { useState } from 'react';
 import { supabase, type UserItinerary } from '@/integrations/supabase/client';
 // Use a different name for the imported type to avoid conflicts
 import type { ItineraryActivity as IActivity } from '@/integrations/supabase/client';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 // Local type definition that won't conflict with imported one
 type ItineraryDay = {
@@ -101,7 +104,7 @@ export function useItinerary() {
     }
   };
 
-   const getItineraryActivities = async (itineraryId: string): Promise<ItineraryDay[]> => {
+  const getItineraryActivities = async (itineraryId: string): Promise<ItineraryDay[]> => {
     setLoading(true);
     setError(null);
     try {
@@ -206,6 +209,163 @@ export function useItinerary() {
     }
   };
 
+  // Add missing functions that were causing build errors
+  
+  const saveItinerary = async (itinerary: Omit<UserItinerary, 'id' | 'created_at' | 'updated_at'>, activities: Omit<IActivity, 'id' | 'created_at'>[]): Promise<string | null> => {
+    setLoading(true);
+    setError(null);
+    try {
+      // First create the itinerary
+      const newItinerary = await createUserItinerary(itinerary);
+      
+      if (!newItinerary) {
+        throw new Error('Failed to create itinerary');
+      }
+      
+      // Then create all activities
+      const activityPromises = activities.map(activity => 
+        createItineraryActivity({
+          ...activity,
+          itinerary_id: newItinerary.id
+        })
+      );
+      
+      await Promise.all(activityPromises);
+      
+      return newItinerary.id;
+    } catch (err: any) {
+      setError(err.message);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const fetchItineraryById = async (id: string): Promise<{itinerary: UserItinerary | null, activities: ItineraryDay[]}> => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Fetch the itinerary
+      const { data: itineraryData, error: itineraryError } = await supabase
+        .from('user_itineraries')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (itineraryError) {
+        throw new Error(itineraryError.message);
+      }
+      
+      // Fetch activities
+      const activities = await getItineraryActivities(id);
+      
+      return {
+        itinerary: itineraryData,
+        activities
+      };
+    } catch (err: any) {
+      setError(err.message);
+      return {
+        itinerary: null,
+        activities: []
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const updateItinerary = async (id: string, itinerary: Partial<UserItinerary>, activities?: Omit<IActivity, 'id' | 'created_at'>[]): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Update the itinerary details
+      const { error: updateError } = await supabase
+        .from('user_itineraries')
+        .update(itinerary)
+        .eq('id', id);
+      
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+      
+      // If activities are provided, replace all existing activities
+      if (activities && activities.length > 0) {
+        // First delete all existing activities
+        const { error: deleteError } = await supabase
+          .from('itinerary_activities')
+          .delete()
+          .eq('itinerary_id', id);
+        
+        if (deleteError) {
+          throw new Error(deleteError.message);
+        }
+        
+        // Then create new activities
+        const activityPromises = activities.map(activity => 
+          createItineraryActivity({
+            ...activity,
+            itinerary_id: id
+          })
+        );
+        
+        await Promise.all(activityPromises);
+      }
+      
+      return true;
+    } catch (err: any) {
+      setError(err.message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const downloadItineraryAsPdf = async (elementId: string, fileName: string = 'itinerary.pdf'): Promise<boolean> => {
+    try {
+      const element = document.getElementById(elementId);
+      if (!element) {
+        throw new Error(`Element with ID ${elementId} not found`);
+      }
+      
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        logging: false,
+        useCORS: true
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 295; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      
+      // Add new pages if the content is longer than one page
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      pdf.save(fileName);
+      return true;
+    } catch (err: any) {
+      console.error('Error generating PDF:', err);
+      setError(err.message);
+      return false;
+    }
+  };
+
   return {
     loading,
     error,
@@ -217,5 +377,9 @@ export function useItinerary() {
     createItineraryActivity,
     updateItineraryActivity,
     deleteItineraryActivity,
+    saveItinerary,
+    fetchItineraryById,
+    updateItinerary,
+    downloadItineraryAsPdf
   };
 }

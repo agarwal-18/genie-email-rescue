@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Star, Clock, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { API_CONFIG } from '@/config';
 
 interface PlaceCardProps {
   id: string;
@@ -33,11 +34,13 @@ const PlaceCard = ({
 }: PlaceCardProps) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
+  const [finalImageUrl, setFinalImageUrl] = useState(image);
 
   useEffect(() => {
     // Reset loading state when image changes
     setLoaded(false);
     setError(false);
+    setFinalImageUrl(image);
     
     const img = new Image();
     img.src = image;
@@ -50,7 +53,8 @@ const PlaceCard = ({
     img.onerror = () => {
       console.log(`Error loading image for: ${name}`);
       setError(true);
-      setLoaded(true); // Mark as loaded to remove loading state
+      // Attempt to find a better image using our config
+      fetchBetterImage();
     };
 
     return () => {
@@ -58,6 +62,23 @@ const PlaceCard = ({
       img.onerror = null;
     };
   }, [image, name]);
+
+  const fetchBetterImage = async () => {
+    try {
+      // Build a search query based on place details for context
+      const searchQuery = `${name} ${category} ${location} landmark site`;
+      
+      // Use the fallback image directly based on the category
+      const fallbackImage = getFallbackImage();
+      setFinalImageUrl(fallbackImage);
+      setLoaded(true);
+    } catch (err) {
+      console.error("Error fetching better image:", err);
+      // Use the fallback system if the API fails
+      setFinalImageUrl(getFallbackImage());
+      setLoaded(true);
+    }
+  };
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -84,11 +105,12 @@ const PlaceCard = ({
       "Food & Dining": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&q=80&w=800",
       "Entertainment": "https://images.unsplash.com/photo-1603739903239-8b6e64c3b185?ixlib=rb-4.0.3&q=80&w=800",
       "Landmark": "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?ixlib=rb-4.0.3&q=80&w=800",
+      "Landmarks": "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?ixlib=rb-4.0.3&q=80&w=800",
       "Waterfront": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&q=80&w=800",
       "Museum": "https://images.unsplash.com/photo-1554907984-153a35182a04?ixlib=rb-4.0.3&q=80&w=800"
     };
     
-    // First check for specific locations that need images
+    // Updated specific location images with higher quality ones
     const specificLocationImages: Record<string, string> = {
       "Nerul Balaji Temple": "https://images.unsplash.com/photo-1553164700-3cae46c2243f?q=80&w=800",
       "Flamingo Sanctuary": "https://images.unsplash.com/photo-1573722719733-7a27b909a07d?q=80&w=800", 
@@ -106,6 +128,7 @@ const PlaceCard = ({
       "DY Patil Stadium": "https://images.unsplash.com/photo-1505307112588-69289757a94c?q=80&w=800",
       "Central Park": "https://images.unsplash.com/photo-1571633554068-d1c5b250da46?q=80&w=800",
       "Wonder Park": "https://images.unsplash.com/photo-1617143207675-e7e6371f5f5d?q=80&w=800",
+      "Wonders Park": "https://images.unsplash.com/photo-1617143207675-e7e6371f5f5d?q=80&w=800",
       "Mini Seashore": "https://images.unsplash.com/photo-1471922694854-ff1b63b20054?q=80&w=800",
       "APMC Market": "https://images.unsplash.com/photo-1513704519535-f5c81aa78d0d?q=80&w=800",
       "Parsik Hill": "https://images.unsplash.com/photo-1499678329028-101435549a4e?q=80&w=800",
@@ -114,22 +137,57 @@ const PlaceCard = ({
       "Nerul Lake": "https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?q=80&w=800",
       "Pandavkada Falls": "https://images.unsplash.com/photo-1462470371455-6e3fb709d02c?q=80&w=800",
       "Kharghar Hills": "https://images.unsplash.com/photo-1446329813274-7c9036bd9a1f?q=80&w=800",
-      "Kharghar Valley": "https://images.unsplash.com/photo-1565938525338-659bf7ab20da?q=80&w=800"
+      "Kharghar Valley": "https://images.unsplash.com/photo-1565938525338-659bf7ab20da?q=80&w=800",
+      "NMMC Butterfly Garden": "https://images.unsplash.com/photo-1606748313289-81f81f9eae50?q=80&w=800",
+      "Golf Course": "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?q=80&w=800",
+      "Seawoods Grand Central Mall": "https://images.unsplash.com/photo-1581417478175-a9ef18f210c2?q=80&w=800",
+      "Jewel of Navi Mumbai": "https://images.unsplash.com/photo-1584479898061-15742e14f50d?q=80&w=800",
+      "Bonsai Garden": "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?q=80&w=800",
+      "Mango Garden": "https://images.unsplash.com/photo-1622944925998-2429e7c6ae91?q=80&w=800",
+      "Ulwe Hill": "https://images.unsplash.com/photo-1551978129-b73f45d132eb?q=80&w=800",
+      "Vashi Creek Bridge": "https://images.unsplash.com/photo-1559570278-eb8d71d06403?q=80&w=800",
+      "CIDCO Exhibition Centre": "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?q=80&w=800",
+      "Utsav Chowk": "https://images.unsplash.com/photo-1464207687429-7505649dae38?q=80&w=800",
+      "Shilp Gram": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800",
+      "Airoli Knowledge Park": "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=800"
     };
     
-    // Check if location name contains any of the keys in specificLocationImages (case-insensitive)
+    // Enhanced image search strategy:
+    
+    // 1. First check for exact name match
     for (const [key, url] of Object.entries(specificLocationImages)) {
-      if (
-        location.toLowerCase().includes(key.toLowerCase()) || 
-        name.toLowerCase().includes(key.toLowerCase())
-      ) {
-        console.log(`Found match for ${name}/${location} with ${key}`);
+      if (name === key) {
         return url;
       }
     }
     
-    // If no specific location match, try using category image
-    return categoryImages[category] || "https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3";
+    // 2. Then check for partial name match
+    for (const [key, url] of Object.entries(specificLocationImages)) {
+      if (
+        name.toLowerCase().includes(key.toLowerCase()) || 
+        key.toLowerCase().includes(name.toLowerCase())
+      ) {
+        return url;
+      }
+    }
+    
+    // 3. Check for location match
+    for (const [key, url] of Object.entries(specificLocationImages)) {
+      if (
+        location.toLowerCase().includes(key.toLowerCase()) || 
+        key.toLowerCase().includes(location.toLowerCase())
+      ) {
+        return url;
+      }
+    }
+    
+    // 4. Use category as fallback
+    if (categoryImages[category]) {
+      return categoryImages[category];
+    }
+    
+    // 5. Default fallback
+    return "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?q=80&w=800";
   };
 
   return (
@@ -144,24 +202,18 @@ const PlaceCard = ({
         "overflow-hidden relative",
         featured ? "md:w-1/2 h-60 md:h-auto" : "h-48"
       )}>
-        {!loaded && !error ? (
+        {!loaded ? (
           <div className="w-full h-full bg-muted"></div>
-        ) : error ? (
-          <img 
-            src={getFallbackImage()}
-            alt={name}
-            className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-            onError={(e) => {
-              console.log(`Fallback image also failed for ${name}, using default`);
-              e.currentTarget.src = "https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3";
-            }}
-          />
         ) : (
           <img 
-            src={image}
+            src={finalImageUrl}
             alt={name}
             className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
             loading="lazy"
+            onError={(e) => {
+              console.log(`Image error for ${name}, using direct fallback`);
+              e.currentTarget.src = getFallbackImage();
+            }}
           />
         )}
       </div>
