@@ -51,7 +51,17 @@ const Register = () => {
       setSuccess(true);
     } catch (err: any) {
       console.error("Registration error:", err);
-      setError(err.message || "Failed to create account");
+      // Make the error message more user-friendly
+      let errorMessage = err.message || "Failed to create account";
+      
+      // Check for specific error cases
+      if (errorMessage.includes("Network Error")) {
+        errorMessage = "Unable to connect to authentication service. Please check your internet connection and try again.";
+      } else if (errorMessage.includes("User already registered")) {
+        errorMessage = "An account with this email already exists. Please try signing in instead.";
+      }
+      
+      setError(errorMessage);
     }
   };
 

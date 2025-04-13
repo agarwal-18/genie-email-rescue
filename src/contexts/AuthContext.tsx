@@ -3,8 +3,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { toast as sonnerToast } from 'sonner';
-import axios from 'axios';
-import { API_CONFIG } from '@/config';
+import { supabase } from '@/integrations/supabase/client';
 
 // Mimic the Supabase types for backward compatibility
 type User = {
@@ -38,14 +37,6 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Create axios instance
-const apiClient = axios.create({
-  baseURL: API_CONFIG.baseURL,
-  headers: {
-    'Content-Type': 'application/json',
-  }
-});
-
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -60,93 +51,98 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Handle session from localStorage on init
   useEffect(() => {
-    const storedSession = localStorage.getItem('session');
-    
-    if (storedSession) {
-      try {
-        const parsedSession = JSON.parse(storedSession) as Session;
-        
-        // Check if token is expired
-        if (parsedSession.expires_at && !isTokenExpired(parsedSession.expires_at)) {
-          setSession(parsedSession);
-          setUser(parsedSession.user);
-          
-          // Set axios auth header
-          apiClient.defaults.headers.common['Authorization'] = `Bearer ${parsedSession.access_token}`;
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session) {
+          const sessionObj = {
+            access_token: session.access_token,
+            expires_at: Math.floor(new Date(session.expires_at || 0).getTime() / 1000),
+            user: {
+              id: session.user.id,
+              email: session.user.email || '',
+              created_at: session.user.created_at || new Date().toISOString(),
+              user_metadata: session.user.user_metadata
+            }
+          };
+          setSession(sessionObj);
+          setUser(sessionObj.user);
         } else {
-          // Clear expired session
-          localStorage.removeItem('session');
+          setSession(null);
+          setUser(null);
         }
-      } catch (error) {
-        console.error('Error parsing stored session:', error);
-        localStorage.removeItem('session');
       }
-    }
-    
-    setLoading(false);
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        const sessionObj = {
+          access_token: session.access_token,
+          expires_at: Math.floor(new Date(session.expires_at || 0).getTime() / 1000),
+          user: {
+            id: session.user.id,
+            email: session.user.email || '',
+            created_at: session.user.created_at || new Date().toISOString(),
+            user_metadata: session.user.user_metadata
+          }
+        };
+        setSession(sessionObj);
+        setUser(sessionObj.user);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
-      // Use token endpoint to get access token (OAuth2 password flow)
-      const response = await apiClient.post('/token', 
-        new URLSearchParams({
-          'username': email,
-          'password': password,
-          'grant_type': 'password'
-        }),
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
-        }
-      );
       
-      const { access_token, token_type } = response.data;
-      
-      // Set auth header for subsequent requests
-      apiClient.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-      
-      // Fetch user data
-      const userResponse = await apiClient.get('/auth/me');
-      const userData = userResponse.data;
-      
-      // Create session object (similar to Supabase)
-      const newSession: Session = {
-        access_token,
-        expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // 30 minutes from now
-        user: userData
-      };
-      
-      // Store in localStorage
-      localStorage.setItem('session', JSON.stringify(newSession));
-      
-      setSession(newSession);
-      setUser(userData);
-      
-      toast({
-        title: "Welcome back!",
-        description: "You've successfully signed in.",
+      // Use Supabase directly for authentication
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
       });
       
-      navigate('/');
+      if (error) throw error;
+      
+      if (data.session) {
+        const sessionObj = {
+          access_token: data.session.access_token,
+          expires_at: Math.floor(new Date(data.session.expires_at || 0).getTime() / 1000),
+          user: {
+            id: data.user.id,
+            email: data.user.email || '',
+            created_at: data.user.created_at || new Date().toISOString(),
+            user_metadata: data.user.user_metadata
+          }
+        };
+        
+        setSession(sessionObj);
+        setUser(sessionObj.user);
+        
+        toast({
+          title: "Welcome back!",
+          description: "You've successfully signed in.",
+        });
+        
+        navigate('/');
+      }
     } catch (error: any) {
       console.error('Sign in error:', error);
       
       let errorMessage = "An error occurred during sign in.";
       
-      // Check for specific error messages from the API
-      if (error.response?.data?.detail) {
-        errorMessage = error.response.data.detail;
+      if (error.message) {
+        errorMessage = error.message;
         
         // Add specific messaging for email verification
-        if (errorMessage.includes("Email not verified") || 
+        if (errorMessage.includes("Email not confirmed") || 
             errorMessage.includes("email has not been confirmed")) {
           errorMessage = "Please verify your email before signing in. Check your inbox and spam folder for the verification link.";
         }
-      } else if (error.message) {
-        errorMessage = error.message;
       }
       
       toast({
@@ -164,13 +160,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(true);
       console.log("Attempting to register user:", { email, name });
       
-      const response = await apiClient.post('/auth/register', {
+      // Use Supabase directly for registration
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        name
+        options: {
+          data: {
+            name
+          }
+        }
       });
       
-      console.log("Registration response:", response.data);
+      if (error) throw error;
+      
+      console.log("Registration response:", data);
       
       toast({
         title: "Account created",
@@ -188,9 +191,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       let errorMessage = "An error occurred during sign up.";
       
-      if (error.response?.data?.detail) {
-        errorMessage = error.response.data.detail;
-      } else if (error.message) {
+      if (error.message) {
         errorMessage = error.message;
       }
       
@@ -209,11 +210,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     try {
       setLoading(true);
-      // Clear auth header
-      delete apiClient.defaults.headers.common['Authorization'];
       
-      // Clear stored session
-      localStorage.removeItem('session');
+      // Use Supabase directly for sign out
+      await supabase.auth.signOut();
       
       // Reset state
       setSession(null);
