@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, Filter, MapPin, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +31,11 @@ interface Place {
 }
 
 const Places = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const searchParams = new URLSearchParams(location.search);
+  const placeIdFromUrl = searchParams.get('id');
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('all');
   const [filteredPlaces, setFilteredPlaces] = useState<Place[]>([]);
@@ -39,6 +46,7 @@ const Places = () => {
     return savedFavorites ? JSON.parse(savedFavorites) : [];
   });
   const [featuredPlace, setFeaturedPlace] = useState<Place | null>(null);
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
 
   // Get places from data.ts
   const places = getAllPlaces();
@@ -62,7 +70,20 @@ const Places = () => {
     });
   };
 
+  // Handle the URL parameter for specific place
   useEffect(() => {
+    if (placeIdFromUrl) {
+      const foundPlace = places.find(place => place.id === placeIdFromUrl);
+      if (foundPlace) {
+        setSelectedPlace(foundPlace);
+      }
+    } else {
+      setSelectedPlace(null);
+    }
+  }, [placeIdFromUrl, places]);
+
+  // Handle loading places based on search, category, etc.
+  const filterPlaces = useCallback(() => {
     // Filter places based on search term, category, and current tab
     let results = places;
     
@@ -145,6 +166,11 @@ const Places = () => {
     
     setFilteredPlaces(results);
   }, [searchTerm, category, places, currentTab, favorites]);
+
+  // Effect to filter places when criteria change
+  useEffect(() => {
+    filterPlaces();
+  }, [filterPlaces]);
 
   return (
     <div className="min-h-screen bg-background">

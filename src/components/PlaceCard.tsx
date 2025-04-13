@@ -1,7 +1,6 @@
 
 import { useEffect, useState } from 'react';
 import { Star, Clock, MapPin } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { API_CONFIG } from '@/config';
 
@@ -35,12 +34,15 @@ const PlaceCard = ({
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
   const [finalImageUrl, setFinalImageUrl] = useState(image);
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = API_CONFIG.imageLoadRetries || 2;
 
   useEffect(() => {
     // Reset loading state when image changes
     setLoaded(false);
     setError(false);
     setFinalImageUrl(image);
+    setRetryCount(0);
     
     const img = new Image();
     img.src = image;
@@ -53,21 +55,26 @@ const PlaceCard = ({
     img.onerror = () => {
       console.log(`Error loading image for: ${name}`);
       setError(true);
-      // Attempt to find a better image using our config
-      fetchBetterImage();
+      
+      if (retryCount < maxRetries) {
+        setRetryCount(prev => prev + 1);
+        // Try to use a fallback image
+        fetchBetterImage();
+      } else {
+        // Final fallback if all retries fail
+        setFinalImageUrl(getFallbackImage());
+        setLoaded(true);
+      }
     };
 
     return () => {
       img.onload = null;
       img.onerror = null;
     };
-  }, [image, name]);
+  }, [image, name, retryCount]);
 
   const fetchBetterImage = async () => {
     try {
-      // Build a search query based on place details for context
-      const searchQuery = `${name} ${category} ${location} landmark site`;
-      
       // Use the fallback image directly based on the category
       const fallbackImage = getFallbackImage();
       setFinalImageUrl(fallbackImage);
@@ -186,8 +193,8 @@ const PlaceCard = ({
       return categoryImages[category];
     }
     
-    // 5. Default fallback
-    return "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?q=80&w=800";
+    // 5. Default fallback from config
+    return API_CONFIG.defaultPlaceImage;
   };
 
   return (
@@ -246,7 +253,7 @@ const PlaceCard = ({
           </div>
         </div>
         
-        <div className="mt-2 space-y-2">
+        <div className="mt-2 space-y-2 flex-grow">
           <p className={cn(
             "text-muted-foreground text-sm",
             featured ? "line-clamp-3" : "line-clamp-2"
@@ -265,12 +272,6 @@ const PlaceCard = ({
               <span>{duration}</span>
             </div>
           )}
-        </div>
-        
-        <div className="mt-auto pt-4">
-          <Button size="sm" variant="outline" className="w-full text-xs">
-            View Details
-          </Button>
         </div>
       </div>
     </div>
