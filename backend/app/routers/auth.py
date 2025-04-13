@@ -79,3 +79,26 @@ async def get_user_me(current_user = Depends(get_current_user)):
         "name": current_user.user_metadata.get("name") if current_user.user_metadata else None,
         "created_at": current_user.created_at
     }
+
+@router.post("/auth/verify")
+async def verify_email(email: str, token: str):
+    try:
+        # Use Supabase to verify the token
+        result = supabase.auth.verify_otp({
+            "email": email,
+            "token": token,
+            "type": "email"
+        })
+        
+        if not result:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid verification token"
+            )
+        
+        return {"message": "Email verified successfully"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Verification error: {str(e)}"
+        )

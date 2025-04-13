@@ -7,3 +7,4 @@ if __name__ == "__main__":
 else:
     # This is for ASGI servers like Gunicorn
     application = app
+

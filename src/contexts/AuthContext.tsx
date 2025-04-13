@@ -133,9 +133,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       navigate('/');
     } catch (error: any) {
       console.error('Sign in error:', error);
+      
+      let errorMessage = "An error occurred during sign in.";
+      
+      // Check for specific error messages from the API
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+        
+        // Add specific messaging for email verification
+        if (errorMessage.includes("Email not verified") || 
+            errorMessage.includes("email has not been confirmed")) {
+          errorMessage = "Please verify your email before signing in. Check your inbox and spam folder for the verification link.";
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Sign in failed",
-        description: error.response?.data?.detail || error.message || "An error occurred during sign in.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -146,11 +162,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signUp = async (email: string, password: string, name: string) => {
     try {
       setLoading(true);
-      await apiClient.post('/auth/register', {
+      console.log("Attempting to register user:", { email, name });
+      
+      const response = await apiClient.post('/auth/register', {
         email,
         password,
         name
       });
+      
+      console.log("Registration response:", response.data);
       
       toast({
         title: "Account created",
@@ -158,17 +178,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       
       sonnerToast.success("Verification email sent", {
-        description: "Please check your inbox and verify your email address before signing in.",
-        duration: 6000
+        description: "Please check your inbox and spam folder for the verification email.",
+        duration: 8000
       });
       
-      navigate('/login');
+      return;
     } catch (error: any) {
+      console.error('Sign up error:', error);
+      
+      let errorMessage = "An error occurred during sign up.";
+      
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Sign up failed",
-        description: error.response?.data?.detail || error.message || "An error occurred during sign up.",
+        description: errorMessage,
         variant: "destructive"
       });
+      
+      throw error;
     } finally {
       setLoading(false);
     }

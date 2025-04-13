@@ -50,6 +50,7 @@ const Register = () => {
       await signUp(email, password, name);
       setSuccess(true);
     } catch (err: any) {
+      console.error("Registration error:", err);
       setError(err.message || "Failed to create account");
     }
   };
@@ -88,8 +89,14 @@ const Register = () => {
                 <h2 className="text-2xl font-bold mb-2">Registration Successful!</h2>
                 <p className="text-muted-foreground mb-6">
                   We've sent a verification email to <span className="font-medium">{email}</span>. 
-                  Please check your inbox and verify your email address before signing in.
+                  Please check your inbox (and spam folder) and verify your email address before signing in.
                 </p>
+                <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800 text-sm">
+                  <p>
+                    <strong>Important:</strong> If you don't see the verification email, please check your spam/junk folder. 
+                    The email will come from a Supabase address.
+                  </p>
+                </div>
                 <Button asChild className="w-full">
                   <Link to="/login">Go to Login</Link>
                 </Button>
