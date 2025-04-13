@@ -6,6 +6,7 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { API_CONFIG } from '@/config';
 import axios from 'axios';
+import { UserItinerary, ItineraryActivity } from '@/integrations/supabase/client';
 
 interface ItineraryActivity {
   time: string;
@@ -21,19 +22,7 @@ interface ItineraryDay {
   activities: ItineraryActivity[];
 }
 
-interface SavedItinerary {
-  id: string;
-  title: string;
-  days: number;
-  start_date: string | null;
-  pace: string | null;
-  budget: string | null;
-  interests: string[] | null;
-  transportation: string | null;
-  include_food: boolean | null;
-  created_at: string;
-  updated_at: string;
-}
+type SavedItinerary = UserItinerary;
 
 export function useItinerary() {
   const [itineraries, setItineraries] = useState<SavedItinerary[]>([]);
@@ -42,7 +31,6 @@ export function useItinerary() {
   const { user, session } = useAuth();
   const { toast } = useToast();
 
-  // Setup axios instance with authorization headers
   const apiClient = axios.create({
     baseURL: API_CONFIG.baseURL,
     headers: {
@@ -50,7 +38,6 @@ export function useItinerary() {
     }
   });
 
-  // Add auth token to requests when available
   useEffect(() => {
     if (session?.access_token) {
       apiClient.defaults.headers.common['Authorization'] = `Bearer ${session.access_token}`;
@@ -123,7 +110,6 @@ export function useItinerary() {
 
       await apiClient.delete(`/itineraries/${id}`);
       
-      // Update the local state
       setItineraries(itineraries.filter(item => item.id !== id));
       
       toast({
@@ -169,10 +155,8 @@ export function useItinerary() {
       setLoading(true);
       console.log("Starting itinerary save process...");
       
-      // Convert start date to ISO string for database storage
       const startDateIso = itineraryData.start_date ? itineraryData.start_date.toISOString() : null;
       
-      // Prepare data for the API
       const payload = {
         title: itineraryData.title,
         days: itineraryData.days,
@@ -191,7 +175,6 @@ export function useItinerary() {
       
       console.log("Itinerary saved successfully:", response.data);
       
-      // Refresh the itineraries list
       await fetchItineraries();
       
       toast({
@@ -240,10 +223,8 @@ export function useItinerary() {
       setLoading(true);
       console.log("Starting itinerary update process...");
       
-      // Convert start date to ISO string for database storage
       const startDateIso = itineraryData.start_date ? itineraryData.start_date.toISOString() : null;
       
-      // Prepare data for the API
       const payload = {
         title: itineraryData.title,
         days: itineraryData.days,
@@ -260,7 +241,6 @@ export function useItinerary() {
         days: itinerary
       });
       
-      // Refresh the itineraries list
       await fetchItineraries();
       
       toast({
@@ -293,14 +273,12 @@ export function useItinerary() {
     try {
       sonnerToast.loading("Generating PDF...");
       
-      // Find the element to capture
       if (!element) {
         throw new Error("Could not find the itinerary content element");
       }
       
       console.log("Found element to capture for PDF");
       
-      // Create a deep clone of the element to work with
       const clone = element.cloneNode(true) as HTMLElement;
       clone.style.position = 'absolute';
       clone.style.left = '-9999px';
@@ -308,10 +286,8 @@ export function useItinerary() {
       clone.style.width = element.offsetWidth + 'px';
       document.body.appendChild(clone);
       
-      // Find all tab panels in the clone
       const tabPanels = clone.querySelectorAll('[role="tabpanel"]');
       
-      // Make all tab panels visible
       tabPanels.forEach((panel) => {
         (panel as HTMLElement).style.display = 'block';
         (panel as HTMLElement).style.position = 'static';
@@ -321,78 +297,62 @@ export function useItinerary() {
         (panel as HTMLElement).style.overflow = 'visible';
       });
       
-      // Create a new PDF document
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 10;
       
-      // Add title to first page
       pdf.setFontSize(18);
       pdf.text(itineraryData.title, margin, margin + 10);
       
       pdf.setFontSize(12);
       pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, margin + 20);
       
-      // Process each day separately
       for (let dayIndex = 0; dayIndex < itinerary.length; dayIndex++) {
         const day = itinerary[dayIndex];
         
-        // Add a new page for each day except the first one
         if (dayIndex > 0) {
           pdf.addPage();
         }
         
-        // Add day header
         pdf.setFontSize(16);
         pdf.text(`Day ${day.day}`, margin, margin + 35);
         
         let yOffset = margin + 45;
         
-        // Process each activity in the day
         for (const activity of day.activities) {
-          // Check if we need to start a new page
           if (yOffset > pageHeight - margin * 2) {
             pdf.addPage();
             yOffset = margin + 10;
           }
           
-          // Activity time
           pdf.setFontSize(12);
           pdf.setTextColor(100, 100, 100);
           pdf.text(activity.time, margin, yOffset);
           yOffset += 7;
           
-          // Activity title
           pdf.setFontSize(14);
           pdf.setTextColor(0, 0, 0);
           pdf.text(activity.title, margin, yOffset);
           yOffset += 7;
           
-          // Activity location
           pdf.setFontSize(10);
           pdf.setTextColor(100, 100, 100);
           pdf.text(`Location: ${activity.location}`, margin, yOffset);
           yOffset += 7;
           
-          // Activity description - handle text wrapping
-          pdf.setFontSize(10);
-          pdf.setTextColor(0, 0, 0);
           const descriptionLines = pdf.splitTextToSize(activity.description, pageWidth - margin * 2);
           pdf.text(descriptionLines, margin, yOffset);
           yOffset += descriptionLines.length * 5 + 7;
           
-          // Add a separator line
           pdf.setDrawColor(200, 200, 200);
           pdf.line(margin, yOffset - 3, pageWidth - margin, yOffset - 3);
           yOffset += 10;
         }
       }
       
-      // Remove the clone from document
       document.body.removeChild(clone);
       
-      // Save the PDF
       const fileName = `${itineraryData.title.replace(/\s+/g, '_')}_itinerary.pdf`;
       pdf.save(fileName);
       

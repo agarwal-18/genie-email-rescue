@@ -1,10 +1,9 @@
-
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Edit, Trash2, PlusCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, UserItinerary } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -27,14 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import Navbar from '@/components/Navbar';
 
-interface SavedItinerary {
-  id: string;
-  title: string;
-  days: number;
-  start_date: string | null;
-  pace: string | null;
-  budget: string | null;
-  created_at: string;
+interface SavedItinerary extends UserItinerary {
   activities_count: number;
 }
 
@@ -58,7 +50,12 @@ const SavedItineraries = () => {
             start_date, 
             pace, 
             budget, 
-            created_at
+            created_at,
+            updated_at,
+            user_id,
+            interests,
+            transportation,
+            include_food
           `)
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
@@ -68,7 +65,7 @@ const SavedItineraries = () => {
         // For each itinerary, get the count of activities
         if (data) {
           const itinerariesWithCounts = await Promise.all(
-            data.map(async (itinerary) => {
+            data.map(async (itinerary: any) => {
               const { count, error: countError } = await supabase
                 .from('itinerary_activities')
                 .select('*', { count: 'exact', head: true })
@@ -79,7 +76,7 @@ const SavedItineraries = () => {
               return {
                 ...itinerary,
                 activities_count: count || 0
-              };
+              } as SavedItinerary;
             })
           );
 
