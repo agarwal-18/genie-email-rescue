@@ -31,15 +31,5 @@ export const API_CONFIG = {
     thumbWidth: 800,
     // Base path for local images
     basePath: '/images'
-  },
-  
-  // Routes for the app
-  routes: {
-    home: '/',
-    planner: '/planner',
-    itinerary: '/itinerary',
-    savedItineraries: '/saved-itineraries',
-    login: '/login',
-    register: '/register'
   }
 };

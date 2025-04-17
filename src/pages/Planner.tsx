@@ -8,8 +8,6 @@ import { ArrowLeft } from 'lucide-react';
 const Planner = () => {
   const navigate = useNavigate();
   
-  console.log("Rendering Planner page"); // Debug log
-  
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -28,15 +26,7 @@ const Planner = () => {
         </div>
         
         <div className="max-w-4xl mx-auto">
-          {/* Ensuring ItineraryGenerator exists */}
-          {typeof ItineraryGenerator === 'undefined' ? (
-            <div className="p-8 text-center border border-gray-200 rounded-lg">
-              <h3 className="text-xl font-semibold mb-4">Itinerary Generator Loading...</h3>
-              <p>If this message persists, please refresh the page or contact support.</p>
-            </div>
-          ) : (
-            <ItineraryGenerator />
-          )}
+          <ItineraryGenerator />
         </div>
       </div>
     </div>
