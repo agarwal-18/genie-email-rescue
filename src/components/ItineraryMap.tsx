@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 import { Map as MapIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,51 +11,35 @@ import {
   DialogClose
 } from '@/components/ui/dialog';
 
-// Declare Leaflet types globally
-declare global {
-  interface Window {
-    L: {
-      map: (container: HTMLElement, options?: any) => any;
-      tileLayer: (url: string, options?: any) => any;
-      latLngBounds: () => any;
-      marker: (latlng: [number, number], options?: any) => any;
-      divIcon: (options: any) => any;
-    }
-  }
-}
-
-interface ItineraryActivity {
-  time: string;
-  title: string;
+interface MapActivity {
   location: string;
+  title: string;
   description: string;
-  image?: string;
-  category: string;
-}
-
-interface ItineraryDay {
-  day: number;
-  activities: ItineraryActivity[];
 }
 
 interface ItineraryMapProps {
-  itinerary: ItineraryDay[];
-  isOpen: boolean;
-  onClose: () => void;
+  activities: MapActivity[];
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
+const ItineraryMap = ({ 
+  activities, 
+  isOpen = false, 
+  onClose = () => {} 
+}: ItineraryMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(isOpen);
   const leafletLoaded = useRef(false);
   const markersRef = useRef<any[]>([]);
   
-  // Get all unique locations from itinerary
-  const locations = itinerary.flatMap(day => 
-    day.activities.map(activity => activity.location)
-  ).filter((value, index, self) => self.indexOf(value) === index);
+  // Get all unique locations from activities
+  const locations = activities
+    .map(activity => activity.location)
+    .filter((value, index, self) => self.indexOf(value) === index);
 
   // Navi Mumbai locations with coordinates (extended list)
   const locationCoordinates: Record<string, [number, number]> = {
@@ -106,6 +91,17 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   
   const leafletCssId = 'leaflet-css';
   const leafletJsId = 'leaflet-js';
+  
+  // Open/close dialog based on isOpen prop
+  useEffect(() => {
+    setDialogOpen(isOpen);
+  }, [isOpen]);
+
+  // Close handler that calls parent onClose
+  const handleClose = () => {
+    setDialogOpen(false);
+    onClose();
+  };
   
   // Load Leaflet CSS and JS once
   useEffect(() => {
@@ -174,7 +170,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   // Initialize the map when dialog is opened and Leaflet is loaded
   useEffect(() => {
     // Don't do anything if dialog is not open
-    if (!isOpen) return;
+    if (!dialogOpen) return;
     
     // Clear previous error
     setError(null);
@@ -232,82 +228,79 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         const unknownLocations: string[] = [];
         
         // Process activities and add markers for all unique locations
-        itinerary.forEach(day => {
-          const dayColor = dayColors[(day.day - 1) % dayColors.length];
+        activities.forEach((activity, index) => {
+          const dayColor = dayColors[index % dayColors.length];
+          const locationName = activity.location.trim();
           
-          day.activities.forEach(activity => {
-            const locationName = activity.location.trim();
+          // Skip if we've already added this location
+          if (seenLocations.has(locationName)) {
+            return;
+          }
+          
+          seenLocations.add(locationName);
+          
+          // Find coordinates for this location
+          let coordinates: [number, number] | undefined;
+          
+          // First try exact match
+          if (locationCoordinates[locationName]) {
+            coordinates = locationCoordinates[locationName];
+          } else {
+            // Try partial matching for location names
+            const locationKey = Object.keys(locationCoordinates).find(
+              key => locationName.toLowerCase().includes(key.toLowerCase()) || 
+                    key.toLowerCase().includes(locationName.toLowerCase())
+            );
             
-            // Skip if we've already added this location
-            if (seenLocations.has(locationName)) {
-              return;
-            }
-            
-            seenLocations.add(locationName);
-            
-            // Find coordinates for this location
-            let coordinates: [number, number] | undefined;
-            
-            // First try exact match
-            if (locationCoordinates[locationName]) {
-              coordinates = locationCoordinates[locationName];
+            if (locationKey) {
+              coordinates = locationCoordinates[locationKey];
             } else {
-              // Try partial matching for location names
-              const locationKey = Object.keys(locationCoordinates).find(
-                key => locationName.toLowerCase().includes(key.toLowerCase()) || 
-                      key.toLowerCase().includes(locationName.toLowerCase())
-              );
+              // Mark as unknown location for logging
+              unknownLocations.push(locationName);
               
-              if (locationKey) {
-                coordinates = locationCoordinates[locationKey];
-              } else {
-                // Mark as unknown location for logging
-                unknownLocations.push(locationName);
-                
-                // Use random offset from Navi Mumbai center for unknown locations
-                const randomOffset = () => (Math.random() - 0.5) * 0.02;
-                coordinates = [73.0169 + randomOffset(), 19.0330 + randomOffset()];
-              }
+              // Use random offset from Navi Mumbai center for unknown locations
+              const randomOffset = () => (Math.random() - 0.5) * 0.02;
+              coordinates = [73.0169 + randomOffset(), 19.0330 + randomOffset()];
             }
-            
-            if (!coordinates) return;
-            
-            // Create marker with custom icon
-            const markerIcon = window.L.divIcon({
-              html: `<div style="
-                background-color: ${dayColor}; 
-                width: 24px; 
-                height: 24px; 
-                border-radius: 50%; 
-                display: flex; 
-                align-items: center; 
-                justify-content: center; 
-                color: white; 
-                font-weight: bold;
-                border: 2px solid white;
-                box-shadow: 0 0 10px rgba(0,0,0,0.3);
-              ">${day.day}</div>`,
-              iconSize: [24, 24],
-              className: 'custom-div-icon'
-            });
-            
-            // Create marker with popup
-            const marker = window.L.marker([coordinates[1], coordinates[0]], { icon: markerIcon })
-              .bindPopup(`
-                <div style="padding: 10px;">
-                  <h3 style="font-weight: bold;">${activity.title}</h3>
-                  <p style="font-size: 12px; color: #666;">${activity.time} - Day ${day.day}</p>
-                  <p style="font-size: 12px;">${activity.location}</p>
-                </div>
-              `);
-            
-            marker.addTo(map);
-            markers.push(marker);
-            markersRef.current.push(marker);
-            
-            // Add location to bounds
-            bounds.extend([coordinates[1], coordinates[0]]);
+          }
+          
+          if (!coordinates) return;
+          
+          // Create marker with custom icon
+          const markerIcon = window.L.divIcon({
+            html: `<div style="
+              background-color: ${dayColor}; 
+              width: 24px; 
+              height: 24px; 
+              border-radius: 50%; 
+              display: flex; 
+              align-items: center; 
+              justify-content: center; 
+              color: white; 
+              font-weight: bold;
+              border: 2px solid white;
+              box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            ">${index + 1}</div>`,
+            iconSize: [24, 24],
+            className: 'custom-div-icon'
           });
+          
+          // Create marker with popup
+          const marker = window.L.marker([coordinates[1], coordinates[0]], { icon: markerIcon })
+            .bindPopup(`
+              <div style="padding: 10px;">
+                <h3 style="font-weight: bold;">${activity.title}</h3>
+                <p style="font-size: 12px;">${activity.location}</p>
+                ${activity.description ? `<p style="font-size: 12px;">${activity.description}</p>` : ''}
+              </div>
+            `);
+          
+          marker.addTo(map);
+          markers.push(marker);
+          markersRef.current.push(marker);
+          
+          // Add location to bounds
+          bounds.extend([coordinates[1], coordinates[0]]);
         });
         
         console.log("Added", markers.length, "markers to map");
@@ -346,54 +339,64 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
       
       return () => clearInterval(intervalId);
     }
-  }, [isOpen, itinerary]);
+  }, [dialogOpen, activities]);
 
-  // Handle dialog close - cleanup map
-  useEffect(() => {
-    if (!isOpen) {
-      clearMapResources();
-    }
-  }, [isOpen]);
+  // Create a button to open the map if not in dialog mode
+  const openMapButton = (
+    <Button 
+      onClick={() => setDialogOpen(true)} 
+      variant="outline" 
+      className="w-full flex items-center justify-center"
+    >
+      <MapIcon className="h-4 w-4 mr-2" />
+      View on Map
+    </Button>
+  );
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <MapIcon className="h-5 w-5 mr-2" />
-            Your Itinerary Map
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="flex-1 min-h-[500px] relative mt-4 rounded-md overflow-hidden">
-          {error ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted/20 text-center p-4">
-              <p className="text-destructive mb-2">{error}</p>
-              <p className="text-sm text-muted-foreground mb-4">
-                We're having trouble loading the map. Please try again later.
-              </p>
-            </div>
-          ) : !mapLoaded ? (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-8 w-8 rounded-full border-4 border-primary/30 border-t-primary animate-spin"></div>
-            </div>
-          ) : (
-            <div ref={mapContainer} className="absolute inset-0 rounded-lg border" />
-          )}
-        </div>
-        
-        <DialogFooter className="mt-4">
-          <div className="flex flex-col w-full gap-2">
-            <div className="text-sm text-muted-foreground">
-              Showing {locations.length} unique locations in your itinerary
-            </div>
-            <DialogClose asChild>
-              <Button className="w-full">Close Map</Button>
-            </DialogClose>
+    <>
+      {/* Show button if not in dialog mode */}
+      {!isOpen && openMapButton}
+      
+      <Dialog open={dialogOpen} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <MapIcon className="h-5 w-5 mr-2" />
+              Your Itinerary Map
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex-1 min-h-[500px] relative mt-4 rounded-md overflow-hidden">
+            {error ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted/20 text-center p-4">
+                <p className="text-destructive mb-2">{error}</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  We're having trouble loading the map. Please try again later.
+                </p>
+              </div>
+            ) : !mapLoaded ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="h-8 w-8 rounded-full border-4 border-primary/30 border-t-primary animate-spin"></div>
+              </div>
+            ) : (
+              <div ref={mapContainer} className="absolute inset-0 rounded-lg border" />
+            )}
           </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          
+          <DialogFooter className="mt-4">
+            <div className="flex flex-col w-full gap-2">
+              <div className="text-sm text-muted-foreground">
+                Showing {locations.length} unique locations in your itinerary
+              </div>
+              <DialogClose asChild>
+                <Button className="w-full">Close Map</Button>
+              </DialogClose>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

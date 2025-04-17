@@ -28,6 +28,8 @@ export const API_CONFIG = {
     // Default quality for compressed images
     quality: 80,
     // Default width for thumbnails
-    thumbWidth: 800
+    thumbWidth: 800,
+    // Base path for local images
+    basePath: '/images'
   }
 };
