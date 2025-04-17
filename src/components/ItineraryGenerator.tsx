@@ -57,10 +57,10 @@ const ItineraryGenerator = () => {
     }));
   };
 
-  const handleCheckboxChange = (checked: boolean) => {
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSettings(prevSettings => ({
       ...prevSettings,
-      include_food: checked,
+      include_food: e.target.checked,
     }));
   };
 

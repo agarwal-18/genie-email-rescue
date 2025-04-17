@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,14 +8,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
-import { Copy, Calendar, MapPin, Clock, Download, Share2, AlertCircle, CheckCircle, Loader2, Map } from 'lucide-react';
+import { Copy, Calendar, MapPin, Clock, Download, Share2, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import ItineraryMap from '@/components/ItineraryMap';
 import { toast } from 'sonner';
 import type { UserItinerary, ItineraryActivity } from '@/integrations/supabase/client';
 
 interface ItineraryDataType {
-  itinerary: UserItinerary;
+  details: UserItinerary;
   days: ItineraryDay[];
 }
 
@@ -32,7 +31,6 @@ const Itinerary = () => {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
   const [linkCopied, setLinkCopied] = useState(false);
-  const [showMapDialog, setShowMapDialog] = useState(false);
   
   const pdfRef = useRef<HTMLDivElement>(null);
   
@@ -91,10 +89,6 @@ const Itinerary = () => {
         toast.error('Failed to copy link to clipboard');
       });
   };
-
-  const handleOpenMap = () => {
-    setShowMapDialog(true);
-  };
   
   return (
     <div className="min-h-screen bg-background">
@@ -118,24 +112,24 @@ const Itinerary = () => {
                 <>
                   <div className="flex flex-col md:flex-row items-start justify-between mb-8 gap-4">
                     <div>
-                      <h1 className="text-3xl font-bold">{itineraryData.itinerary.title}</h1>
+                      <h1 className="text-3xl font-bold">{itineraryData.details.title}</h1>
                       <div className="flex flex-wrap gap-x-4 gap-y-2 mt-2">
                         <div className="flex items-center text-sm text-muted-foreground">
                           <Calendar className="h-4 w-4 mr-1" />
-                          <span>{itineraryData.itinerary.start_date ? new Date(itineraryData.itinerary.start_date).toLocaleDateString() : 'No start date'}</span>
+                          <span>{itineraryData.details.start_date ? new Date(itineraryData.details.start_date).toLocaleDateString() : 'No start date'}</span>
                         </div>
                         <div className="flex items-center text-sm text-muted-foreground">
                           <Clock className="h-4 w-4 mr-1" />
-                          <span>{itineraryData.itinerary.days} {itineraryData.itinerary.days === 1 ? 'day' : 'days'}</span>
+                          <span>{itineraryData.details.days} {itineraryData.details.days === 1 ? 'day' : 'days'}</span>
                         </div>
-                        {itineraryData.itinerary.pace && (
+                        {itineraryData.details.pace && (
                           <div className="text-sm text-muted-foreground">
-                            Pace: {itineraryData.itinerary.pace}
+                            Pace: {itineraryData.details.pace}
                           </div>
                         )}
-                        {itineraryData.itinerary.transportation && (
+                        {itineraryData.details.transportation && (
                           <div className="text-sm text-muted-foreground">
-                            Transportation: {itineraryData.itinerary.transportation}
+                            Transportation: {itineraryData.details.transportation}
                           </div>
                         )}
                       </div>
@@ -147,15 +141,12 @@ const Itinerary = () => {
                         Share
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => downloadItineraryAsPdf(
-                          itineraryData.itinerary.title,
+                          { title: itineraryData.details.title, days: itineraryData.details.days },
+                          itineraryData.days,
                           pdfRef.current
                         )}>
                         <Download className="h-4 w-4 mr-2" />
                         Download PDF
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={handleOpenMap}>
-                        <Map className="h-4 w-4 mr-2" />
-                        Full Map View
                       </Button>
                     </div>
                   </div>
@@ -209,8 +200,8 @@ const Itinerary = () => {
                         <CardHeader>
                           <CardTitle>Map View</CardTitle>
                         </CardHeader>
-                        <CardContent className="p-4">
-                          <ItineraryMap 
+                        <CardContent className="p-0">
+                          <ItineraryMap
                             activities={itineraryData.days.flatMap(day => 
                               day.activities.map(activity => ({
                                 location: activity.location,
@@ -262,21 +253,6 @@ const Itinerary = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Map Dialog */}
-      {itineraryData && (
-        <ItineraryMap
-          activities={itineraryData.days.flatMap(day => 
-            day.activities.map(activity => ({
-              location: activity.location,
-              title: activity.title,
-              description: activity.description || ''
-            }))
-          )}
-          isOpen={showMapDialog}
-          onClose={() => setShowMapDialog(false)}
-        />
-      )}
     </div>
   );
 };
