@@ -238,7 +238,7 @@ export function useItinerary() {
     }
   };
 
-  const fetchItineraryById = async (id: string): Promise<{itinerary: UserItinerary, days: ItineraryDay[]}> => {
+  const fetchItineraryById = async (id: string): Promise<ItineraryDetail> => {
     setLoading(true);
     setError(null);
     try {
@@ -255,13 +255,13 @@ export function useItinerary() {
       const activities = await getItineraryActivities(id);
       
       return {
-        itinerary: itineraryData,
+        details: itineraryData,
         days: activities
       };
     } catch (err: any) {
       setError(err.message);
       return {
-        itinerary: {} as UserItinerary,
+        details: {} as UserItinerary,
         days: []
       };
     } finally {
@@ -312,7 +312,8 @@ export function useItinerary() {
   };
 
   const downloadItineraryAsPdf = async (
-    title: string,
+    itineraryInfo: { title: string; days: number },
+    itineraryDays: ItineraryDay[],
     element: HTMLElement | null
   ): Promise<boolean> => {
     try {
@@ -334,7 +335,7 @@ export function useItinerary() {
       });
       
       pdf.setFontSize(16);
-      pdf.text(title, 15, 15);
+      pdf.text(itineraryInfo.title, 15, 15);
       
       pdf.setFontSize(10);
       pdf.text(`Generated on ${new Date().toLocaleDateString()}`, 15, 22);
@@ -344,7 +345,7 @@ export function useItinerary() {
       
       pdf.addImage(imgData, 'PNG', 15, 25, imgWidth, imgHeight);
       
-      const fileName = `${title.replace(/\s+/g, '_')}.pdf`;
+      const fileName = `${itineraryInfo.title.replace(/\s+/g, '_')}.pdf`;
       pdf.save(fileName);
       return true;
     } catch (err: any) {
