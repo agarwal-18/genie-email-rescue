@@ -220,7 +220,7 @@ const ItineraryMap = ({
         
         // Add markers for each activity location
         const markers: any[] = [];
-        const bounds = window.L.latLngBounds();
+        const bounds = window.L.latLngBounds([]);
         const dayColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'];
         
         // Track seen locations to avoid duplicates

@@ -48,7 +48,7 @@ const Itinerary = () => {
   const fetchItineraryData = async () => {
     setLoading(true);
     try {
-      const data = await fetchItineraryById(id);
+      const data = await fetchItineraryById(id!);
       setItineraryData(data);
       
       // Save to localStorage for offline access
