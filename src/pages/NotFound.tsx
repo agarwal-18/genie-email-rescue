@@ -55,9 +55,14 @@ const NotFound = () => {
                   </p>
                 </div>
               ) : (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  The page at <span className="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{location.pathname}</span> doesn't exist.
-                </p>
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                    The page at <span className="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{location.pathname}</span> doesn't exist.
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Debug Info: Attempted to access path: "{location.pathname}". Available routes include: "/", "/login", "/register", "/itinerary", "/planner", etc.
+                  </p>
+                </div>
               )}
             </div>
             
@@ -85,6 +90,14 @@ const NotFound = () => {
                   <Link to="#" className="flex items-center justify-center">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Go Back
+                  </Link>
+                </Button>
+              )}
+              
+              {!isVerificationError && (
+                <Button asChild variant="outline" className="w-full sm:w-auto">
+                  <Link to="/planner" className="flex items-center justify-center">
+                    Try Planner Page
                   </Link>
                 </Button>
               )}
