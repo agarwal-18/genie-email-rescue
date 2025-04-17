@@ -19,6 +19,7 @@ import Forum from "./pages/Forum";
 import ForumPostCreate from "./pages/ForumPostCreate";
 import ForumPostDetail from "./pages/ForumPostDetail";
 import UserProfile from "./pages/UserProfile";
+import Planner from "./pages/Planner";
 
 const queryClient = new QueryClient();
 
@@ -37,7 +38,9 @@ const App = () => (
               <Route path="/verify-email" element={<EmailVerification />} />
               <Route path="/places" element={<Places />} />
               <Route path="/itinerary" element={<ProtectedRoute><Itinerary /></ProtectedRoute>} />
+              <Route path="/itinerary/:id" element={<Itinerary />} />
               <Route path="/saved-itineraries" element={<ProtectedRoute><SavedItineraries /></ProtectedRoute>} />
+              <Route path="/planner" element={<ProtectedRoute><Planner /></ProtectedRoute>} />
               
               {/* Forum Routes */}
               <Route path="/forum" element={<Forum />} />
