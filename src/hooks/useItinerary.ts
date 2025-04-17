@@ -1,11 +1,14 @@
+
 import { useState } from 'react';
 import { supabase, type UserItinerary } from '@/integrations/supabase/client';
+// Use a different name for the imported type to avoid conflicts
 import type { ItineraryActivity as IActivity } from '@/integrations/supabase/client';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { API_CONFIG } from '@/config';
 
-export type ItineraryDay = {
+// Local type definition that won't conflict with imported one
+type ItineraryDay = {
   day: number;
   activities: IActivity[];
 };
@@ -122,6 +125,7 @@ export function useItinerary() {
         throw new Error(error.message);
       }
 
+      // Group activities by day
       const groupedActivities: { [day: number]: IActivity[] } = {};
       data.forEach((activity: IActivity) => {
         if (!groupedActivities[activity.day]) {
@@ -130,6 +134,7 @@ export function useItinerary() {
         groupedActivities[activity.day].push(activity);
       });
 
+      // Convert grouped activities to the desired format
       const itineraryDays: ItineraryDay[] = Object.entries(groupedActivities).map(([day, activities]) => ({
         day: parseInt(day),
         activities: activities,
@@ -209,17 +214,19 @@ export function useItinerary() {
       setLoading(false);
     }
   };
-
+  
   const saveItinerary = async (itinerary: Omit<UserItinerary, 'id' | 'created_at' | 'updated_at'>, activities: Omit<IActivity, 'id' | 'created_at'>[]): Promise<string | null> => {
     setLoading(true);
     setError(null);
     try {
+      // First create the itinerary
       const newItinerary = await createUserItinerary(itinerary);
       
       if (!newItinerary) {
         throw new Error('Failed to create itinerary');
       }
       
+      // Then create all activities
       const activityPromises = activities.map(activity => 
         createItineraryActivity({
           ...activity,
@@ -237,11 +244,12 @@ export function useItinerary() {
       setLoading(false);
     }
   };
-
+  
   const fetchItineraryById = async (id: string): Promise<ItineraryDetail> => {
     setLoading(true);
     setError(null);
     try {
+      // Fetch the itinerary
       const { data: itineraryData, error: itineraryError } = await supabase
         .from('user_itineraries')
         .select('*')
@@ -252,6 +260,7 @@ export function useItinerary() {
         throw new Error(itineraryError.message);
       }
       
+      // Fetch activities
       const activities = await getItineraryActivities(id);
       
       return {
@@ -268,11 +277,12 @@ export function useItinerary() {
       setLoading(false);
     }
   };
-
+  
   const updateItinerary = async (id: string, itinerary: Partial<UserItinerary>, activities?: Omit<IActivity, 'id' | 'created_at'>[]): Promise<boolean> => {
     setLoading(true);
     setError(null);
     try {
+      // Update the itinerary details
       const { error: updateError } = await supabase
         .from('user_itineraries')
         .update(itinerary)
@@ -282,7 +292,9 @@ export function useItinerary() {
         throw new Error(updateError.message);
       }
       
+      // If activities are provided, replace all existing activities
       if (activities && activities.length > 0) {
+        // First delete all existing activities
         const { error: deleteError } = await supabase
           .from('itinerary_activities')
           .delete()
@@ -292,6 +304,7 @@ export function useItinerary() {
           throw new Error(deleteError.message);
         }
         
+        // Then create new activities
         const activityPromises = activities.map(activity => 
           createItineraryActivity({
             ...activity,
@@ -310,7 +323,7 @@ export function useItinerary() {
       setLoading(false);
     }
   };
-
+  
   const downloadItineraryAsPdf = async (
     itineraryInfo: { title: string; days: number },
     itineraryDays: ItineraryDay[],
@@ -334,13 +347,15 @@ export function useItinerary() {
         format: 'a4'
       });
       
+      // Add title
       pdf.setFontSize(16);
       pdf.text(itineraryInfo.title, 15, 15);
       
+      // Add date
       pdf.setFontSize(10);
       pdf.text(`Generated on ${new Date().toLocaleDateString()}`, 15, 22);
       
-      const imgWidth = 180;
+      const imgWidth = 180; // A4 width with margins
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
       pdf.addImage(imgData, 'PNG', 15, 25, imgWidth, imgHeight);

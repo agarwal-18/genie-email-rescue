@@ -114,9 +114,6 @@ const Index = () => {
                     src={place.image}
                     alt={place.name}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      e.currentTarget.src = "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?q=80&w=800";
-                    }}
                   />
                 </div>
                 <CardHeader className="p-4">
@@ -143,7 +140,7 @@ const Index = () => {
                     <span>{place.duration}</span>
                   </div>
                   <Link to={`/places?id=${place.id}`}>
-                    <Button variant="secondary" size="sm">Read More</Button>
+                    <Button variant="secondary" size="sm">View Details</Button>
                   </Link>
                 </CardFooter>
               </Card>
