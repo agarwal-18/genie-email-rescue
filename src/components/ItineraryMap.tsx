@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 import { Map as MapIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import {
   DialogFooter,
   DialogClose
 } from '@/components/ui/dialog';
+import { API_CONFIG } from '@/config';
 
 // Declare Leaflet types globally
 declare global {
@@ -50,6 +52,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   const [error, setError] = useState<string | null>(null);
   const leafletLoaded = useRef(false);
   const markersRef = useRef<any[]>([]);
+  const initAttempts = useRef(0);
   
   // Get all unique locations from itinerary
   const locations = itinerary.flatMap(day => 
@@ -173,8 +176,14 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   
   // Initialize the map when dialog is opened and Leaflet is loaded
   useEffect(() => {
-    // Don't do anything if dialog is not open
-    if (!isOpen) return;
+    // Reset state when dialog closes
+    if (!isOpen) {
+      clearMapResources();
+      setMapLoaded(false);
+      setError(null);
+      initAttempts.current = 0;
+      return;
+    }
     
     // Clear previous error
     setError(null);
@@ -185,6 +194,12 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
       // Check if the map container exists
       if (!mapContainer.current) {
         console.error("Map container not found");
+        if (initAttempts.current < 3) {
+          initAttempts.current += 1;
+          // Try again after a short delay
+          setTimeout(initializeMap, 300);
+          return;
+        }
         setError("Map container not found");
         return;
       }
@@ -198,21 +213,27 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         // Check if Leaflet is loaded
         if (!window.L) {
           console.log("Leaflet not yet loaded, delaying map initialization");
+          if (initAttempts.current < 3) {
+            initAttempts.current += 1;
+            // Try again after a short delay
+            setTimeout(initializeMap, 300);
+          } else {
+            setError("Map library failed to load");
+          }
           return;
         }
         
+        // Create bounds object
+        const bounds = window.L.latLngBounds();
+        
         // Create map instance centered on Navi Mumbai
-        const map = window.L.map(mapContainer.current).setView([19.0330, 73.0169], 12);
+        const map = window.L.map(mapContainer.current).setView(
+          API_CONFIG.defaultMapCenter, 
+          API_CONFIG.defaultMapZoom
+        );
         
         // Store the map instance for cleanup
         mapInstance.current = map;
-        
-        // Properly invalidate the map size after render
-        setTimeout(() => {
-          if (map) {
-            map.invalidateSize();
-          }
-        }, 100);
         
         // Add OpenStreetMap tile layer
         window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -222,9 +243,15 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         
         console.log("Map created with tile layer");
         
+        // Properly invalidate the map size after render
+        setTimeout(() => {
+          if (map) {
+            map.invalidateSize();
+          }
+        }, 100);
+        
         // Add markers for each activity location
         const markers: any[] = [];
-        const bounds = window.L.latLngBounds();
         const dayColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'];
         
         // Track seen locations to avoid duplicates
@@ -266,7 +293,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
                 
                 // Use random offset from Navi Mumbai center for unknown locations
                 const randomOffset = () => (Math.random() - 0.5) * 0.02;
-                coordinates = [73.0169 + randomOffset(), 19.0330 + randomOffset()];
+                coordinates = [API_CONFIG.defaultMapCenter[0] + randomOffset(), API_CONFIG.defaultMapCenter[1] + randomOffset()];
               }
             }
             
@@ -330,30 +357,14 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
       }
     };
     
-    // Try initializing the map right away if Leaflet is already loaded
-    if (window.L) {
-      // Wait a moment for the dialog to be fully rendered
-      const timeoutId = setTimeout(initializeMap, 300);
-      return () => clearTimeout(timeoutId);
-    } else {
-      // Set up a periodic check for Leaflet loading
-      const intervalId = setInterval(() => {
-        if (window.L) {
-          clearInterval(intervalId);
-          initializeMap();
-        }
-      }, 200);
-      
-      return () => clearInterval(intervalId);
-    }
+    // Set a timeout to ensure the dialog is fully rendered
+    const timeoutId = setTimeout(() => {
+      initializeMap();
+    }, 200);
+    
+    // Clear the timeout on cleanup
+    return () => clearTimeout(timeoutId);
   }, [isOpen, itinerary]);
-
-  // Handle dialog close - cleanup map
-  useEffect(() => {
-    if (!isOpen) {
-      clearMapResources();
-    }
-  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -377,9 +388,8 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="h-8 w-8 rounded-full border-4 border-primary/30 border-t-primary animate-spin"></div>
             </div>
-          ) : (
-            <div ref={mapContainer} className="absolute inset-0 rounded-lg border" />
-          )}
+          ) : null}
+          <div ref={mapContainer} className="absolute inset-0 rounded-lg border" />
         </div>
         
         <DialogFooter className="mt-4">
