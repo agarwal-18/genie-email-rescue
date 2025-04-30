@@ -347,6 +347,7 @@ export function useItinerary() {
     }
   };
   
+  // Modified downloadItineraryAsPdf function to capture all days at once
   const downloadItineraryAsPdf = async (
     itineraryInfo: { title: string; days: number },
     itineraryDays: ItineraryDay[],
@@ -357,31 +358,55 @@ export function useItinerary() {
         throw new Error('Element not found for PDF generation');
       }
       
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        logging: false,
-        useCORS: true
-      });
-      
-      const imgData = canvas.toDataURL('image/png');
+      // Create PDF with A4 format (210 x 297 mm)
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
       
+      // Capture all days in element
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+        scrollY: -window.scrollY
+      });
+      
+      const imgWidth = 190; // A4 width with margins
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
       // Add title
       pdf.setFontSize(16);
-      pdf.text(itineraryInfo.title, 15, 15);
+      pdf.text(itineraryInfo.title, 10, 10);
       
       // Add date
       pdf.setFontSize(10);
-      pdf.text(`Generated on ${new Date().toLocaleDateString()}`, 15, 22);
+      pdf.text(`Generated on ${new Date().toLocaleDateString()}`, 10, 20);
       
-      const imgWidth = 180; // A4 width with margins
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      // Add content
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 25, imgWidth, imgHeight);
       
-      pdf.addImage(imgData, 'PNG', 15, 25, imgWidth, imgHeight);
+      // Add instructions page at the end
+      pdf.addPage();
+      pdf.setFontSize(14);
+      pdf.text("Travel Tips & Instructions", 10, 20);
+      
+      pdf.setFontSize(11);
+      pdf.text("1. Arrive 30 minutes early for any scheduled activities", 15, 40);
+      pdf.text("2. Keep digital and physical copies of your itinerary", 15, 50);
+      pdf.text("3. Check weather forecasts daily and plan accordingly", 15, 60);
+      pdf.text("4. Always carry water and stay hydrated", 15, 70);
+      pdf.text("5. Be respectful of local customs and traditions", 15, 80);
+      pdf.text("6. Have emergency contacts saved on your phone", 15, 90);
+      pdf.text("7. Take regular breaks to avoid exhaustion", 15, 100);
+      pdf.text("8. Try local cuisine for an authentic experience", 15, 110);
+      pdf.text("9. Download offline maps before exploring", 15, 120);
+      pdf.text("10. Keep flexible time buffers in your schedule", 15, 130);
+      
+      pdf.setFontSize(12);
+      pdf.text("Enjoy your trip to Navi Mumbai!", 15, 150);
       
       const fileName = `${itineraryInfo.title.replace(/\s+/g, '_')}.pdf`;
       pdf.save(fileName);
