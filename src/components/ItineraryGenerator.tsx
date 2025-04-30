@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -17,9 +16,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { generateItinerary } from '@/lib/data';
 import { Badge } from "@/components/ui/badge";
 import { useItinerary } from '@/hooks/useItinerary';
+import { ItinerarySettings } from '@/config';
 
 interface ItineraryGeneratorProps {
-  onGenerate?: (itinerary: any[], settings: any) => void;
+  onGenerate?: (itinerary: any[], settings: ItinerarySettings) => void;
+  initialData?: ItinerarySettings;
 }
 
 // Predefined location options for Navi Mumbai
@@ -52,7 +53,7 @@ const INTERESTS = [
   'Entertainment'
 ];
 
-const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
+const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps) => {
   const [selectedLocations, setSelectedLocations] = useState<string[]>(['Vashi']);
   const [numberOfDays, setNumberOfDays] = useState(3);
   const [startDate, setStartDate] = useState<Date | undefined>(new Date());
@@ -123,10 +124,10 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
       setItinerary(generatedItinerary);
       
       // Create settings object to pass to the parent component
-      const settings = {
+      const settings: ItinerarySettings = {
         title: itineraryTitle,
         days: numberOfDays,
-        start_date: startDate,
+        start_date: startDate ? startDate.toISOString() : null, // Convert Date to string
         pace,
         budget,
         interests: selectedInterests,
@@ -175,10 +176,10 @@ const ItineraryGenerator = ({ onGenerate }: ItineraryGeneratorProps) => {
       return;
     }
     
-    const settings = {
+    const settings: ItinerarySettings = {
       title: itineraryTitle,
       days: numberOfDays,
-      start_date: startDate,
+      start_date: startDate ? startDate.toISOString() : null, // Convert Date to string
       pace,
       budget,
       interests: selectedInterests,
