@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Tag, Filter, Users, MapPin, Utensils, Mountain, X } from 'lucide-react';
+import { Search, Tag, Filter, Users, MapPin, Utensils, Mountain, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -203,7 +203,8 @@ const Forum = () => {
     setFilteredPosts(posts);
   }, [activeCategory, searchQuery, allPosts, selectedTags]);
 
-  const handleCreatePost = () => {
+  // Create post with specific category
+  const handleCreatePostForCategory = (categoryId: string) => {
     if (!user) {
       toast({
         title: "Sign in required",
@@ -214,7 +215,8 @@ const Forum = () => {
       return;
     }
     
-    navigate('/forum/create');
+    // Navigate to create post with selected category
+    navigate(`/forum/create?category=${categoryId}`);
   };
 
   // Handle tag click from ForumPost component
@@ -248,39 +250,44 @@ const Forum = () => {
               </p>
             </div>
             
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <div className="relative w-full md:w-64">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search discussions..."
-                  className="pl-9"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              
-              <Button onClick={handleCreatePost}>
-                <Plus className="h-4 w-4 mr-2" />
-                New Post
-              </Button>
+            <div className="relative w-full md:w-64">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search discussions..."
+                className="pl-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
           </div>
           
           {/* Categories Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
             {forumCategories.map((category) => (
-              <ForumCategory 
-                key={category.id}
-                id={category.id}
-                title={category.title}
-                description={category.description}
-                icon={category.icon}
-                color={category.color}
-                postCount={category.postCount}
-                onClick={() => setActiveCategory(category.id)}
-                isActive={activeCategory === category.id}
-              />
+              <div key={category.id} className="relative">
+                <ForumCategory 
+                  id={category.id}
+                  title={category.title}
+                  description={category.description}
+                  icon={category.icon}
+                  color={category.color}
+                  postCount={category.postCount}
+                  onClick={() => setActiveCategory(category.id)}
+                  isActive={activeCategory === category.id}
+                />
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  className="absolute bottom-2 right-2 z-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCreatePostForCategory(category.id);
+                  }}
+                >
+                  Post in this category
+                </Button>
+              </div>
             ))}
           </div>
 
