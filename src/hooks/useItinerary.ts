@@ -347,7 +347,7 @@ export function useItinerary() {
     }
   };
   
-  // Completely revised downloadItineraryAsPdf function to ensure all days are included
+  // Completely revised downloadItineraryAsPdf function to properly capture all days
   const downloadItineraryAsPdf = async (
     itineraryInfo: { title: string; days: number },
     itineraryDays: ItineraryDay[],
@@ -364,6 +364,9 @@ export function useItinerary() {
         unit: 'mm',
         format: 'a4'
       });
+      
+      // Store the original active tab to restore it later
+      const originalActiveTab = element.querySelector('[role="tab"][data-state="active"]');
       
       // Find all day tabs
       const dayTabs = Array.from(element.querySelectorAll('[role="tab"]'));
@@ -390,11 +393,13 @@ export function useItinerary() {
         const activeTabPanel = element.querySelector('[role="tabpanel"][data-state="active"]');
         
         if (activeTabPanel) {
-          // Add a new page for each day (skip for first day if it's title page)
-          pdf.addPage();
+          // Add a new page for each day
+          if (i > 0 || itineraryDays.length > 1) {
+            pdf.addPage();
+          }
           
           // Add day header
-          const dayNumber = tab.getAttribute('data-day') || (i + 1).toString();
+          const dayNumber = i + 1;
           pdf.setFontSize(16);
           pdf.text(`Day ${dayNumber} Itinerary`, 10, 20);
           
@@ -446,8 +451,10 @@ export function useItinerary() {
       const fileName = `${itineraryInfo.title.replace(/\s+/g, '_')}_itinerary.pdf`;
       pdf.save(fileName);
       
-      // Reset back to first day tab for user viewing
-      if (dayTabs[0]) {
+      // Reset back to original tab for user viewing
+      if (originalActiveTab) {
+        (originalActiveTab as HTMLElement).click();
+      } else if (dayTabs[0]) {
         (dayTabs[0] as HTMLElement).click();
       }
       
