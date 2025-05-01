@@ -18,39 +18,35 @@ import ForumPost from '@/components/ForumPost';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-// Mock data for forum categories
-const forumCategories = [
+// Mock data for forum categories (without post counts)
+const forumCategoriesData = [
   {
     id: 'city-advice',
     title: 'City-Specific Travel Advice',
     description: 'Get and share travel tips for specific locations in Navi Mumbai',
     icon: MapPin,
-    color: 'bg-blue-500',
-    postCount: 32
+    color: 'bg-blue-500'
   },
   {
     id: 'tourism',
     title: 'Navi Mumbai Tourism',
     description: 'Discuss tourist attractions, events, and experiences',
     icon: Users,
-    color: 'bg-green-500',
-    postCount: 28
+    color: 'bg-green-500'
   },
   {
     id: 'food',
     title: 'Regional Food Experiences',
     description: 'Share your favorite eateries, dishes, and food experiences',
     icon: Utensils,
-    color: 'bg-orange-500',
-    postCount: 45
+    color: 'bg-orange-500'
   },
   {
     id: 'adventure',
     title: 'Trekking & Adventure',
     description: 'Discuss hiking trails, outdoor activities, and adventure sports',
     icon: Mountain,
-    color: 'bg-purple-500',
-    postCount: 19
+    color: 'bg-purple-500'
   }
 ];
 
@@ -154,6 +150,7 @@ const Forum = () => {
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isTagPopoverOpen, setIsTagPopoverOpen] = useState(false);
+  const [forumCategories, setForumCategories] = useState(forumCategoriesData);
 
   // Extract all unique tags from posts
   const allTags = Array.from(
@@ -170,6 +167,20 @@ const Forum = () => {
     // Combine with mock posts, with user posts at the beginning
     const combinedPosts = [...userPosts, ...mockPosts];
     setAllPosts(combinedPosts);
+
+    // Calculate post counts for each category
+    const categoryCounts = combinedPosts.reduce((counts: Record<string, number>, post) => {
+      if (post.category) {
+        counts[post.category] = (counts[post.category] || 0) + 1;
+      }
+      return counts;
+    }, {});
+
+    // Update forum categories with real post counts
+    setForumCategories(forumCategoriesData.map(category => ({
+      ...category,
+      postCount: categoryCounts[category.id] || 0
+    })));
   }, []);
 
   // Filter posts based on active category, search query, and selected tags

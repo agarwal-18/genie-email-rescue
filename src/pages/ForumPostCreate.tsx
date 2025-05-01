@@ -26,10 +26,19 @@ const ForumPostCreate = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const categoryParam = params.get('category');
+    
     if (categoryParam) {
       setCategory(categoryParam);
+    } else {
+      // If no category is provided, redirect back to forum page
+      navigate('/forum');
+      toast({
+        title: "Category required",
+        description: "Please select a category from the forum page.",
+        variant: "destructive"
+      });
     }
-  }, [location]);
+  }, [location, navigate, toast]);
   
   if (!user) {
     useEffect(() => {
@@ -125,7 +134,7 @@ const ForumPostCreate = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="category">Category *</Label>
-                <Select value={category} onValueChange={setCategory} required disabled={!!category}>
+                <Select value={category} onValueChange={setCategory} required disabled={true}>
                   <SelectTrigger id="category">
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>

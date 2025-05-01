@@ -56,10 +56,16 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
   
   // Get all unique locations from itinerary
   const locations = itinerary.flatMap(day => 
-    day.activities.map(activity => activity.location)
-  ).filter((value, index, self) => self.indexOf(value) === index);
+    day.activities.map(activity => ({ 
+      name: activity.location,
+      title: activity.title, 
+      day: day.day,
+      time: activity.time
+    }))
+  );
 
   // Navi Mumbai locations with coordinates (extended list)
+  // Extended with places that might be in the itinerary but not in the original list
   const locationCoordinates: Record<string, [number, number]> = {
     'Vashi': [73.0071, 19.0754],
     'Belapur': [73.0358, 19.0235],
@@ -72,7 +78,6 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     'Sanpada': [73.0119, 19.0506],
     'Turbhe': [73.0224, 19.0897],
     'Seawoods': [73.0185, 19.0142],
-    'DY Patil Stadium': [73.0282, 19.0446],
     'Central Park': [73.0169, 19.0343],
     'Inorbit Mall': [73.0169, 19.0343],
     'Wonder Park': [73.0074, 19.0137],
@@ -104,7 +109,31 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     'Seawoods Grand Central': [73.0180, 19.0131],
     'Pandavkada Falls': [73.0825, 19.0345],
     'Little World Mall': [73.0187, 19.0421],
-    'Vashi Lake': [73.0042, 19.0701]
+    'Vashi Lake': [73.0042, 19.0701],
+    // Additional places for points of interest
+    'Belapur Fort': [73.0358, 19.0235],
+    'Pandavkada Falls': [73.0825, 19.0345],
+    'Navi Mumbai Science Centre': [73.0174, 19.0390],
+    'Fish Land': [73.0071, 19.0754],
+    'Pop Tate\'s': [73.0169, 19.0343],
+    'Central Park': [73.0169, 19.0343],
+    'Mini Seashore': [73.0215, 19.0240],
+    'Parsik Hill': [73.0299, 19.0303],
+    'Inorbit Mall': [73.0169, 19.0343],
+    'Raghuleela Mall': [73.0077, 19.0720],
+    'APMC Market': [73.0166, 19.0680],
+    'Someplace Else': [73.0169, 19.0343],
+    'The Irish House': [73.0180, 19.0131],
+    'Sagar Vihar': [73.0083, 19.0633],
+    'Jewel of Navi Mumbai': [73.0173, 19.0340],
+    'Wonder Park': [73.0074, 19.0137],
+    'Nerul Balaji Temple': [73.0206, 19.0377],
+    'Akshar Dhaam': [72.9962, 19.1030],
+    'Hanuman Temple': [73.0169, 19.0343],
+    'Rock Garden': [73.0169, 19.0343],
+    'Wonders Park': [73.0074, 19.0137],
+    'Little Theatre': [73.0169, 19.0343],
+    'INOX': [73.0171, 19.0343]
   };
   
   const leafletCssId = 'leaflet-css';
@@ -250,7 +279,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
           }
         }, 100);
         
-        // Add markers for each activity location
+        // Add markers for each activity location and point of interest
         const markers: any[] = [];
         const dayColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'];
         
@@ -258,83 +287,89 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         const seenLocations = new Set<string>();
         const unknownLocations: string[] = [];
         
-        // Process activities and add markers for all unique locations
-        itinerary.forEach(day => {
-          const dayColor = dayColors[(day.day - 1) % dayColors.length];
+        // Process activities and add markers for all unique title-location combinations
+        locations.forEach(({ name: locationName, title, day, time }) => {
+          // Create a unique identifier for each location-title pair
+          const locationKey = `${locationName}_${title}`;
           
-          day.activities.forEach(activity => {
-            const locationName = activity.location.trim();
+          // Skip if we've already added this location-title combination
+          if (seenLocations.has(locationKey)) {
+            return;
+          }
+          
+          seenLocations.add(locationKey);
+          
+          // Find coordinates for this location
+          let coordinates: [number, number] | undefined;
+          
+          // First check if title is a known place
+          if (locationCoordinates[title]) {
+            coordinates = locationCoordinates[title];
+          }
+          // Then try exact match for location
+          else if (locationCoordinates[locationName]) {
+            coordinates = locationCoordinates[locationName];
+          } 
+          else {
+            // Try partial matching for location names or titles
+            const locationKey = Object.keys(locationCoordinates).find(
+              key => locationName.toLowerCase().includes(key.toLowerCase()) || 
+                    key.toLowerCase().includes(locationName.toLowerCase()) ||
+                    title.toLowerCase().includes(key.toLowerCase()) ||
+                    key.toLowerCase().includes(title.toLowerCase())
+            );
             
-            // Skip if we've already added this location
-            if (seenLocations.has(locationName)) {
-              return;
-            }
-            
-            seenLocations.add(locationName);
-            
-            // Find coordinates for this location
-            let coordinates: [number, number] | undefined;
-            
-            // First try exact match
-            if (locationCoordinates[locationName]) {
-              coordinates = locationCoordinates[locationName];
+            if (locationKey) {
+              coordinates = locationCoordinates[locationKey];
             } else {
-              // Try partial matching for location names
-              const locationKey = Object.keys(locationCoordinates).find(
-                key => locationName.toLowerCase().includes(key.toLowerCase()) || 
-                      key.toLowerCase().includes(locationName.toLowerCase())
-              );
+              // Mark as unknown location for logging
+              unknownLocations.push(`${title} (${locationName})`);
               
-              if (locationKey) {
-                coordinates = locationCoordinates[locationKey];
-              } else {
-                // Mark as unknown location for logging
-                unknownLocations.push(locationName);
-                
-                // Use random offset from Navi Mumbai center for unknown locations
-                const randomOffset = () => (Math.random() - 0.5) * 0.02;
-                coordinates = [API_CONFIG.defaultMapCenter[0] + randomOffset(), API_CONFIG.defaultMapCenter[1] + randomOffset()];
-              }
+              // Use random offset from Navi Mumbai center for unknown locations
+              const randomOffset = () => (Math.random() - 0.5) * 0.02;
+              coordinates = [API_CONFIG.defaultMapCenter[0] + randomOffset(), API_CONFIG.defaultMapCenter[1] + randomOffset()];
             }
-            
-            if (!coordinates) return;
-            
-            // Create marker with custom icon
-            const markerIcon = window.L.divIcon({
-              html: `<div style="
-                background-color: ${dayColor}; 
-                width: 24px; 
-                height: 24px; 
-                border-radius: 50%; 
-                display: flex; 
-                align-items: center; 
-                justify-content: center; 
-                color: white; 
-                font-weight: bold;
-                border: 2px solid white;
-                box-shadow: 0 0 10px rgba(0,0,0,0.3);
-              ">${day.day}</div>`,
-              iconSize: [24, 24],
-              className: 'custom-div-icon'
-            });
-            
-            // Create marker with popup
-            const marker = window.L.marker([coordinates[1], coordinates[0]], { icon: markerIcon })
-              .bindPopup(`
-                <div style="padding: 10px;">
-                  <h3 style="font-weight: bold;">${activity.title}</h3>
-                  <p style="font-size: 12px; color: #666;">${activity.time} - Day ${day.day}</p>
-                  <p style="font-size: 12px;">${activity.location}</p>
-                </div>
-              `);
-            
-            marker.addTo(map);
-            markers.push(marker);
-            markersRef.current.push(marker);
-            
-            // Add location to bounds
-            bounds.extend([coordinates[1], coordinates[0]]);
+          }
+          
+          if (!coordinates) return;
+          
+          const dayColor = dayColors[(day - 1) % dayColors.length];
+          
+          // Create marker with custom icon
+          const markerIcon = window.L.divIcon({
+            html: `<div style="
+              background-color: ${dayColor}; 
+              width: 24px; 
+              height: 24px; 
+              border-radius: 50%; 
+              display: flex; 
+              align-items: center; 
+              justify-content: center; 
+              color: white; 
+              font-weight: bold;
+              border: 2px solid white;
+              box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            ">${day}</div>`,
+            iconSize: [24, 24],
+            className: 'custom-div-icon'
           });
+          
+          // Create marker with popup
+          const marker = window.L.marker([coordinates[1], coordinates[0]], { icon: markerIcon })
+            .bindPopup(`
+              <div style="padding: 10px;">
+                <h3 style="font-weight: bold;">${title}</h3>
+                <p style="font-size: 12px; color: #666;">${time} - Day ${day}</p>
+                <p style="font-size: 12px;">${locationName}</p>
+              </div>
+            `);
+          
+          marker.addTo(map);
+          markers.push(marker);
+          markersRef.current.push(marker);
+          
+          // Add location to bounds
+          bounds.extend([coordinates[1], coordinates[0]]);
         });
         
         console.log("Added", markers.length, "markers to map");
@@ -395,7 +430,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         <DialogFooter className="mt-4">
           <div className="flex flex-col w-full gap-2">
             <div className="text-sm text-muted-foreground">
-              Showing {locations.length} unique locations in your itinerary
+              Showing {locations.length} locations in your itinerary
             </div>
             <DialogClose asChild>
               <Button className="w-full">Close Map</Button>
