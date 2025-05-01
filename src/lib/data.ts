@@ -1,3 +1,4 @@
+
 import { faker } from '@faker-js/faker';
 
 const timeSlots = [
@@ -56,6 +57,65 @@ const recommendations = {
   ]
 };
 
+// Add dummy place data for the getAllPlaces function
+const places = [
+  {
+    id: "1",
+    name: "Belapur Fort",
+    category: "Historical Sites",
+    description: "A historic fort with scenic views.",
+    image: "https://example.com/belapur_fort.jpg",
+    rating: 4.5,
+    location: "Belapur",
+    duration: "2 hours",
+    featured: true
+  },
+  {
+    id: "2",
+    name: "Pandavkada Falls",
+    category: "Historical Sites",
+    description: "A waterfall with mythological significance.",
+    image: "https://example.com/pandavkada_falls.jpg",
+    rating: 4.2,
+    location: "Kharghar",
+    duration: "3 hours",
+    featured: false
+  },
+  {
+    id: "3",
+    name: "Navi Mumbai Science Centre",
+    category: "Museums",
+    description: "Interactive exhibits for all ages.",
+    image: "https://example.com/science_centre.jpg",
+    rating: 4.0,
+    location: "Vashi",
+    duration: "4 hours",
+    featured: true
+  },
+  {
+    id: "4",
+    name: "Inorbit Mall",
+    category: "Shopping",
+    description: "A premier shopping destination.",
+    image: "https://example.com/inorbit_mall.jpg",
+    rating: 4.3,
+    location: "Vashi",
+    duration: "3 hours",
+    featured: true
+  },
+  {
+    id: "5",
+    name: "Central Park",
+    category: "Outdoor Activities",
+    description: "A large park perfect for picnics and recreation.",
+    image: "https://example.com/central_park.jpg",
+    rating: 4.1,
+    location: "Kharghar",
+    duration: "2 hours",
+    featured: false
+  }
+];
+
 const generateActivity = (time: string) => {
   return {
     time,
@@ -74,6 +134,11 @@ const generateDay = (day: number) => {
   };
 };
 
+// Add the missing getAllPlaces function
+export const getAllPlaces = () => {
+  return places;
+};
+
 export const generateItinerary = ({
   days = 3,
   pace = 'moderate',
@@ -87,7 +152,7 @@ export const generateItinerary = ({
   const filteredRecommendations = Object.entries(recommendations).reduce((acc, [category, places]) => {
     acc[category] = places.filter(place => !excludedLocations.includes(place.name));
     return acc;
-  }, {});
+  }, {} as Record<string, any[]>);
 
   const itinerary = [];
 
