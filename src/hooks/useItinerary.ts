@@ -1,16 +1,15 @@
-
 import { useState } from 'react';
 import { supabase, type UserItinerary } from '@/integrations/supabase/client';
 // Use a different name for the imported type to avoid conflicts
 import type { ItineraryActivity as IActivity } from '@/integrations/supabase/client';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { API_CONFIG } from '@/config';
+import { API_CONFIG, ItinerarySettings, ItineraryActivityBase, ItineraryDayBase } from '@/config';
 
 // Local type definition that won't conflict with imported one
-type ItineraryDay = {
+export type ItineraryDay = {
   day: number;
-  activities: IActivity[];
+  activities: ItineraryActivityBase[];
 };
 
 export interface ItineraryDetail {
@@ -215,12 +214,36 @@ export function useItinerary() {
     }
   };
   
-  const saveItinerary = async (itinerary: Omit<UserItinerary, 'id' | 'created_at' | 'updated_at'>, activities: Omit<IActivity, 'id' | 'created_at'>[]): Promise<string | null> => {
+  const saveItinerary = async (
+    settings: ItinerarySettings, 
+    activities: Array<{
+      day: number;
+      time: string;
+      title: string;
+      location: string;
+      description: string | null;
+      image: string | null;
+      category: string | null;
+    }>
+  ): Promise<string | null> => {
     setLoading(true);
     setError(null);
     try {
+      // Convert settings to UserItinerary format
+      const itineraryData: Omit<UserItinerary, 'id' | 'created_at' | 'updated_at'> = {
+        title: settings.title,
+        days: settings.days,
+        start_date: typeof settings.start_date === 'string' ? settings.start_date : null,
+        pace: settings.pace || null,
+        budget: settings.budget || null,
+        interests: settings.interests || null,
+        transportation: settings.transportation || null,
+        include_food: settings.include_food || false,
+        user_id: settings.user_id || ''
+      };
+      
       // First create the itinerary
-      const newItinerary = await createUserItinerary(itinerary);
+      const newItinerary = await createUserItinerary(itineraryData);
       
       if (!newItinerary) {
         throw new Error('Failed to create itinerary');
@@ -230,7 +253,7 @@ export function useItinerary() {
       const activityPromises = activities.map(activity => 
         createItineraryActivity({
           ...activity,
-          itinerary_id: newItinerary.id
+          itinerary_id: newItinerary.id,
         })
       );
       

@@ -11,5 +11,44 @@ export const API_CONFIG = {
   // Default map zoom level
   defaultMapZoom: 12,
   // Map loading timeout in milliseconds
-  mapLoadingTimeout: 2000
+  mapLoadingTimeout: 2000,
+  // Valid routes for auto-retry on 404
+  validRoutes: [
+    'places', 
+    'forum', 
+    'itinerary', 
+    'planner',
+    'saved-itineraries', 
+    'login', 
+    'register', 
+    'profile',
+    'verify-email'
+  ]
 };
+
+// Type definitions for Itinerary types to ensure consistency across the app
+export interface ItinerarySettings {
+  title: string;
+  days: number;
+  start_date?: Date | string | null;
+  pace?: string | null;
+  budget?: string | null;
+  interests?: string[] | null;
+  transportation?: string | null;
+  include_food?: boolean | null;
+  user_id?: string;
+}
+
+export interface ItineraryActivityBase {
+  time: string;
+  title: string;
+  location: string;
+  description: string | null;
+  image: string | null;
+  category: string | null;
+}
+
+export interface ItineraryDayBase {
+  day: number;
+  activities: ItineraryActivityBase[];
+}
