@@ -76,7 +76,11 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
   const [transportation, setTransportation] = useState(initialData?.transportation || 'public');
   const [includeFood, setIncludeFood] = useState(initialData?.include_food !== null ? initialData?.include_food : true);
   const [open, setOpen] = useState(false);
-  const [date, setDate] = useState<Date | undefined>(initialData?.start_date || undefined);
+  const [date, setDate] = useState<Date | undefined>(
+    initialData?.start_date ? 
+      (typeof initialData.start_date === 'string' ? new Date(initialData.start_date) : initialData.start_date) : 
+      undefined
+  );
   const { toast } = useToast();
   
   // Function to get a random image from the default images array
@@ -98,44 +102,184 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
     // Mock activities based on interests
     const mockActivities: Record<string, ItineraryActivityBase[]> = {
       'Historical Sites': [
-        { title: 'Explore Belapur Fort', location: 'Belapur Fort', description: 'Visit the historic Belapur Fort and learn about its significance.' },
-        { title: 'Visit Pandavkada Falls', location: 'Pandavkada Falls', description: 'Explore the ancient cave temples and enjoy the natural surroundings.' }
+        { 
+          title: 'Explore Belapur Fort', 
+          location: 'Belapur Fort', 
+          description: 'Visit the historic Belapur Fort and learn about its significance.',
+          time: '9:00 AM',
+          image: getRandomLocationImage(),
+          category: 'Historical Sites' 
+        },
+        { 
+          title: 'Visit Pandavkada Falls', 
+          location: 'Pandavkada Falls', 
+          description: 'Explore the ancient cave temples and enjoy the natural surroundings.',
+          time: '10:00 AM',
+          image: getRandomLocationImage(),
+          category: 'Historical Sites' 
+        }
       ],
       'Shopping': [
-        { title: 'Shop at Seawoods Grand Central', location: 'Seawoods Grand Central', description: 'Enjoy shopping at Seawoods Grand Central, one of the largest malls in Navi Mumbai.' },
-        { title: 'Visit Little World Mall', location: 'Little World Mall', description: 'Shop for local handicrafts and souvenirs at Little World Mall.' }
+        { 
+          title: 'Shop at Seawoods Grand Central', 
+          location: 'Seawoods Grand Central', 
+          description: 'Enjoy shopping at Seawoods Grand Central, one of the largest malls in Navi Mumbai.',
+          time: '11:00 AM',
+          image: getRandomLocationImage(),
+          category: 'Shopping' 
+        },
+        { 
+          title: 'Visit Little World Mall', 
+          location: 'Little World Mall', 
+          description: 'Shop for local handicrafts and souvenirs at Little World Mall.',
+          time: '1:00 PM',
+          image: getRandomLocationImage(),
+          category: 'Shopping' 
+        }
       ],
       'Food & Drink': [
-        { title: 'Try street food in Vashi', location: 'Vashi', description: 'Sample local street food delicacies in Vashi.' },
-        { title: 'Dine at Pop Tate\'s', location: 'Pop Tate\'s', description: 'Enjoy a meal at Pop Tate\'s.' }
+        { 
+          title: 'Try street food in Vashi', 
+          location: 'Vashi', 
+          description: 'Sample local street food delicacies in Vashi.',
+          time: '12:00 PM',
+          image: getRandomLocationImage(),
+          category: 'Food & Drink'
+        },
+        { 
+          title: 'Dine at Pop Tate\'s', 
+          location: 'Pop Tate\'s', 
+          description: 'Enjoy a meal at Pop Tate\'s.',
+          time: '7:00 PM',
+          image: getRandomLocationImage(),
+          category: 'Food & Drink' 
+        }
       ],
       'Nature & Outdoors': [
-        { title: 'Walk at Jewel of Navi Mumbai', location: 'Jewel of Navi Mumbai', description: 'Take a walk at Jewel of Navi Mumbai.' },
-        { title: 'Visit Kharghar Hills', location: 'Kharghar Hills', description: 'Hike in the scenic Kharghar Hills.' }
+        { 
+          title: 'Walk at Jewel of Navi Mumbai', 
+          location: 'Jewel of Navi Mumbai', 
+          description: 'Take a walk at Jewel of Navi Mumbai.',
+          time: '4:00 PM',
+          image: getRandomLocationImage(),
+          category: 'Nature & Outdoors' 
+        },
+        { 
+          title: 'Visit Kharghar Hills', 
+          location: 'Kharghar Hills', 
+          description: 'Hike in the scenic Kharghar Hills.',
+          time: '9:00 AM',
+          image: getRandomLocationImage(),
+          category: 'Nature & Outdoors' 
+        }
       ],
       'Museums & Galleries': [
-        { title: 'Visit Navi Mumbai Science Centre', location: 'Navi Mumbai Science Centre', description: 'Explore the exhibits at the Navi Mumbai Science Centre.' },
-        { title: 'Visit the nearby museum', location: 'Science Centre', description: 'Explore the exhibits at the Science Centre.' }
+        { 
+          title: 'Visit Navi Mumbai Science Centre', 
+          location: 'Navi Mumbai Science Centre', 
+          description: 'Explore the exhibits at the Navi Mumbai Science Centre.',
+          time: '1:00 PM',
+          image: getRandomLocationImage(),
+          category: 'Museums & Galleries' 
+        },
+        { 
+          title: 'Visit the nearby museum', 
+          location: 'Science Centre', 
+          description: 'Explore the exhibits at the Science Centre.',
+          time: '3:00 PM',
+          image: getRandomLocationImage(),
+          category: 'Museums & Galleries' 
+        }
       ],
       'Nightlife': [
-        { title: 'Enjoy nightlife at Someplace Else', location: 'Someplace Else', description: 'Enjoy the nightlife at Someplace Else.' },
-        { title: 'Visit The Irish House', location: 'The Irish House', description: 'Enjoy the nightlife at The Irish House.' }
+        { 
+          title: 'Enjoy nightlife at Someplace Else', 
+          location: 'Someplace Else', 
+          description: 'Enjoy the nightlife at Someplace Else.',
+          time: '8:00 PM',
+          image: getRandomLocationImage(),
+          category: 'Nightlife' 
+        },
+        { 
+          title: 'Visit The Irish House', 
+          location: 'The Irish House', 
+          description: 'Enjoy the nightlife at The Irish House.',
+          time: '9:00 PM',
+          image: getRandomLocationImage(),
+          category: 'Nightlife' 
+        }
       ],
       'Family Activities': [
-        { title: 'Visit Wonder Park', location: 'Wonder Park', description: 'Spend time with family at Wonder Park.' },
-        { title: 'Visit Central Park', location: 'Central Park', description: 'Spend time with family at Central Park.' }
+        { 
+          title: 'Visit Wonder Park', 
+          location: 'Wonder Park', 
+          description: 'Spend time with family at Wonder Park.',
+          time: '11:00 AM',
+          image: getRandomLocationImage(),
+          category: 'Family Activities' 
+        },
+        { 
+          title: 'Visit Central Park', 
+          location: 'Central Park', 
+          description: 'Spend time with family at Central Park.',
+          time: '2:00 PM',
+          image: getRandomLocationImage(),
+          category: 'Family Activities' 
+        }
       ],
       'Adventure': [
-        { title: 'Trekking at Kharghar Hills', location: 'Kharghar Hills', description: 'Enjoy trekking at Kharghar Hills.' },
-        { title: 'Visit Pandavkada Falls', location: 'Pandavkada Falls', description: 'Enjoy the natural surroundings at Pandavkada Falls.' }
+        { 
+          title: 'Trekking at Kharghar Hills', 
+          location: 'Kharghar Hills', 
+          description: 'Enjoy trekking at Kharghar Hills.',
+          time: '8:00 AM',
+          image: getRandomLocationImage(),
+          category: 'Adventure' 
+        },
+        { 
+          title: 'Visit Pandavkada Falls', 
+          location: 'Pandavkada Falls', 
+          description: 'Enjoy the natural surroundings at Pandavkada Falls.',
+          time: '10:00 AM',
+          image: getRandomLocationImage(),
+          category: 'Adventure' 
+        }
       ],
       'Relaxation': [
-        { title: 'Relax at Sagar Vihar', location: 'Sagar Vihar', description: 'Relax at Sagar Vihar.' },
-        { title: 'Visit Nerul Lake', location: 'Nerul Lake', description: 'Relax at Nerul Lake.' }
+        { 
+          title: 'Relax at Sagar Vihar', 
+          location: 'Sagar Vihar', 
+          description: 'Relax at Sagar Vihar.',
+          time: '4:00 PM',
+          image: getRandomLocationImage(),
+          category: 'Relaxation' 
+        },
+        { 
+          title: 'Visit Nerul Lake', 
+          location: 'Nerul Lake', 
+          description: 'Relax at Nerul Lake.',
+          time: '5:00 PM',
+          image: getRandomLocationImage(),
+          category: 'Relaxation' 
+        }
       ],
       'Cultural Experiences': [
-        { title: 'Visit Hanuman Temple', location: 'Hanuman Temple', description: 'Visit the Hanuman Temple.' },
-        { title: 'Visit Rock Garden', location: 'Rock Garden', description: 'Visit the Rock Garden.' }
+        { 
+          title: 'Visit Hanuman Temple', 
+          location: 'Hanuman Temple', 
+          description: 'Visit the Hanuman Temple.',
+          time: '7:00 AM',
+          image: getRandomLocationImage(),
+          category: 'Cultural Experiences' 
+        },
+        { 
+          title: 'Visit Rock Garden', 
+          location: 'Rock Garden', 
+          description: 'Visit the Rock Garden.',
+          time: '3:00 PM',
+          image: getRandomLocationImage(),
+          category: 'Cultural Experiences' 
+        }
       ]
     };
     
