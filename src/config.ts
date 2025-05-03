@@ -11,16 +11,5 @@ export const API_CONFIG = {
   // Default map zoom level
   defaultMapZoom: 12,
   // Map loading timeout in milliseconds
-  mapLoadingTimeout: 2000,
-  // Valid routes for auto-retry on 404
-  validRoutes: [
-    'places', 
-    'forum', 
-    'itinerary', 
-    'saved-itineraries', 
-    'login', 
-    'register', 
-    'profile',
-    'verify-email'
-  ]
+  mapLoadingTimeout: 2000
 };
