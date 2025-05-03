@@ -140,6 +140,16 @@ interface Post {
   viewsCount: number;
 }
 
+// Extended forum category interface with post count
+interface ForumCategoryWithCount {
+  id: string;
+  title: string;
+  description: string;
+  icon: any;
+  color: string;
+  postCount: number;
+}
+
 const Forum = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -150,7 +160,7 @@ const Forum = () => {
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isTagPopoverOpen, setIsTagPopoverOpen] = useState(false);
-  const [forumCategories, setForumCategories] = useState(forumCategoriesData);
+  const [forumCategories, setForumCategories] = useState<ForumCategoryWithCount[]>([]);
 
   // Extract all unique tags from posts
   const allTags = Array.from(

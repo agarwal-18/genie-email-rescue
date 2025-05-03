@@ -111,29 +111,15 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     'Little World Mall': [73.0187, 19.0421],
     'Vashi Lake': [73.0042, 19.0701],
     // Additional places for points of interest
-    'Belapur Fort': [73.0358, 19.0235],
-    'Pandavkada Falls': [73.0825, 19.0345],
-    'Navi Mumbai Science Centre': [73.0174, 19.0390],
     'Fish Land': [73.0071, 19.0754],
     'Pop Tate\'s': [73.0169, 19.0343],
-    'Central Park': [73.0169, 19.0343],
-    'Mini Seashore': [73.0215, 19.0240],
-    'Parsik Hill': [73.0299, 19.0303],
-    'Inorbit Mall': [73.0169, 19.0343],
-    'Raghuleela Mall': [73.0077, 19.0720],
-    'APMC Market': [73.0166, 19.0680],
     'Someplace Else': [73.0169, 19.0343],
     'The Irish House': [73.0180, 19.0131],
-    'Sagar Vihar': [73.0083, 19.0633],
-    'Jewel of Navi Mumbai': [73.0173, 19.0340],
-    'Wonder Park': [73.0074, 19.0137],
-    'Nerul Balaji Temple': [73.0206, 19.0377],
-    'Akshar Dhaam': [72.9962, 19.1030],
     'Hanuman Temple': [73.0169, 19.0343],
     'Rock Garden': [73.0169, 19.0343],
-    'Wonders Park': [73.0074, 19.0137],
     'Little Theatre': [73.0169, 19.0343],
-    'INOX': [73.0171, 19.0343]
+    'INOX': [73.0171, 19.0343],
+    'Navi Mumbai Science Centre': [73.0174, 19.0390]
   };
   
   const leafletCssId = 'leaflet-css';

@@ -40,15 +40,20 @@ const ForumPostCreate = () => {
     }
   }, [location, navigate, toast]);
   
-  if (!user) {
-    useEffect(() => {
+  // Check if user is logged in
+  useEffect(() => {
+    if (!user) {
       navigate('/login');
       toast({
         title: "Authentication required",
         description: "You need to log in to create a post.",
         variant: "destructive"
       });
-    }, []);
+    }
+  }, [user, navigate, toast]);
+
+  // If no user, return null to prevent rendering
+  if (!user) {
     return null;
   }
 
