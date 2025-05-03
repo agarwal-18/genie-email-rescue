@@ -20,6 +20,26 @@ async def get_places():
         )
     return places
 
+@router.get("/locations")
+async def get_locations():
+    """
+    Get a list of all available locations in Navi Mumbai.
+    """
+    places = load_json_data("places.json")
+    if not places:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Places data file not found"
+        )
+    
+    # Extract unique locations
+    locations = set()
+    for place in places.get("places", []):
+        if "location" in place:
+            locations.add(place["location"])
+    
+    return {"locations": sorted(list(locations))}
+
 @router.get("/restaurants")
 async def get_restaurants():
     """
@@ -49,11 +69,11 @@ async def get_nearby_places(lat: float, lng: float, radius: Optional[int] = 5000
     # In a real implementation, you would calculate actual distances
     # or use a geospatial database query
     import random
-    for place in places:
+    for place in places.get("places", []):
         place["distance"] = random.randint(100, radius)
     
     # Filter places within radius
-    nearby = [p for p in places if p.get("distance", 0) <= radius]
+    nearby = [p for p in places.get("places", []) if p.get("distance", 0) <= radius]
     return nearby
 
 @router.post("/generate-itinerary")
@@ -114,7 +134,7 @@ async def search_places(query: str, category: Optional[str] = None):
     query = query.lower()
     results = []
     
-    for place in places:
+    for place in places.get("places", []):
         name = place.get("name", "").lower()
         description = place.get("description", "").lower()
         place_category = place.get("category", "").lower()

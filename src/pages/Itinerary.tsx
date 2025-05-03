@@ -201,19 +201,8 @@ const Itinerary = () => {
     
     setItinerary(itineraryWithImages);
     
-    // Extract unique locations from the itinerary activities
-    const locations = new Set<string>();
-    newItinerary.forEach(day => {
-      day.activities.forEach(activity => {
-        if (activity.location) {
-          locations.add(activity.location);
-        }
-      });
-    });
-    
-    const locationArray = Array.from(locations);
-    console.log("Extracted locations:", locationArray);
-    setSelectedLocations(locationArray);
+    // Extract unique locations from the itinerary activities and use the selected locations from settings
+    setSelectedLocations(settings.locations || []);
   };
 
   const handleSaveItinerary = async () => {

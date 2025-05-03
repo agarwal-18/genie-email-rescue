@@ -31,6 +31,128 @@
       "rating": 4.4,
       "location": "Nerul",
       "duration": "2-3 hours"
+    },
+    {
+      "id": "4",
+      "name": "Palm Beach Marg",
+      "category": "Scenic Drives",
+      "description": "A beautiful coastal road with views of the creek and mangroves.",
+      "image": "https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=800",
+      "rating": 4.5,
+      "location": "Vashi",
+      "duration": "1-2 hours"
+    },
+    {
+      "id": "5",
+      "name": "Flamingo Sanctuary",
+      "category": "Nature",
+      "description": "A protected wetland area where thousands of flamingos come during migration season.",
+      "image": "https://images.unsplash.com/photo-1509022702721-0ce3c0c677b1?q=80&w=800",
+      "rating": 4.7,
+      "location": "Airoli",
+      "duration": "2-3 hours",
+      "featured": true
+    },
+    {
+      "id": "6",
+      "name": "Inorbit Mall",
+      "category": "Shopping",
+      "description": "A premium shopping destination with international brands and entertainment options.",
+      "image": "https://images.unsplash.com/photo-1581417478175-a9ef18f210c2?q=80&w=800",
+      "rating": 4.2,
+      "location": "Vashi",
+      "duration": "3-4 hours"
+    },
+    {
+      "id": "7",
+      "name": "Sagar Vihar",
+      "category": "Parks & Gardens",
+      "description": "A waterfront garden with boating facilities and scenic views.",
+      "image": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=800",
+      "rating": 4.1,
+      "location": "Vashi",
+      "duration": "1-2 hours"
+    },
+    {
+      "id": "8",
+      "name": "Belapur Fort",
+      "category": "Historical Sites",
+      "description": "Ancient fort ruins with historical significance dating back to the 17th century.",
+      "image": "https://images.unsplash.com/photo-1599408587288-6f9ef85db0ab?q=80&w=800",
+      "rating": 4.0,
+      "location": "CBD Belapur",
+      "duration": "1-2 hours",
+      "featured": true
+    },
+    {
+      "id": "9",
+      "name": "Kharghar Hills",
+      "category": "Adventure",
+      "description": "Popular trekking destination with panoramic views of the city and surrounding areas.",
+      "image": "https://images.unsplash.com/photo-1513889961551-628c1e5e2ee9?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.5,
+      "location": "Kharghar",
+      "duration": "4-5 hours"
+    },
+    {
+      "id": "10",
+      "name": "Pandavkada Falls",
+      "category": "Nature",
+      "description": "Scenic waterfall that is especially beautiful during monsoon season.",
+      "image": "https://images.unsplash.com/photo-1433086966358-54859d0ed716?q=80&w=800",
+      "rating": 4.3,
+      "location": "Kharghar",
+      "duration": "2-3 hours"
+    },
+    {
+      "id": "11",
+      "name": "APMC Market",
+      "category": "Markets",
+      "description": "One of Asia's largest wholesale markets for fruits, vegetables, and grains.",
+      "image": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=800",
+      "rating": 4.0,
+      "location": "Vashi",
+      "duration": "2-3 hours"
+    },
+    {
+      "id": "12",
+      "name": "Jewel of Navi Mumbai",
+      "category": "Parks & Gardens",
+      "description": "Beautiful garden with musical fountain and recreational facilities.",
+      "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800",
+      "rating": 4.2,
+      "location": "Nerul",
+      "duration": "1-2 hours"
+    },
+    {
+      "id": "13",
+      "name": "Mini Seashore",
+      "category": "Nature",
+      "description": "A small artificial beach area popular for evening walks and relaxation.",
+      "image": "https://images.unsplash.com/photo-1433086966358-54859d0ed716?q=80&w=800",
+      "rating": 4.1,
+      "location": "Nerul",
+      "duration": "1-2 hours"
+    },
+    {
+      "id": "14",
+      "name": "Raghuleela Mall",
+      "category": "Shopping",
+      "description": "Popular shopping mall with stores, restaurants, and entertainment options.",
+      "image": "https://images.unsplash.com/photo-1567958451986-2de427a3a0fc?q=80&w=800",
+      "rating": 3.9,
+      "location": "Vashi",
+      "duration": "2-3 hours"
+    },
+    {
+      "id": "15",
+      "name": "Nerul Balaji Temple",
+      "category": "Religious Sites",
+      "description": "Beautiful temple dedicated to Lord Balaji with South Indian architecture.",
+      "image": "https://images.unsplash.com/photo-1602526432604-029a709e131c?q=80&w=800",
+      "rating": 4.6,
+      "location": "Nerul",
+      "duration": "1 hour"
     }
   ]
 }

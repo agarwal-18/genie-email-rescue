@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -14,6 +15,7 @@ import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import { API_CONFIG, ItineraryActivityBase, ItineraryDayBase, ItinerarySettings } from '@/config';
 import { useToast } from '@/hooks/use-toast';
+import axios from 'axios';
 
 interface ItineraryGeneratorProps {
   onGenerate: (itinerary: ItineraryDayBase[], settings: ItinerarySettings) => void;
@@ -31,6 +33,20 @@ const interestsList = [
   'Adventure',
   'Relaxation',
   'Cultural Experiences'
+];
+
+const locationsList = [
+  'Vashi',
+  'Nerul',
+  'Kharghar',
+  'CBD Belapur',
+  'Airoli',
+  'Sanpada',
+  'Kopar Khairane',
+  'Ghansoli',
+  'Turbhe',
+  'Seawoods',
+  'Panvel'
 ];
 
 const defaultImages = [
@@ -67,14 +83,22 @@ const generateTimeSlots = (numberOfActivities: number): string[] => {
   return timeSlots;
 };
 
+// Function to get a random image from the default images array
+const getRandomLocationImage = (): string => {
+  const randomIndex = Math.floor(Math.random() * defaultImages.length);
+  return defaultImages[randomIndex];
+};
+
 const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps) => {
   const [title, setTitle] = useState(initialData?.title || 'Navi Mumbai Itinerary');
   const [days, setDays] = useState(initialData?.days || 3);
   const [pace, setPace] = useState(initialData?.pace || 'moderate');
   const [budget, setBudget] = useState(initialData?.budget || 'Mid-Range');
   const [interests, setInterests] = useState<string[]>(initialData?.interests || ['Historical Sites', 'Shopping']);
+  const [selectedLocations, setSelectedLocations] = useState<string[]>(initialData?.locations || ['Vashi', 'Nerul']);
   const [transportation, setTransportation] = useState(initialData?.transportation || 'public');
   const [includeFood, setIncludeFood] = useState(initialData?.include_food !== null ? initialData?.include_food : true);
+  const [allLocations, setAllLocations] = useState<string[]>(locationsList);
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState<Date | undefined>(
     initialData?.start_date ? 
@@ -82,14 +106,46 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
       undefined
   );
   const { toast } = useToast();
+  const [availablePlaces, setAvailablePlaces] = useState<any[]>([]);
+  const [availableRestaurants, setAvailableRestaurants] = useState<any[]>([]);
   
-  // Function to get a random image from the default images array
-  const getRandomLocationImage = (): string => {
-    const randomIndex = Math.floor(Math.random() * defaultImages.length);
-    return defaultImages[randomIndex];
-  };
+  // Fetch places and restaurants data
+  useEffect(() => {
+    const fetchPlacesData = async () => {
+      try {
+        const placesResponse = await axios.get(`${API_CONFIG.baseUrl}/places`);
+        if (placesResponse.data && placesResponse.data.places) {
+          setAvailablePlaces(placesResponse.data.places);
+        }
+        
+        const restaurantsResponse = await axios.get(`${API_CONFIG.baseUrl}/restaurants`);
+        if (restaurantsResponse.data && restaurantsResponse.data.restaurants) {
+          setAvailableRestaurants(restaurantsResponse.data.restaurants);
+        }
+        
+        // Also fetch available locations
+        const locationsResponse = await axios.get(`${API_CONFIG.baseUrl}/locations`);
+        if (locationsResponse.data && locationsResponse.data.locations) {
+          setAllLocations(locationsResponse.data.locations);
+        }
+      } catch (error) {
+        console.error("Error fetching places data:", error);
+      }
+    };
+    
+    fetchPlacesData();
+  }, []);
 
   const generateItinerary = async (settings: ItinerarySettings): Promise<ItineraryDayBase[]> => {
+    // Filter available places by selected locations
+    const filteredPlaces = availablePlaces.filter(place => 
+      selectedLocations.includes(place.location)
+    );
+    
+    const filteredRestaurants = availableRestaurants.filter(restaurant => 
+      selectedLocations.includes(restaurant.location)
+    );
+    
     // Basic itinerary template
     const itineraryTemplate = {
       title: settings.title,
@@ -99,205 +155,119 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
       }))
     };
     
-    // Mock activities based on interests
-    const mockActivities: Record<string, ItineraryActivityBase[]> = {
-      'Historical Sites': [
-        { 
-          title: 'Explore Belapur Fort', 
-          location: 'Belapur Fort', 
-          description: 'Visit the historic Belapur Fort and learn about its significance.',
-          time: '9:00 AM',
-          image: getRandomLocationImage(),
-          category: 'Historical Sites' 
-        },
-        { 
-          title: 'Visit Pandavkada Falls', 
-          location: 'Pandavkada Falls', 
-          description: 'Explore the ancient cave temples and enjoy the natural surroundings.',
-          time: '10:00 AM',
-          image: getRandomLocationImage(),
-          category: 'Historical Sites' 
-        }
-      ],
-      'Shopping': [
-        { 
-          title: 'Shop at Seawoods Grand Central', 
-          location: 'Seawoods Grand Central', 
-          description: 'Enjoy shopping at Seawoods Grand Central, one of the largest malls in Navi Mumbai.',
-          time: '11:00 AM',
-          image: getRandomLocationImage(),
-          category: 'Shopping' 
-        },
-        { 
-          title: 'Visit Little World Mall', 
-          location: 'Little World Mall', 
-          description: 'Shop for local handicrafts and souvenirs at Little World Mall.',
-          time: '1:00 PM',
-          image: getRandomLocationImage(),
-          category: 'Shopping' 
-        }
-      ],
-      'Food & Drink': [
-        { 
-          title: 'Try street food in Vashi', 
-          location: 'Vashi', 
-          description: 'Sample local street food delicacies in Vashi.',
-          time: '12:00 PM',
-          image: getRandomLocationImage(),
-          category: 'Food & Drink'
-        },
-        { 
-          title: 'Dine at Pop Tate\'s', 
-          location: 'Pop Tate\'s', 
-          description: 'Enjoy a meal at Pop Tate\'s.',
-          time: '7:00 PM',
-          image: getRandomLocationImage(),
-          category: 'Food & Drink' 
-        }
-      ],
-      'Nature & Outdoors': [
-        { 
-          title: 'Walk at Jewel of Navi Mumbai', 
-          location: 'Jewel of Navi Mumbai', 
-          description: 'Take a walk at Jewel of Navi Mumbai.',
-          time: '4:00 PM',
-          image: getRandomLocationImage(),
-          category: 'Nature & Outdoors' 
-        },
-        { 
-          title: 'Visit Kharghar Hills', 
-          location: 'Kharghar Hills', 
-          description: 'Hike in the scenic Kharghar Hills.',
-          time: '9:00 AM',
-          image: getRandomLocationImage(),
-          category: 'Nature & Outdoors' 
-        }
-      ],
-      'Museums & Galleries': [
-        { 
-          title: 'Visit Navi Mumbai Science Centre', 
-          location: 'Navi Mumbai Science Centre', 
-          description: 'Explore the exhibits at the Navi Mumbai Science Centre.',
-          time: '1:00 PM',
-          image: getRandomLocationImage(),
-          category: 'Museums & Galleries' 
-        },
-        { 
-          title: 'Visit the nearby museum', 
-          location: 'Science Centre', 
-          description: 'Explore the exhibits at the Science Centre.',
-          time: '3:00 PM',
-          image: getRandomLocationImage(),
-          category: 'Museums & Galleries' 
-        }
-      ],
-      'Nightlife': [
-        { 
-          title: 'Enjoy nightlife at Someplace Else', 
-          location: 'Someplace Else', 
-          description: 'Enjoy the nightlife at Someplace Else.',
-          time: '8:00 PM',
-          image: getRandomLocationImage(),
-          category: 'Nightlife' 
-        },
-        { 
-          title: 'Visit The Irish House', 
-          location: 'The Irish House', 
-          description: 'Enjoy the nightlife at The Irish House.',
-          time: '9:00 PM',
-          image: getRandomLocationImage(),
-          category: 'Nightlife' 
-        }
-      ],
-      'Family Activities': [
-        { 
-          title: 'Visit Wonder Park', 
-          location: 'Wonder Park', 
-          description: 'Spend time with family at Wonder Park.',
-          time: '11:00 AM',
-          image: getRandomLocationImage(),
-          category: 'Family Activities' 
-        },
-        { 
-          title: 'Visit Central Park', 
-          location: 'Central Park', 
-          description: 'Spend time with family at Central Park.',
-          time: '2:00 PM',
-          image: getRandomLocationImage(),
-          category: 'Family Activities' 
-        }
-      ],
-      'Adventure': [
-        { 
-          title: 'Trekking at Kharghar Hills', 
-          location: 'Kharghar Hills', 
-          description: 'Enjoy trekking at Kharghar Hills.',
-          time: '8:00 AM',
-          image: getRandomLocationImage(),
-          category: 'Adventure' 
-        },
-        { 
-          title: 'Visit Pandavkada Falls', 
-          location: 'Pandavkada Falls', 
-          description: 'Enjoy the natural surroundings at Pandavkada Falls.',
-          time: '10:00 AM',
-          image: getRandomLocationImage(),
-          category: 'Adventure' 
-        }
-      ],
-      'Relaxation': [
-        { 
-          title: 'Relax at Sagar Vihar', 
-          location: 'Sagar Vihar', 
-          description: 'Relax at Sagar Vihar.',
-          time: '4:00 PM',
-          image: getRandomLocationImage(),
-          category: 'Relaxation' 
-        },
-        { 
-          title: 'Visit Nerul Lake', 
-          location: 'Nerul Lake', 
-          description: 'Relax at Nerul Lake.',
-          time: '5:00 PM',
-          image: getRandomLocationImage(),
-          category: 'Relaxation' 
-        }
-      ],
-      'Cultural Experiences': [
-        { 
-          title: 'Visit Hanuman Temple', 
-          location: 'Hanuman Temple', 
-          description: 'Visit the Hanuman Temple.',
-          time: '7:00 AM',
-          image: getRandomLocationImage(),
-          category: 'Cultural Experiences' 
-        },
-        { 
-          title: 'Visit Rock Garden', 
-          location: 'Rock Garden', 
-          description: 'Visit the Rock Garden.',
-          time: '3:00 PM',
-          image: getRandomLocationImage(),
-          category: 'Cultural Experiences' 
-        }
-      ]
+    // Define mock activities with proper types
+    const createMockActivity = (
+      title: string,
+      location: string,
+      description: string,
+      category: string,
+      image: string
+    ): ItineraryActivityBase => {
+      return {
+        title,
+        location,
+        description,
+        time: "9:00 AM", // This will be replaced later
+        image,
+        category
+      };
     };
+    
+    // Create category to place mapping
+    const mockActivities: Record<string, ItineraryActivityBase[]> = {};
+    
+    // Fill mock activities from filtered places
+    interestsList.forEach(interest => {
+      const placesForInterest = filteredPlaces.filter(place => {
+        return place.category === interest || 
+               (interest === 'Historical Sites' && place.category === 'Historical Sites') ||
+               (interest === 'Shopping' && place.category === 'Shopping') ||
+               (interest === 'Nature & Outdoors' && ['Nature', 'Parks & Gardens'].includes(place.category)) ||
+               (interest === 'Family Activities' && ['Amusement', 'Parks & Gardens'].includes(place.category)) ||
+               (interest === 'Adventure' && ['Adventure', 'Nature'].includes(place.category)) ||
+               (interest === 'Cultural Experiences' && ['Religious Sites', 'Historical Sites'].includes(place.category));
+      });
+      
+      // If we have places for this interest, add them to mock activities
+      if (placesForInterest.length > 0) {
+        mockActivities[interest] = placesForInterest.map(place => createMockActivity(
+          place.name,
+          place.location,
+          place.description,
+          interest,
+          place.image
+        ));
+      } else {
+        // Fallback if no matching places
+        mockActivities[interest] = [
+          createMockActivity(
+            `Explore ${interest} in ${selectedLocations[0] || 'Navi Mumbai'}`,
+            selectedLocations[0] || 'Navi Mumbai',
+            `Discover the best ${interest.toLowerCase()} in the area.`,
+            interest,
+            getRandomLocationImage()
+          )
+        ];
+      }
+    });
+    
+    // If include food is enabled, add food recommendations
+    if (includeFood) {
+      if (filteredRestaurants.length > 0) {
+        mockActivities['Food & Drink'] = filteredRestaurants.map(restaurant => createMockActivity(
+          `Dine at ${restaurant.name}`,
+          restaurant.location,
+          `${restaurant.description} Try their signature dish: ${restaurant.signature_dish || 'house specialties'}.`,
+          'Food & Drink',
+          restaurant.image
+        ));
+      } else {
+        mockActivities['Food & Drink'] = [
+          createMockActivity(
+            `Explore local cuisine in ${selectedLocations[0] || 'Navi Mumbai'}`,
+            selectedLocations[0] || 'Navi Mumbai',
+            'Sample delicious local dishes at one of the area\'s top-rated restaurants.',
+            'Food & Drink',
+            getRandomLocationImage()
+          )
+        ];
+      }
+      
+      // Make sure Food & Drink is included in interests if includeFood is true
+      if (!interests.includes('Food & Drink')) {
+        interests.push('Food & Drink');
+      }
+    }
     
     // Assign activities to days based on interests
     itineraryTemplate.days.forEach(day => {
       const selectedInterests = interests.filter(interest => mockActivities[interest]);
+      const activitiesForDay: ItineraryActivityBase[] = [];
       
-      selectedInterests.forEach(interest => {
-        const activitiesForInterest = mockActivities[interest];
-        if (activitiesForInterest && activitiesForInterest.length > 0) {
-          // Add a random activity for each selected interest
-          const randomIndex = Math.floor(Math.random() * activitiesForInterest.length);
-          day.activities.push(activitiesForInterest[randomIndex]);
+      // Number of activities based on pace
+      const activitiesCount = pace === 'relaxed' ? 3 : pace === 'moderate' ? 4 : 5;
+      
+      // Distribute interests throughout the days
+      for (let i = 0; i < activitiesCount; i++) {
+        const interestIndex = (i + day.day) % selectedInterests.length;
+        const interest = selectedInterests[interestIndex];
+        
+        if (mockActivities[interest] && mockActivities[interest].length > 0) {
+          // Pick an activity we haven't used yet if possible
+          const activityIndex = (day.day + i) % mockActivities[interest].length;
+          const activity = mockActivities[interest][activityIndex];
+          
+          // Add this activity if we haven't already included it
+          if (!activitiesForDay.some(a => a.title === activity.title)) {
+            activitiesForDay.push({...activity});
+          }
         }
-      });
+      }
+      
+      day.activities = activitiesForDay;
     });
 
-    // Process the itinerary to format activities and assign times
+    // Process the itinerary to assign evenly distributed time slots
     const processedItinerary: ItineraryDayBase[] = [];
     
     itineraryTemplate.days.forEach(day => {
@@ -328,10 +298,10 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title || !days) {
+    if (!title || !days || selectedLocations.length === 0) {
       toast({
         title: "Missing information",
-        description: "Please fill in all required fields.",
+        description: "Please fill in all required fields and select at least one location.",
         variant: "destructive"
       });
       return;
@@ -345,11 +315,20 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
       budget,
       interests,
       transportation,
-      include_food: includeFood
+      include_food: includeFood,
+      locations: selectedLocations
     };
     
     const itinerary = await generateItinerary(settings);
     onGenerate(itinerary, settings);
+  };
+
+  const toggleLocation = (location: string) => {
+    if (selectedLocations.includes(location)) {
+      setSelectedLocations(selectedLocations.filter(loc => loc !== location));
+    } else {
+      setSelectedLocations([...selectedLocations, location]);
+    }
   };
 
   return (
@@ -456,6 +435,25 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
               </Button>
             ))}
           </div>
+        </div>
+        
+        <div className="grid gap-2">
+          <Label>Locations</Label>
+          <div className="flex flex-wrap gap-2">
+            {allLocations.map((location) => (
+              <Button
+                key={location}
+                variant={selectedLocations.includes(location) ? "default" : "outline"}
+                onClick={() => toggleLocation(location)}
+                size="sm"
+              >
+                {location}
+              </Button>
+            ))}
+          </div>
+          {selectedLocations.length === 0 && (
+            <p className="text-xs text-destructive">Please select at least one location</p>
+          )}
         </div>
         
         <div className="grid gap-2">
