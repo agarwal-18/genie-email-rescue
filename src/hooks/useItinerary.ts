@@ -365,8 +365,14 @@ export function useItinerary() {
         format: 'a4'
       });
       
-      // Find all day tabs
-      const dayTabs = Array.from(element.querySelectorAll('[role="tab"]'));
+      // Activate all day tabs before capturing
+      const allDayTabs = element.querySelectorAll('[role="tab"]');
+      const tabElements: HTMLElement[] = [];
+      
+      // Collect all tab elements for later restoration
+      allDayTabs.forEach((tab) => {
+        tabElements.push(tab as HTMLElement);
+      });
       
       // Add title page
       pdf.setFontSize(24);
@@ -376,30 +382,33 @@ export function useItinerary() {
       pdf.text(`${itineraryInfo.days}-Day Itinerary`, 105, 100, { align: 'center' });
       pdf.text(`Generated on ${new Date().toLocaleDateString()}`, 105, 110, { align: 'center' });
       
-      // For each day in the itinerary, add content to PDF
-      for (let i = 0; i < dayTabs.length; i++) {
-        const tab = dayTabs[i] as HTMLElement;
+      // For each day in the itinerary
+      for (let dayIndex = 0; dayIndex < itineraryDays.length; dayIndex++) {
+        const day = itineraryDays[dayIndex];
         
-        // Click on each day tab to make its content visible
-        tab.click();
+        // Click on the tab to make this day visible
+        if (tabElements[dayIndex]) {
+          tabElements[dayIndex].click();
+        }
         
-        // Wait for the UI to update after clicking the tab
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // Wait a moment for the UI to update
+        await new Promise(resolve => setTimeout(resolve, 100));
         
-        // Find the active tab panel (the currently visible day content)
-        const activeTabPanel = element.querySelector('[role="tabpanel"][data-state="active"]');
-        
-        if (activeTabPanel) {
-          // Add a new page for each day (skip for first day if it's title page)
+        // Create a new page for each day after the title page
+        if (dayIndex > 0 || true) {
           pdf.addPage();
-          
-          // Add day header
-          const dayNumber = tab.getAttribute('data-day') || (i + 1).toString();
-          pdf.setFontSize(16);
-          pdf.text(`Day ${dayNumber} Itinerary`, 10, 20);
-          
-          // Capture the content of this day
-          const canvas = await html2canvas(activeTabPanel as HTMLElement, {
+        }
+        
+        // Add day header
+        pdf.setFontSize(16);
+        pdf.text(`Day ${day.day} Itinerary`, 10, 20);
+        
+        // Find this day's content
+        const dayContent = element.querySelector(`[data-value="day-${day.day}"][role="tabpanel"]`);
+        
+        if (dayContent) {
+          // Capture this day's content
+          const canvas = await html2canvas(dayContent as HTMLElement, {
             scale: 2,
             logging: false,
             useCORS: true,
@@ -407,21 +416,15 @@ export function useItinerary() {
             scrollY: -window.scrollY
           });
           
-          const imgWidth = 190;  // A4 width minus margins
+          const imgWidth = 190; // A4 width with margins
           const imgHeight = (canvas.height * imgWidth) / canvas.width;
           
-          // Add the image of the day's content
-          pdf.addImage(
-            canvas.toDataURL('image/png'), 
-            'PNG', 
-            10, 30, 
-            imgWidth, 
-            Math.min(imgHeight, 230)  // Limit height to fit on page
-          );
+          // Add the content image, but keep it from going off-page
+          pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 30, imgWidth, Math.min(imgHeight, 240));
         }
       }
       
-      // Add the travel tips section at the end
+      // Capture the travel tips section
       const tipsSection = element.querySelector('.travel-tips-section');
       if (tipsSection) {
         pdf.addPage();
@@ -440,15 +443,35 @@ export function useItinerary() {
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         
         pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 30, imgWidth, Math.min(imgHeight, 240));
+      } else {
+        // If no tips section found, add instructions page manually
+        pdf.addPage();
+        pdf.setFontSize(16);
+        pdf.text("Travel Tips & Instructions", 10, 20);
+        
+        pdf.setFontSize(11);
+        pdf.text("1. Arrive 30 minutes early for any scheduled activities", 15, 40);
+        pdf.text("2. Keep digital and physical copies of your itinerary", 15, 50);
+        pdf.text("3. Check weather forecasts daily and plan accordingly", 15, 60);
+        pdf.text("4. Always carry water and stay hydrated", 15, 70);
+        pdf.text("5. Be respectful of local customs and traditions", 15, 80);
+        pdf.text("6. Have emergency contacts saved on your phone", 15, 90);
+        pdf.text("7. Take regular breaks to avoid exhaustion", 15, 100);
+        pdf.text("8. Try local cuisine for an authentic experience", 15, 110);
+        pdf.text("9. Download offline maps before exploring", 15, 120);
+        pdf.text("10. Keep flexible time buffers in your schedule", 15, 130);
+        
+        pdf.setFontSize(12);
+        pdf.text("Enjoy your trip to Navi Mumbai!", 15, 150);
       }
       
-      // Save the PDF file
-      const fileName = `${itineraryInfo.title.replace(/\s+/g, '_')}_itinerary.pdf`;
+      // Save the PDF
+      const fileName = `${itineraryInfo.title.replace(/\s+/g, '_')}.pdf`;
       pdf.save(fileName);
       
-      // Reset back to first day tab for user viewing
-      if (dayTabs[0]) {
-        (dayTabs[0] as HTMLElement).click();
+      // Restore the original tab (first day)
+      if (tabElements[0]) {
+        tabElements[0].click();
       }
       
       return true;
