@@ -132,13 +132,13 @@ const Itinerary = () => {
           setEditMode(true);
           loadedItineraryRef.current = idParam;
           
-          // Set the itinerary settings, handling Budget-Friendly -> Economical conversion
+          // Set the itinerary settings
           setItinerarySettings({
             title: result.details.title,
             days: result.details.days,
             start_date: result.details.start_date ? new Date(result.details.start_date) : undefined,
             pace: result.details.pace || 'moderate',
-            budget: result.details.budget === 'Budget-Friendly' ? 'Economical' : result.details.budget || 'Mid-Range',
+            budget: result.details.budget || 'medium',
             interests: result.details.interests || ['Historical Sites', 'Shopping'],
             transportation: result.details.transportation || 'public',
             include_food: result.details.include_food !== null ? result.details.include_food : true

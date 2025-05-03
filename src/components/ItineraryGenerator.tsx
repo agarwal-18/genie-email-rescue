@@ -53,9 +53,6 @@ const INTERESTS = [
   'Entertainment'
 ];
 
-// Excluded locations that should not be recommended in the itinerary
-const EXCLUDED_LOCATIONS = ['DY Patil Stadium'];
-
 const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps) => {
   const [selectedLocations, setSelectedLocations] = useState<string[]>(['Vashi']);
   const [numberOfDays, setNumberOfDays] = useState(3);
@@ -121,8 +118,7 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
         interests: selectedInterests,
         includeFood,
         transportation,
-        locations: selectedLocations, // Pass selected locations array
-        excludedLocations: EXCLUDED_LOCATIONS // Pass excluded locations
+        locations: selectedLocations // Pass selected locations array
       });
       
       setItinerary(generatedItinerary);
@@ -232,7 +228,7 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
             ))}
           </div>
           <div className="flex flex-wrap gap-2 mt-2">
-            {LOCATIONS.filter(loc => !selectedLocations.includes(loc) && !EXCLUDED_LOCATIONS.includes(loc)).map((loc) => (
+            {LOCATIONS.filter(loc => !selectedLocations.includes(loc)).map((loc) => (
               <Badge 
                 key={loc} 
                 variant="outline" 
@@ -354,13 +350,13 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
           </RadioGroup>
         </div>
         
-        {/* Budget - Radio Group - Updated label from "Budget-Friendly" to "Economical" */}
+        {/* Budget - Radio Group */}
         <div>
           <Label className="mb-2 block">Budget</Label>
           <RadioGroup value={budget} onValueChange={setBudget} className="flex gap-4">
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Economical" id="budget" />
-              <Label htmlFor="budget">Economical</Label>
+              <RadioGroupItem value="Budget-Friendly" id="budget" />
+              <Label htmlFor="budget">Budget</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="Mid-Range" id="mid" />
