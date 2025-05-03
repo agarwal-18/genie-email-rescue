@@ -24,7 +24,7 @@ declare global {
   interface ItineraryActivity {
     title: string;
     location: string;
-    description?: string; // Make description optional to match ItineraryActivityBase
+    description?: string; // Optional description
     time: string;
     image: string;
     category: string;
