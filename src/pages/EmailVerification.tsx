@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -49,7 +48,7 @@ const EmailVerification = () => {
     setIsVerifying(true);
     
     try {
-      const response = await axios.post(`${API_CONFIG.baseURL}/auth/verify-email`, {
+      const response = await axios.post(`${API_CONFIG.baseUrl}/auth/verify-email`, {
         email,
         verification_code: code
       });
@@ -82,7 +81,7 @@ const EmailVerification = () => {
     setIsResending(true);
     
     try {
-      await axios.post(`${API_CONFIG.baseURL}/auth/resend-verification`, {
+      await axios.post(`${API_CONFIG.baseUrl}/auth/resend-verification`, {
         email
       });
       
