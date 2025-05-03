@@ -4,13 +4,10 @@ import { supabase, type UserItinerary } from '@/integrations/supabase/client';
 import type { ItineraryActivity as IActivity } from '@/integrations/supabase/client';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { API_CONFIG, ItinerarySettings, ItineraryActivityBase, ItineraryDayBase } from '@/config';
+import { ItinerarySettings } from '@/config';
 
-// Local type definition that won't conflict with imported one
-export type ItineraryDay = {
-  day: number;
-  activities: ItineraryActivityBase[];
-};
+// We no longer need to define these types here, we use the global ones
+// This removes the duplicate type definition that was causing the error
 
 export interface ItineraryDetail {
   details: UserItinerary;

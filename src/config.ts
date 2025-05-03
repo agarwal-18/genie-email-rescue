@@ -19,17 +19,6 @@ export interface ItinerarySettings {
   user_id?: string;
 }
 
-export interface ItineraryActivityBase {
-  title: string;
-  location: string;
-  description?: string;
-  time: string;
-  image: string;
-  category: string;
-}
-
-export interface ItineraryDayBase {
-  day: number;
-  activities: ItineraryActivityBase[];
-}
-
+// Modify these interfaces to match the global types
+export type ItineraryActivityBase = ItineraryActivity;
+export type ItineraryDayBase = ItineraryDay;

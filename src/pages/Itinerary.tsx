@@ -24,15 +24,7 @@ import TripTips from '@/components/TripTips';
 import Weather from '@/components/Weather';
 import ItineraryMap from '@/components/ItineraryMap';
 import { useItinerary } from '@/hooks/useItinerary';
-import { ItineraryActivityBase, ItineraryDayBase, ItinerarySettings } from '@/config';
-
-// Define local interface for activities to avoid type conflicts
-interface ItineraryActivity extends ItineraryActivityBase {
-  day?: number;
-  itinerary_id?: string;
-}
-
-interface ItineraryDay extends ItineraryDayBase {}
+import { ItinerarySettings } from '@/config';
 
 // Location images object with the previously missing places
 const locationImages: Record<string, string> = {
