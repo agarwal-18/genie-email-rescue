@@ -9,56 +9,51 @@ const timeSlots = [
 
 const recommendations = {
   "Historical Sites": [
-    { name: "Belapur Fort", description: "A historic fort with scenic views. Dating from the 17th century, offering panoramic views of the creek.", image: "https://images.unsplash.com/photo-1596402184320-417e7178b2cd?q=80&w=800" },
-    { name: "Pandavkada Falls", description: "A waterfall with mythological significance connected to the Pandavas from Mahabharata.", image: "https://images.unsplash.com/photo-1505159940484-eb2b9f2588e2?q=80&w=800" }
+    { name: "Belapur Fort", description: "A historic fort with scenic views.", image: "https://example.com/belapur_fort.jpg" },
+    { name: "Pandavkada Falls", description: "A waterfall with mythological significance.", image: "https://example.com/pandavkada_falls.jpg" }
   ],
   "Museums": [
-    { name: "Navi Mumbai Science Centre", description: "Interactive exhibits for all ages, focusing on science and technology innovations.", image: "https://images.unsplash.com/photo-1518998053901-5348d3961a04?q=80&w=800" }
+    { name: "Navi Mumbai Science Centre", description: "Interactive exhibits for all ages.", image: "https://example.com/science_centre.jpg" }
   ],
-  "Food & Drink": [
-    { name: "Fish Land", description: "Authentic seafood restaurant serving Konkan delicacies and freshly caught fish.", image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=800" },
-    { name: "Pop Tate's", description: "Popular for its sizzlers and continental dishes with a cozy atmosphere.", image: "https://images.unsplash.com/photo-1559847844-5315695dadae?q=80&w=800" },
-    { name: "Spice Kitchen", description: "Authentic Indian cuisine with a wide range of regional specialties.", image: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?q=80&w=800" },
-    { name: "Urban Tadka", description: "North Indian delicacies in a modern setting with excellent ambiance.", image: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?q=80&w=800" }
+  "Local Cuisine": [
+    { name: "Fish Land", description: "Authentic seafood restaurant.", image: "https://example.com/fish_land.jpg" },
+    { name: "Pop Tate's", description: "Popular for its sizzlers and continental dishes.", image: "https://example.com/pop_tates.jpg" }
   ],
-  "Nature & Outdoors": [
-    { name: "Central Park", description: "A large park perfect for picnics, jogging, and recreational activities with beautiful landscaping.", image: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=800" },
-    { name: "Mini Seashore", description: "A serene beach for relaxation and enjoying beautiful sunsets over the Arabian Sea.", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800" },
-    { name: "Parsik Hill", description: "Offers panoramic views of the city and surrounding areas, perfect for hiking and photography.", image: "https://images.unsplash.com/photo-1564221710304-0b37c8b9d729?q=80&w=800" }
+  "Outdoor Activities": [
+    { name: "Central Park", description: "A large park perfect for picnics and recreation.", image: "https://example.com/central_park.jpg" },
+    { name: "Mini Seashore", description: "A serene beach for relaxation.", image: "https://example.com/mini_seashore.jpg" },
+    { name: "Parsik Hill", description: "Offers panoramic views of the city.", image: "https://example.com/parsik_hill.jpg" }
   ],
   "Shopping": [
-    { name: "Inorbit Mall", description: "A premier shopping destination with international and domestic brands, entertainment, and dining options.", image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800" },
-    { name: "Raghuleela Mall", description: "Offers a variety of retail outlets, multiplex cinema, and food court with diverse options.", image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=800" },
-    { name: "APMC Market", description: "A bustling market for fresh produce and spices, offering wholesale rates and local specialties.", image: "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?q=80&w=800" }
+    { name: "Inorbit Mall", description: "A premier shopping destination.", image: "https://example.com/inorbit_mall.jpg" },
+    { name: "Raghuleela Mall", description: "Offers a variety of retail outlets.", image: "https://example.com/raghuleela_mall.jpg" },
+    { name: "APMC Market", description: "A bustling market for fresh produce and spices.", image: "https://example.com/apmc_market.jpg" }
   ],
   "Nightlife": [
-    { name: "Someplace Else", description: "A popular spot for live music, craft cocktails and a vibrant evening atmosphere.", image: "https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?q=80&w=800" },
-    { name: "The Irish House", description: "Known for its vibrant atmosphere, extensive beer selection and live sports screenings.", image: "https://images.unsplash.com/photo-1543007631-546a79f80ca3?q=80&w=800" }
+    { name: "Someplace Else", description: "A popular spot for live music.", image: "https://example.com/someplace_else.jpg" },
+    { name: "The Irish House", description: "Known for its vibrant atmosphere.", image: "https://example.com/irish_house.jpg" }
   ],
   "Relaxation": [
-    { name: "Sagar Vihar", description: "A peaceful garden by the sea with walking paths and stunning views of Mumbai's skyline.", image: "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?q=80&w=800" },
-    { name: "Jewel of Navi Mumbai", description: "A scenic spot for evening walks with beautiful lighting and landscaping.", image: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?q=80&w=800" }
+    { name: "Sagar Vihar", description: "A peaceful garden by the sea.", image: "https://example.com/sagar_vihar.jpg" },
+    { name: "Jewel of Navi Mumbai", description: "A scenic spot for evening walks.", image: "https://example.com/jewel_of_navi_mumbai.jpg" }
   ],
   "Adventure": [
-    { name: "Wonder Park", description: "An amusement park with thrilling rides, water activities, and entertainment options for all ages.", image: "https://images.unsplash.com/photo-1513889961551-628c1e5e2ee9?q=80&w=800" },
-    { name: "Tikuji-ni-Wadi", description: "Water park and adventure resort with numerous attractions and outdoor activities.", image: "https://images.unsplash.com/photo-1477065263485-2c2d5a04d965?q=80&w=800" }
+    { name: "Wonder Park", description: "An amusement park with thrilling rides.", image: "https://example.com/wonder_park.jpg" },
   ],
   "Cultural Experiences": [
-    { name: "Nerul Balaji Temple", description: "A beautiful South Indian temple with intricate architecture and spiritual significance.", image: "https://images.unsplash.com/photo-1561361058-c24e06f35045?q=80&w=800" },
-    { name: "Akshar Dhaam", description: "A modern temple with intricate carvings depicting Hindu mythology and philosophy.", image: "https://images.unsplash.com/photo-1609619385002-f40f1f64e122?q=80&w=800" }
+    { name: "Nerul Balaji Temple", description: "A beautiful South Indian temple.", image: "https://example.com/balaji_temple.jpg" },
+    { name: "Akshar Dhaam", description: "A modern temple with intricate carvings.", image: "https://example.com/akshar_dhaam.jpg" }
   ],
   "Religious Sites": [
-    { name: "Hanuman Temple", description: "A serene place for worship dedicated to Lord Hanuman with traditional architecture.", image: "https://images.unsplash.com/photo-1560337349-a7a7c03a5c89?q=80&w=800" },
-    { name: "ISKCON Temple", description: "Beautiful temple dedicated to Lord Krishna with regular spiritual programs and prasadam.", image: "https://images.unsplash.com/photo-1555791019-72d3af01da82?q=80&w=800" }
+    { name: "Hanuman Temple", description: "A serene place for worship.", image: "https://example.com/hanuman_temple.jpg" }
   ],
   "Parks & Gardens": [
-    { name: "Rock Garden", description: "A unique garden with rock formations, waterfalls and beautiful landscaping.", image: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?q=80&w=800" },
-    { name: "Wonders Park", description: "Features replicas of the Seven Wonders of the World along with recreational facilities.", image: "https://images.unsplash.com/photo-1563911302283-d2bc129e7570?q=80&w=800" }
+    { name: "Rock Garden", description: "A unique garden with rock formations.", image: "https://example.com/rock_garden.jpg" },
+    { name: "Wonders Park", description: "Features replicas of the Seven Wonders.", image: "https://example.com/wonders_park.jpg" }
   ],
-  "Family Activities": [
-    { name: "DY Patil Stadium", description: "World-class sports venue hosting cricket matches and other entertainment events.", image: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=800" },
-    { name: "Snow World", description: "Indoor snow theme park offering a unique winter experience in Mumbai's climate.", image: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?q=80&w=800" },
-    { name: "Smaaash", description: "Interactive gaming and entertainment center with virtual reality experiences.", image: "https://images.unsplash.com/photo-1511882150382-421056c89033?q=80&w=800" }
+  "Entertainment": [
+    { name: "Little Theatre", description: "A venue for local plays and performances.", image: "https://example.com/little_theatre.jpg" },
+    { name: "INOX", description: "A popular cinema for the latest movies.", image: "https://example.com/inox.jpg" }
   ]
 };
 
@@ -68,8 +63,8 @@ const places = [
     id: "1",
     name: "Belapur Fort",
     category: "Historical Sites",
-    description: "A historic fort with scenic views dating from the 17th century.",
-    image: "https://images.unsplash.com/photo-1596402184320-417e7178b2cd?q=80&w=800",
+    description: "A historic fort with scenic views.",
+    image: "https://example.com/belapur_fort.jpg",
     rating: 4.5,
     location: "Belapur",
     duration: "2 hours",
@@ -79,8 +74,8 @@ const places = [
     id: "2",
     name: "Pandavkada Falls",
     category: "Historical Sites",
-    description: "A waterfall with mythological significance connected to the Pandavas.",
-    image: "https://images.unsplash.com/photo-1505159940484-eb2b9f2588e2?q=80&w=800",
+    description: "A waterfall with mythological significance.",
+    image: "https://example.com/pandavkada_falls.jpg",
     rating: 4.2,
     location: "Kharghar",
     duration: "3 hours",
@@ -90,8 +85,8 @@ const places = [
     id: "3",
     name: "Navi Mumbai Science Centre",
     category: "Museums",
-    description: "Interactive exhibits for all ages focusing on science and technology.",
-    image: "https://images.unsplash.com/photo-1518998053901-5348d3961a04?q=80&w=800",
+    description: "Interactive exhibits for all ages.",
+    image: "https://example.com/science_centre.jpg",
     rating: 4.0,
     location: "Vashi",
     duration: "4 hours",
@@ -101,8 +96,8 @@ const places = [
     id: "4",
     name: "Inorbit Mall",
     category: "Shopping",
-    description: "A premier shopping destination with international and domestic brands.",
-    image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800",
+    description: "A premier shopping destination.",
+    image: "https://example.com/inorbit_mall.jpg",
     rating: 4.3,
     location: "Vashi",
     duration: "3 hours",
@@ -111,9 +106,9 @@ const places = [
   {
     id: "5",
     name: "Central Park",
-    category: "Nature & Outdoors",
-    description: "A large park perfect for picnics and recreation with beautiful landscaping.",
-    image: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=800",
+    category: "Outdoor Activities",
+    description: "A large park perfect for picnics and recreation.",
+    image: "https://example.com/central_park.jpg",
     rating: 4.1,
     location: "Kharghar",
     duration: "2 hours",
@@ -121,27 +116,24 @@ const places = [
   }
 ];
 
-// Always exclude DY Patil Stadium from recommendations unless specifically requested
-const excludedByDefault = [];
+// Always exclude DY Patil Stadium from recommendations
+const excludedByDefault = ["DY Patil Stadium"];
 
-const generateActivity = (time: string, category: string) => {
-  const categoryItems = recommendations[category as keyof typeof recommendations] || [];
-  const randomItem = categoryItems[Math.floor(Math.random() * categoryItems.length)];
-  
+const generateActivity = (time: string) => {
   return {
     time,
-    title: randomItem?.name || `Explore ${category}`,
+    title: faker.lorem.sentence(),
     location: faker.location.city(),
-    description: randomItem?.description || `Discover the best ${category.toLowerCase()} in the area.`,
-    image: randomItem?.image || faker.image.url(),
-    category
+    description: faker.lorem.paragraph(),
+    image: faker.image.url(),
+    category: faker.helpers.arrayElement(Object.keys(recommendations))
   };
 };
 
 const generateDay = (day: number) => {
   return {
     day,
-    activities: timeSlots.slice(0, 5).map(time => generateActivity(time, faker.helpers.arrayElement(Object.keys(recommendations))))
+    activities: timeSlots.map(generateActivity)
   };
 };
 
@@ -172,69 +164,21 @@ export const generateItinerary = ({
 
   for (let i = 1; i <= days; i++) {
     const dayActivities = [];
-    // Number of activities based on pace
     const numberOfActivities = pace === 'relaxed' ? 3 : pace === 'moderate' ? 5 : 7;
-    
-    // Make sure Food & Drink is included if includeFood is true
-    let availableInterests = [...interests];
-    if (includeFood && !availableInterests.includes('Food & Drink')) {
-      availableInterests.push('Food & Drink');
-    }
-    
-    // Generate time slots for the day
-    const timeSlots = [];
-    const startHour = 8; // 8AM
-    const endHour = 20; // 8PM
-    const interval = (endHour - startHour) / (numberOfActivities - 1);
-    
+
     for (let j = 0; j < numberOfActivities; j++) {
-      const hour = Math.floor(startHour + j * interval);
-      const minute = Math.round((interval * j - Math.floor(interval * j)) * 60);
-      const ampm = hour >= 12 ? 'PM' : 'AM';
-      const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-      const timeStr = `${hour12}:${minute.toString().padStart(2, '0')} ${ampm}`;
-      timeSlots.push(timeStr);
-    }
-    
-    // For each time slot, assign an activity
-    for (let j = 0; j < numberOfActivities; j++) {
-      // Rotate through interests for variety
-      const interestIndex = (i + j) % availableInterests.length;
-      const interest = availableInterests[interestIndex];
-      
-      // Special case for meal times
-      let category = interest;
-      if (includeFood) {
-        const time = parseInt(timeSlots[j].split(':')[0]);
-        const ampm = timeSlots[j].split(' ')[1];
-        const hour24 = ampm === 'PM' && time !== 12 ? time + 12 : time;
-        
-        if ((hour24 >= 11 && hour24 <= 13) || (hour24 >= 18 && hour24 <= 20)) {
-          category = 'Food & Drink';
-        }
-      }
-      
-      // Get options for this category
-      const options = filteredRecommendations[category] || [];
-      
-      if (options.length > 0) {
-        // Pick an item we haven't used yet if possible
-        const usedTitles = dayActivities.map(a => a.title);
-        const availableOptions = options.filter(opt => !usedTitles.includes(opt.name));
-        const option = availableOptions.length > 0 
-          ? availableOptions[Math.floor(Math.random() * availableOptions.length)]
-          : options[Math.floor(Math.random() * options.length)];
-        
-        // Add activity with actual location info
-        dayActivities.push({
-          time: timeSlots[j],
-          title: option.name,
-          location: locations[j % locations.length] || locations[0],
-          description: option.description,
-          image: option.image,
-          category
-        });
-      }
+      const time = timeSlots[j % timeSlots.length];
+      const interest = interests[j % interests.length];
+      const place = faker.helpers.arrayElement(filteredRecommendations[interest]);
+
+      dayActivities.push({
+        time: time,
+        title: place.name,
+        location: locations[j % locations.length],
+        description: place.description,
+        image: place.image,
+        category: interest
+      });
     }
 
     itinerary.push({

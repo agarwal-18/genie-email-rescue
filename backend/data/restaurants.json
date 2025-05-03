@@ -5,111 +5,31 @@
       "id": "r1",
       "name": "Gajali Restaurant",
       "cuisine": "Seafood",
-      "description": "Famous for its coastal Maharashtrian cuisine and specialties like Surmai Fry and Crab Masala.",
+      "description": "Famous for its coastal Maharashtrian cuisine and fresh seafood dishes.",
       "image": "https://images.unsplash.com/photo-1536392706976-e486e2ba97af?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
       "rating": 4.5,
       "location": "Vashi",
-      "price": "Mid-Range",
-      "signature_dish": "Pomfret Fry"
+      "price": "Mid-Range"
     },
     {
       "id": "r2",
       "name": "Sigree Global Grill",
       "cuisine": "Multi-cuisine",
-      "description": "Renowned for its buffet spread featuring global cuisines with live grilling stations and tandoor specialties.",
+      "description": "Renowned for its buffet spread featuring global cuisines with live grilling stations.",
       "image": "https://images.unsplash.com/photo-1544148103-0773bf10d330?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
       "rating": 4.4,
       "location": "Nerul",
-      "price": "Luxury",
-      "signature_dish": "Moroccan Grilled Chicken"
+      "price": "Luxury"
     },
     {
       "id": "r3",
       "name": "Urban Tadka",
       "cuisine": "North Indian",
-      "description": "Popular for its authentic North Indian dishes like Butter Chicken and Amritsari Kulcha.",
+      "description": "Popular for its authentic North Indian dishes and Punjabi specialties.",
       "image": "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3",
       "rating": 4.3,
       "location": "Kharghar",
-      "price": "Mid-Range",
-      "signature_dish": "Dal Makhani"
-    },
-    {
-      "id": "r4",
-      "name": "Mainland China",
-      "cuisine": "Chinese",
-      "description": "Authentic Chinese cuisine with favorites like Dimsums and Peking Duck in an elegant setting.",
-      "image": "https://images.unsplash.com/photo-1525648199074-cee30ba79a4a?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
-      "rating": 4.5,
-      "location": "Vashi",
-      "price": "Luxury",
-      "signature_dish": "Beijing Duck"
-    },
-    {
-      "id": "r5",
-      "name": "Barbeque Nation",
-      "cuisine": "Multi-cuisine",
-      "description": "Popular for its unlimited grilled starters and extensive buffet spread with live counters.",
-      "image": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3",
-      "rating": 4.2,
-      "location": "Nerul",
-      "price": "Mid-Range",
-      "signature_dish": "Cajun Potatoes"
-    },
-    {
-      "id": "r6",
-      "name": "Panchavati Gaurav",
-      "cuisine": "Maharashtrian",
-      "description": "Authentic Maharashtrian thali restaurant with traditional dishes and homely atmosphere.",
-      "image": "https://images.unsplash.com/photo-1596797038530-2c107aa8e1fa?q=80&w=1335&auto=format&fit=crop&ixlib=rb-4.0.3",
-      "rating": 4.4,
-      "location": "CBD Belapur",
-      "price": "Economical",
-      "signature_dish": "Maharashtrian Thali"
-    },
-    {
-      "id": "r7",
-      "name": "Dakshin",
-      "cuisine": "South Indian",
-      "description": "Premium South Indian restaurant offering authentic dishes from all Southern states.",
-      "image": "https://images.unsplash.com/photo-1610057099431-d73a1c9d2f2f?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3",
-      "rating": 4.3,
-      "location": "Vashi",
-      "price": "Mid-Range",
-      "signature_dish": "Malabar Fish Curry"
-    },
-    {
-      "id": "r8",
-      "name": "Pop Tate's",
-      "cuisine": "American",
-      "description": "Popular for its burgers, sizzlers, and American-style comfort food in a casual setting.",
-      "image": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?q=80&w=1471&auto=format&fit=crop&ixlib=rb-4.0.3",
-      "rating": 4.1,
-      "location": "Kharghar",
-      "price": "Mid-Range",
-      "signature_dish": "Cottage Cheese Sizzler"
-    },
-    {
-      "id": "r9",
-      "name": "Sadichha",
-      "cuisine": "Seafood",
-      "description": "Local favorite for authentic Malvani seafood with specialties like Surmai Thali.",
-      "image": "https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
-      "rating": 4.6,
-      "location": "Vashi",
-      "price": "Economical",
-      "signature_dish": "Bombil Fry"
-    },
-    {
-      "id": "r10",
-      "name": "The Fern",
-      "cuisine": "Multi-cuisine",
-      "description": "Elegant dining at Hotel Fortune with a variety of cuisines and fine dining experience.",
-      "image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
-      "rating": 4.4,
-      "location": "CBD Belapur",
-      "price": "Luxury",
-      "signature_dish": "Norwegian Salmon"
+      "price": "Mid-Range"
     }
   ]
 }

@@ -24,7 +24,15 @@ import TripTips from '@/components/TripTips';
 import Weather from '@/components/Weather';
 import ItineraryMap from '@/components/ItineraryMap';
 import { useItinerary } from '@/hooks/useItinerary';
-import { ItinerarySettings } from '@/config';
+import { ItineraryActivityBase, ItineraryDayBase, ItinerarySettings } from '@/config';
+
+// Define local interface for activities to avoid type conflicts
+interface ItineraryActivity extends ItineraryActivityBase {
+  day?: number;
+  itinerary_id?: string;
+}
+
+interface ItineraryDay extends ItineraryDayBase {}
 
 // Location images object with the previously missing places
 const locationImages: Record<string, string> = {
@@ -193,8 +201,19 @@ const Itinerary = () => {
     
     setItinerary(itineraryWithImages);
     
-    // Extract unique locations from the itinerary activities and use the selected locations from settings
-    setSelectedLocations(settings.locations || []);
+    // Extract unique locations from the itinerary activities
+    const locations = new Set<string>();
+    newItinerary.forEach(day => {
+      day.activities.forEach(activity => {
+        if (activity.location) {
+          locations.add(activity.location);
+        }
+      });
+    });
+    
+    const locationArray = Array.from(locations);
+    console.log("Extracted locations:", locationArray);
+    setSelectedLocations(locationArray);
   };
 
   const handleSaveItinerary = async () => {

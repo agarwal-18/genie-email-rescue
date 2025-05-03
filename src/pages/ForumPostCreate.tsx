@@ -40,20 +40,15 @@ const ForumPostCreate = () => {
     }
   }, [location, navigate, toast]);
   
-  // Check if user is logged in
-  useEffect(() => {
-    if (!user) {
+  if (!user) {
+    useEffect(() => {
       navigate('/login');
       toast({
         title: "Authentication required",
         description: "You need to log in to create a post.",
         variant: "destructive"
       });
-    }
-  }, [user, navigate, toast]);
-
-  // If no user, return null to prevent rendering
-  if (!user) {
+    }, []);
     return null;
   }
 
@@ -103,8 +98,7 @@ const ForumPostCreate = () => {
         description: "Your post has been successfully published.",
       });
       
-      // Make sure we navigate without reloading the page (use navigate instead of location/history)
-      navigate('/forum', { replace: true });
+      navigate('/forum');
     } catch (error) {
       console.error('Error creating post:', error);
       toast({

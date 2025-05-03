@@ -18,7 +18,7 @@ import ForumPost from '@/components/ForumPost';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-// Forum categories data
+// Mock data for forum categories (without post counts)
 const forumCategoriesData = [
   {
     id: 'city-advice',
@@ -140,16 +140,6 @@ interface Post {
   viewsCount: number;
 }
 
-// Extended forum category interface with post count
-interface ForumCategoryWithCount {
-  id: string;
-  title: string;
-  description: string;
-  icon: any;
-  color: string;
-  postCount: number;
-}
-
 const Forum = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -160,7 +150,7 @@ const Forum = () => {
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isTagPopoverOpen, setIsTagPopoverOpen] = useState(false);
-  const [forumCategories, setForumCategories] = useState<ForumCategoryWithCount[]>([]);
+  const [forumCategories, setForumCategories] = useState(forumCategoriesData);
 
   // Extract all unique tags from posts
   const allTags = Array.from(
@@ -172,45 +162,25 @@ const Forum = () => {
   // Load posts from localStorage and combine with mock posts
   useEffect(() => {
     // Get user-created posts from localStorage
-    try {
-      const userPosts = JSON.parse(localStorage.getItem('forumPosts') || '[]');
-      
-      // Combine with mock posts, with user posts at the beginning
-      const combinedPosts = [...userPosts, ...mockPosts];
-      setAllPosts(combinedPosts);
+    const userPosts = JSON.parse(localStorage.getItem('forumPosts') || '[]');
+    
+    // Combine with mock posts, with user posts at the beginning
+    const combinedPosts = [...userPosts, ...mockPosts];
+    setAllPosts(combinedPosts);
 
-      // Calculate post counts for each category
-      const categoryCounts: Record<string, number> = combinedPosts.reduce((counts: Record<string, number>, post) => {
-        if (post.category) {
-          counts[post.category] = (counts[post.category] || 0) + 1;
-        }
-        return counts;
-      }, {});
+    // Calculate post counts for each category
+    const categoryCounts = combinedPosts.reduce((counts: Record<string, number>, post) => {
+      if (post.category) {
+        counts[post.category] = (counts[post.category] || 0) + 1;
+      }
+      return counts;
+    }, {});
 
-      // Update forum categories with real post counts
-      setForumCategories(forumCategoriesData.map(category => ({
-        ...category,
-        postCount: categoryCounts[category.id] || 0
-      })));
-    } catch (error) {
-      console.error("Error loading forum posts:", error);
-      // Fallback to just mock posts if there's an error
-      setAllPosts(mockPosts);
-      
-      // Calculate counts from mock posts
-      const categoryCounts: Record<string, number> = mockPosts.reduce((counts: Record<string, number>, post) => {
-        if (post.category) {
-          counts[post.category] = (counts[post.category] || 0) + 1;
-        }
-        return counts;
-      }, {});
-      
-      // Set forum categories with counts from mock posts
-      setForumCategories(forumCategoriesData.map(category => ({
-        ...category,
-        postCount: categoryCounts[category.id] || 0
-      })));
-    }
+    // Update forum categories with real post counts
+    setForumCategories(forumCategoriesData.map(category => ({
+      ...category,
+      postCount: categoryCounts[category.id] || 0
+    })));
   }, []);
 
   // Filter posts based on active category, search query, and selected tags

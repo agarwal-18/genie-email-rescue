@@ -19,23 +19,6 @@ declare global {
     expires_at: number;
     user: User;
   }
-
-  // Define consistent itinerary types globally
-  interface ItineraryActivity {
-    title: string;
-    location: string;
-    description?: string; // Optional description
-    time: string;
-    image: string;
-    category: string;
-    day?: number;
-    itinerary_id?: string;
-  }
-
-  interface ItineraryDay {
-    day: number;
-    activities: ItineraryActivity[];
-  }
 }
 
 export {};
