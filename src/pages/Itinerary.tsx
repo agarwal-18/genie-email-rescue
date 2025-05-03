@@ -297,30 +297,22 @@ const Itinerary = () => {
       return;
     }
 
-    // Make sure we're fully rendering the content before capturing
-    setTimeout(async () => {
-      const success = await downloadItineraryAsPdf(
-        {
-          title: itinerarySettings.title || 'Navi Mumbai Itinerary',
-          days: itinerarySettings.days || itinerary.length,
-        },
-        itinerary,
-        itineraryContentRef.current
-      );
+    const success = await downloadItineraryAsPdf(
+      {
+        title: itinerarySettings.title || 'Navi Mumbai Itinerary',
+        days: itinerarySettings.days || itinerary.length,
+      },
+      itinerary,
+      itineraryContentRef.current
+    );
 
-      if (success) {
-        toast({
-          title: "Download complete",
-          description: "Your itinerary PDF has been downloaded successfully."
-        });
-      } else {
-        toast({
-          title: "Download failed",
-          description: "There was a problem downloading your itinerary.",
-          variant: "destructive"
-        });
-      }
-    }, 100); // Small delay to ensure DOM is updated
+    if (!success) {
+      toast({
+        title: "Download failed",
+        description: "There was a problem downloading your itinerary.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleOpenMap = () => {
@@ -425,7 +417,7 @@ const Itinerary = () => {
                         <Tabs defaultValue={`day-${itinerary[0].day}`}>
                           <TabsList className="grid grid-flow-col auto-cols-fr">
                             {itinerary.map((day) => (
-                              <TabsTrigger key={day.day} value={`day-${day.day}`} data-day={day.day}>
+                              <TabsTrigger key={day.day} value={`day-${day.day}`}>
                                 Day {day.day}
                               </TabsTrigger>
                             ))}
@@ -493,8 +485,8 @@ const Itinerary = () => {
                       </CardHeader>
                     </Card>
                     
-                    {/* Travel Tips & Instructions Section - Added for PDF */}
-                    <Card className="border-none shadow-md mt-6 travel-tips-section">
+                    {/* Travel Tips & Instructions Section - Added to be included in PDF */}
+                    <Card className="border-none shadow-md mt-6">
                       <CardHeader className="px-6 py-4 bg-primary/5 border-b">
                         <CardTitle className="flex items-center text-lg">
                           <Info className="h-5 w-5 mr-2 text-primary" />
