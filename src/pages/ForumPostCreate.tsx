@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,6 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const ForumPostCreate = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
   const [title, setTitle] = useState('');
@@ -21,15 +20,6 @@ const ForumPostCreate = () => {
   const [category, setCategory] = useState('');
   const [tags, setTags] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Get category from URL search params on component mount
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const categoryParam = params.get('category');
-    if (categoryParam) {
-      setCategory(categoryParam);
-    }
-  }, [location]);
   
   if (!user) {
     useEffect(() => {
@@ -125,7 +115,7 @@ const ForumPostCreate = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="category">Category *</Label>
-                <Select value={category} onValueChange={setCategory} required disabled={!!category}>
+                <Select value={category} onValueChange={setCategory} required>
                   <SelectTrigger id="category">
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
@@ -134,13 +124,9 @@ const ForumPostCreate = () => {
                     <SelectItem value="tourism">Navi Mumbai Tourism</SelectItem>
                     <SelectItem value="food">Regional Food Experiences</SelectItem>
                     <SelectItem value="adventure">Trekking & Adventure</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
-                {category && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Category is pre-selected based on where you clicked "Post in this category"
-                  </p>
-                )}
               </div>
               
               <div className="space-y-2">

@@ -116,9 +116,6 @@ const places = [
   }
 ];
 
-// Always exclude DY Patil Stadium from recommendations
-const excludedByDefault = ["DY Patil Stadium"];
-
 const generateActivity = (time: string) => {
   return {
     time,
@@ -150,13 +147,10 @@ export const generateItinerary = ({
   includeFood = true,
   transportation = 'public',
   locations = ['Vashi'],
-  excludedLocations = [] // User specified excluded locations
+  excludedLocations = [] // New parameter for excluded locations
 }) => {
-  // Combine user excluded locations with default excluded locations
-  const allExcludedLocations = [...excludedByDefault, ...excludedLocations];
-  
   const filteredRecommendations = Object.entries(recommendations).reduce((acc, [category, places]) => {
-    acc[category] = places.filter(place => !allExcludedLocations.includes(place.name));
+    acc[category] = places.filter(place => !excludedLocations.includes(place.name));
     return acc;
   }, {} as Record<string, any[]>);
 
