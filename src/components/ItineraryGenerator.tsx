@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -13,12 +12,12 @@ import { cn } from "@/lib/utils";
 import { format } from 'date-fns';
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
-import { API_CONFIG, ItineraryActivityBase, ItineraryDayBase, ItinerarySettings } from '@/config';
+import { API_CONFIG, ItinerarySettings } from '@/config';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
 
 interface ItineraryGeneratorProps {
-  onGenerate: (itinerary: ItineraryDayBase[], settings: ItinerarySettings) => void;
+  onGenerate: (itinerary: ItineraryDay[], settings: ItinerarySettings) => void;
   initialData?: ItinerarySettings | null;
 }
 
@@ -136,7 +135,7 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
     fetchPlacesData();
   }, []);
 
-  const generateItinerary = async (settings: ItinerarySettings): Promise<ItineraryDayBase[]> => {
+  const generateItinerary = async (settings: ItinerarySettings): Promise<ItineraryDay[]> => {
     // Filter available places by selected locations
     const filteredPlaces = availablePlaces.filter(place => 
       selectedLocations.includes(place.location)
@@ -151,7 +150,7 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
       title: settings.title,
       days: Array.from({ length: settings.days }, (_, i) => ({
         day: i + 1,
-        activities: [] as ItineraryActivityBase[]
+        activities: [] as ItineraryActivity[]
       }))
     };
     
@@ -162,7 +161,7 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
       description: string,
       category: string,
       image: string
-    ): ItineraryActivityBase => {
+    ): ItineraryActivity => {
       return {
         title,
         location,
@@ -174,7 +173,7 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
     };
     
     // Create category to place mapping
-    const mockActivities: Record<string, ItineraryActivityBase[]> = {};
+    const mockActivities: Record<string, ItineraryActivity[]> = {};
     
     // Fill mock activities from filtered places
     interestsList.forEach(interest => {
@@ -242,7 +241,7 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
     // Assign activities to days based on interests
     itineraryTemplate.days.forEach(day => {
       const selectedInterests = interests.filter(interest => mockActivities[interest]);
-      const activitiesForDay: ItineraryActivityBase[] = [];
+      const activitiesForDay: ItineraryActivity[] = [];
       
       // Number of activities based on pace
       const activitiesCount = pace === 'relaxed' ? 3 : pace === 'moderate' ? 4 : 5;
@@ -268,7 +267,7 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
     });
 
     // Process the itinerary to assign evenly distributed time slots
-    const processedItinerary: ItineraryDayBase[] = [];
+    const processedItinerary: ItineraryDay[] = [];
     
     itineraryTemplate.days.forEach(day => {
       const activities = day.activities || [];

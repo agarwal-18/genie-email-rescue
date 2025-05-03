@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { Map as MapIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,20 +22,6 @@ declare global {
       divIcon: (options: any) => any;
     }
   }
-}
-
-interface ItineraryActivity {
-  time: string;
-  title: string;
-  location: string;
-  description: string;
-  image?: string;
-  category: string;
-}
-
-interface ItineraryDay {
-  day: number;
-  activities: ItineraryActivity[];
 }
 
 interface ItineraryMapProps {
