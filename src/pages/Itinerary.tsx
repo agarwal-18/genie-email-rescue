@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { MapPin, Clock, Calendar, Map, Menu, Copy, Share2, Download, Printer, Save, Info } from 'lucide-react';
+import { MapPin, Clock, Calendar, Map, Menu, Copy, Share2, Download, Printer, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -483,75 +483,6 @@ const Itinerary = () => {
                           ))}
                         </Tabs>
                       </CardHeader>
-                    </Card>
-                    
-                    {/* Travel Tips & Instructions Section - Added to be included in PDF */}
-                    <Card className="border-none shadow-md mt-6">
-                      <CardHeader className="px-6 py-4 bg-primary/5 border-b">
-                        <CardTitle className="flex items-center text-lg">
-                          <Info className="h-5 w-5 mr-2 text-primary" />
-                          <span>Travel Tips & Instructions</span>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-6">
-                        <div className="grid gap-4 md:grid-cols-2">
-                          <div>
-                            <h3 className="font-medium mb-3">Before You Go</h3>
-                            <ul className="space-y-2 text-sm">
-                              <li className="flex items-start">
-                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">1</span>
-                                <span>Check weather forecasts daily</span>
-                              </li>
-                              <li className="flex items-start">
-                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">2</span>
-                                <span>Download offline maps of each area</span>
-                              </li>
-                              <li className="flex items-start">
-                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">3</span>
-                                <span>Keep digital and physical copies of your itinerary</span>
-                              </li>
-                              <li className="flex items-start">
-                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">4</span>
-                                <span>Have emergency contacts saved on your phone</span>
-                              </li>
-                              <li className="flex items-start">
-                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">5</span>
-                                <span>Pack appropriate clothing for your activities</span>
-                              </li>
-                            </ul>
-                          </div>
-                          
-                          <div>
-                            <h3 className="font-medium mb-3">During Your Trip</h3>
-                            <ul className="space-y-2 text-sm">
-                              <li className="flex items-start">
-                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">1</span>
-                                <span>Arrive 30 minutes early for scheduled activities</span>
-                              </li>
-                              <li className="flex items-start">
-                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">2</span>
-                                <span>Always carry water and stay hydrated</span>
-                              </li>
-                              <li className="flex items-start">
-                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">3</span>
-                                <span>Be respectful of local customs and traditions</span>
-                              </li>
-                              <li className="flex items-start">
-                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">4</span>
-                                <span>Take regular breaks to avoid exhaustion</span>
-                              </li>
-                              <li className="flex items-start">
-                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">5</span>
-                                <span>Try local cuisine for an authentic experience</span>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                        
-                        <p className="mt-6 text-center text-sm text-muted-foreground">
-                          Keep these tips in mind to ensure a smooth and enjoyable experience in Navi Mumbai.
-                        </p>
-                      </CardContent>
                     </Card>
                   </div>
                   
