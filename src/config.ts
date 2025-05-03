@@ -22,7 +22,9 @@ export const API_CONFIG = {
     'login', 
     'register', 
     'profile',
-    'verify-email'
+    'verify-email',
+    'forum/create',
+    'forum/post'
   ]
 };
 
