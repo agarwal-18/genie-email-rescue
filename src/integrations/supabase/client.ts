@@ -35,7 +35,7 @@ export interface ItineraryActivity {
   title: string;
   location: string;
   description: string | null;
-  image: string | null; // Changed from required to allow null
+  image: string | null;
   category: string | null;
   created_at: string;
 }

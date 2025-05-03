@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { toast } from 'sonner';
+import { sonnerToast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
 import ItineraryGenerator from '@/components/ItineraryGenerator';
@@ -24,15 +24,21 @@ import TripTips from '@/components/TripTips';
 import Weather from '@/components/Weather';
 import ItineraryMap from '@/components/ItineraryMap';
 import { useItinerary } from '@/hooks/useItinerary';
-import { ItineraryActivityBase, ItineraryDayBase, ItinerarySettings } from '@/config';
+import type { ItineraryDetail } from '@/hooks/useItinerary';
 
-// Define local interface for activities to avoid type conflicts
-interface ItineraryActivity extends ItineraryActivityBase {
-  day?: number;
-  itinerary_id?: string;
+interface ItineraryActivity {
+  time: string;
+  title: string;
+  location: string;
+  description: string;
+  image?: string;
+  category: string;
 }
 
-interface ItineraryDay extends ItineraryDayBase {}
+interface ItineraryDay {
+  day: number;
+  activities: ItineraryActivity[];
+}
 
 // Location images object with the previously missing places
 const locationImages: Record<string, string> = {
@@ -178,7 +184,7 @@ const Itinerary = () => {
     loadSavedItinerary();
   }, [searchParams, user, fetchItineraryById, toast, hasShownLoadToast]);
 
-  const handleGenerateItinerary = (newItinerary: ItineraryDay[], settings: ItinerarySettings) => {
+  const handleGenerateItinerary = (newItinerary: ItineraryDay[], settings: any) => {
     console.log("New itinerary generated:", newItinerary);
     console.log("Itinerary settings:", settings);
     
@@ -220,7 +226,8 @@ const Itinerary = () => {
     if (!itinerarySettings) {
       toast({
         title: "Missing information",
-        description: "Please generate an itinerary first."
+        description: "Please generate an itinerary first.",
+        variant: "destructive"
       });
       return;
     }
@@ -228,18 +235,16 @@ const Itinerary = () => {
     if (!user) {
       toast({
         title: "Authentication required",
-        description: "Please sign in to save your itinerary."
+        description: "Please sign in to save your itinerary.",
+        variant: "destructive"
       });
       navigate('/login');
       return;
     }
 
-    // Make sure user_id is included and convert dates to strings
+    // Make sure user_id is included
     const settingsWithUserId = {
       ...itinerarySettings,
-      start_date: itinerarySettings.start_date instanceof Date ? 
-        itinerarySettings.start_date.toISOString() : 
-        itinerarySettings.start_date,
       user_id: user.id
     };
 
@@ -249,23 +254,18 @@ const Itinerary = () => {
     if (editMode && itineraryId) {
       success = await updateItinerary(itineraryId, settingsWithUserId);
     } else {
-      // We need to convert all activities to the proper format with required fields
+      // We need to flatten the activities from the day structure to a flat list
       const flattenedActivities = itinerary.flatMap(day => 
         day.activities.map(activity => ({
+          ...activity,
           day: day.day,
-          time: activity.time,
-          title: activity.title,
-          location: activity.location,
-          description: activity.description || null, // Ensure not undefined
-          image: activity.image || null, // Ensure not undefined
-          category: activity.category || null, // Ensure not undefined
           itinerary_id: '', // This will be set by the saveItinerary function
         }))
       );
 
       // Otherwise create a new itinerary
-      const newItineraryId = await saveItinerary(settingsWithUserId, flattenedActivities);
-      success = !!newItineraryId;
+      const itineraryId = await saveItinerary(settingsWithUserId, flattenedActivities);
+      success = !!itineraryId;
     }
 
     if (success) {
