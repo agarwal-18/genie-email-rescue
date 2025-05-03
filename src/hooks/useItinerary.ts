@@ -347,121 +347,183 @@ export function useItinerary() {
     }
   };
   
-  // Completely revised downloadItineraryAsPdf function to properly capture all days
+  // Add this new function to properly create PDF with all days
   const downloadItineraryAsPdf = async (
-    itineraryInfo: { title: string; days: number },
-    itineraryDays: ItineraryDay[],
-    element: HTMLElement | null
-  ): Promise<boolean> => {
+    details: { title: string; days: number },
+    itinerary: Array<{ day: number; activities: any[] }>,
+    contentRef: HTMLDivElement | null
+  ) => {
     try {
-      if (!element) {
-        throw new Error('Element not found for PDF generation');
+      if (!contentRef) {
+        console.error('Content reference is missing');
+        return false;
       }
-      
-      // Create PDF with A4 format (210 x 297 mm)
-      const pdf = new jsPDF({
+
+      // Create a PDF document
+      const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: 'a4'
+        format: 'a4',
       });
-      
-      // Store the original active tab to restore it later
-      const originalActiveTab = element.querySelector('[role="tab"][data-state="active"]');
-      
-      // Find all day tabs
-      const dayTabs = Array.from(element.querySelectorAll('[role="tab"]'));
-      
-      // Add title page
-      pdf.setFontSize(24);
-      pdf.text(itineraryInfo.title, 105, 80, { align: 'center' });
-      
-      pdf.setFontSize(14);
-      pdf.text(`${itineraryInfo.days}-Day Itinerary`, 105, 100, { align: 'center' });
-      pdf.text(`Generated on ${new Date().toLocaleDateString()}`, 105, 110, { align: 'center' });
-      
-      // For each day in the itinerary, add content to PDF
-      for (let i = 0; i < dayTabs.length; i++) {
-        const tab = dayTabs[i] as HTMLElement;
+
+      // Set up document properties
+      const title = details.title || 'Navi Mumbai Itinerary';
+      doc.setProperties({
+        title,
+        subject: `${details.days}-Day Itinerary for Navi Mumbai`,
+        author: 'Navi Mumbai Travel Planner',
+        creator: 'Navi Mumbai Travel App',
+      });
+
+      // Helper function to add a new page with header
+      const addPageWithHeader = (text: string) => {
+        doc.addPage();
+        doc.setFontSize(18);
+        doc.setTextColor(41, 37, 36); // text-gray-800
+        doc.text(text, 20, 20);
         
-        // Click on each day tab to make its content visible
-        tab.click();
+        // Add a line under the header
+        doc.setDrawColor(59, 130, 246); // bg-blue-500
+        doc.setLineWidth(0.5);
+        doc.line(20, 25, 190, 25);
         
-        // Wait for the UI to update after clicking the tab
-        await new Promise(resolve => setTimeout(resolve, 300));
+        doc.setFontSize(12);
+        doc.setTextColor(75, 85, 99); // text-gray-600
+      };
+
+      // Cover page
+      doc.setFontSize(24);
+      doc.setTextColor(59, 130, 246); // bg-blue-500
+      doc.text(title, 20, 30);
+      
+      doc.setFontSize(14);
+      doc.setTextColor(75, 85, 99); // text-gray-600
+      doc.text(`${details.days}-Day Itinerary for Navi Mumbai`, 20, 40);
+      
+      doc.setFontSize(12);
+      doc.text(`Created on: ${new Date().toLocaleDateString()}`, 20, 50);
+
+      // Process each day separately
+      for (let i = 0; i < itinerary.length; i++) {
+        const day = itinerary[i];
         
-        // Find the active tab panel (the currently visible day content)
-        const activeTabPanel = element.querySelector('[role="tabpanel"][data-state="active"]');
+        // Add a new page for each day with a header
+        addPageWithHeader(`Day ${day.day} Schedule`);
+
+        let yPos = 40;
         
-        if (activeTabPanel) {
-          // Add a new page for each day
-          if (i > 0 || itineraryDays.length > 1) {
-            pdf.addPage();
+        // Process each activity for this day
+        for (let j = 0; j < day.activities.length; j++) {
+          const activity = day.activities[j];
+          
+          // Time
+          doc.setFontSize(11);
+          doc.setTextColor(59, 130, 246); // bg-blue-500
+          doc.text(activity.time, 20, yPos);
+          yPos += 7;
+          
+          // Title
+          doc.setFontSize(14);
+          doc.setTextColor(31, 41, 55); // text-gray-900
+          doc.text(activity.title, 20, yPos);
+          yPos += 7;
+          
+          // Location
+          doc.setFontSize(10);
+          doc.setTextColor(107, 114, 128); // text-gray-500
+          doc.text(`Location: ${activity.location}`, 20, yPos);
+          yPos += 7;
+          
+          // Description (with text wrapping)
+          if (activity.description) {
+            doc.setFontSize(10);
+            doc.setTextColor(75, 85, 99); // text-gray-600
+            
+            // Add wrapped text
+            const splitText = doc.splitTextToSize(activity.description, 170); // Width: 170mm
+            doc.text(splitText, 20, yPos);
+            
+            // Update y position based on number of lines
+            yPos += splitText.length * 5 + 10;
+          } else {
+            yPos += 10;
           }
           
-          // Add day header
-          const dayNumber = i + 1;
-          pdf.setFontSize(16);
-          pdf.text(`Day ${dayNumber} Itinerary`, 10, 20);
+          // Add a separator line between activities (except last one)
+          if (j < day.activities.length - 1) {
+            doc.setDrawColor(229, 231, 235); // border-gray-200
+            doc.setLineWidth(0.2);
+            doc.line(20, yPos - 5, 190, yPos - 5);
+          }
           
-          // Capture the content of this day
-          const canvas = await html2canvas(activeTabPanel as HTMLElement, {
-            scale: 2,
-            logging: false,
-            useCORS: true,
-            allowTaint: true,
-            scrollY: -window.scrollY
-          });
-          
-          const imgWidth = 190;  // A4 width minus margins
-          const imgHeight = (canvas.height * imgWidth) / canvas.width;
-          
-          // Add the image of the day's content
-          pdf.addImage(
-            canvas.toDataURL('image/png'), 
-            'PNG', 
-            10, 30, 
-            imgWidth, 
-            Math.min(imgHeight, 230)  // Limit height to fit on page
-          );
+          // Check if we need a new page
+          if (yPos > 270) {
+            addPageWithHeader(`Day ${day.day} Schedule (continued)`);
+            yPos = 40;
+          }
         }
       }
       
-      // Add the travel tips section at the end
-      const tipsSection = element.querySelector('.travel-tips-section');
-      if (tipsSection) {
-        pdf.addPage();
-        pdf.setFontSize(16);
-        pdf.text("Travel Tips & Instructions", 10, 20);
-        
-        const canvas = await html2canvas(tipsSection as HTMLElement, {
-          scale: 2,
-          logging: false,
-          useCORS: true,
-          allowTaint: true,
-          scrollY: -window.scrollY
-        });
-        
-        const imgWidth = 190;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 30, imgWidth, Math.min(imgHeight, 240));
-      }
+      // Tips page
+      addPageWithHeader("Travel Tips & Instructions");
       
-      // Save the PDF file
-      const fileName = `${itineraryInfo.title.replace(/\s+/g, '_')}_itinerary.pdf`;
-      pdf.save(fileName);
+      // Column 1 tips (left side)
+      let yPos = 40;
+      doc.setFontSize(12);
+      doc.setTextColor(31, 41, 55);
+      doc.text("Before You Go", 20, yPos);
+      yPos += 10;
       
-      // Reset back to original tab for user viewing
-      if (originalActiveTab) {
-        (originalActiveTab as HTMLElement).click();
-      } else if (dayTabs[0]) {
-        (dayTabs[0] as HTMLElement).click();
-      }
+      const beforeTips = [
+        "Check weather forecasts daily",
+        "Download offline maps of each area",
+        "Keep digital and physical copies of your itinerary",
+        "Have emergency contacts saved on your phone",
+        "Pack appropriate clothing for your activities"
+      ];
       
+      doc.setFontSize(10);
+      doc.setTextColor(75, 85, 99);
+      beforeTips.forEach((tip, index) => {
+        doc.text(`${index + 1}. ${tip}`, 20, yPos);
+        yPos += 7;
+      });
+      
+      // Column 2 tips (right side)
+      yPos = 40;
+      doc.setFontSize(12);
+      doc.setTextColor(31, 41, 55);
+      doc.text("During Your Trip", 110, yPos);
+      yPos += 10;
+      
+      const duringTips = [
+        "Arrive 30 minutes early for scheduled activities",
+        "Always carry water and stay hydrated",
+        "Be respectful of local customs and traditions",
+        "Take regular breaks to avoid exhaustion",
+        "Try local cuisine for an authentic experience"
+      ];
+      
+      doc.setFontSize(10);
+      doc.setTextColor(75, 85, 99);
+      duringTips.forEach((tip, index) => {
+        doc.text(`${index + 1}. ${tip}`, 110, yPos);
+        yPos += 7;
+      });
+      
+      // Disclaimer at the bottom
+      yPos = 260;
+      doc.setFontSize(9);
+      doc.setTextColor(156, 163, 175); // text-gray-400
+      const disclaimer = "This itinerary was generated by the Navi Mumbai Travel Planner app. Plan details may change due to weather conditions, availability, or other factors.";
+      const splitDisclaimer = doc.splitTextToSize(disclaimer, 170);
+      doc.text(splitDisclaimer, 20, yPos);
+
+      // Save the PDF
+      doc.save(`navi-mumbai-itinerary-${details.days}-days.pdf`);
       return true;
-    } catch (err: any) {
-      console.error('Error generating PDF:', err);
-      setError(err.message);
+    } catch (error) {
+      console.error('Error creating PDF:', error);
       return false;
     }
   };

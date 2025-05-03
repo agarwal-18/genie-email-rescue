@@ -103,7 +103,8 @@ const ForumPostCreate = () => {
         description: "Your post has been successfully published.",
       });
       
-      navigate('/forum');
+      // Make sure we navigate without reloading the page (use navigate instead of location/history)
+      navigate('/forum', { replace: true });
     } catch (error) {
       console.error('Error creating post:', error);
       toast({

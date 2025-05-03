@@ -1,333 +1,312 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
-import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectValue, SelectTrigger, SelectContent, SelectItem } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, X } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Slider } from "@/components/ui/slider";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { CalendarIcon } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { useAuth } from '@/contexts/AuthContext';
-import { generateItinerary } from '@/lib/data';
-import { Badge } from "@/components/ui/badge";
-import { useItinerary } from '@/hooks/useItinerary';
-import { ItinerarySettings } from '@/config';
+import { format } from 'date-fns';
+import { Slider } from "@/components/ui/slider"
+import { Checkbox } from "@/components/ui/checkbox"
+import { API_CONFIG, ItineraryActivityBase, ItineraryDayBase, ItinerarySettings } from '@/config';
+import { useToast } from '@/hooks/use-toast';
 
 interface ItineraryGeneratorProps {
-  onGenerate?: (itinerary: any[], settings: ItinerarySettings) => void;
-  initialData?: ItinerarySettings;
+  onGenerate: (itinerary: ItineraryDayBase[], settings: ItinerarySettings) => void;
+  initialData?: ItinerarySettings | null;
 }
 
-// Predefined location options for Navi Mumbai
-const LOCATIONS = [
-  'Vashi',
-  'Nerul',
-  'Belapur',
-  'Kharghar',
-  'Airoli',
-  'Seawoods',
-  'Panvel',
-  'Sanpada',
-  'Ulwe',
-  'Kopar Khairane',
-];
-
-// Predefined interests list
-const INTERESTS = [
+const interestsList = [
   'Historical Sites',
-  'Museums',
-  'Local Cuisine',
-  'Outdoor Activities',
   'Shopping',
+  'Food & Drink',
+  'Nature & Outdoors',
+  'Museums & Galleries',
   'Nightlife',
-  'Relaxation',
+  'Family Activities',
   'Adventure',
-  'Cultural Experiences',
-  'Religious Sites',
-  'Parks & Gardens',
-  'Entertainment'
+  'Relaxation',
+  'Cultural Experiences'
 ];
 
-// Excluded locations that should not be recommended in the itinerary
-const EXCLUDED_LOCATIONS = ['DY Patil Stadium'];
+const defaultImages = [
+  'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?q=80&w=800',
+  'https://images.unsplash.com/photo-1458668383970-8ddd3927deed?q=80&w=800',
+  'https://images.unsplash.com/photo-1504893524553-b855bce32c67?q=80&w=800',
+  'https://images.unsplash.com/photo-1482881497185-d4a9ddbe4151?q=80&w=800',
+  'https://images.unsplash.com/photo-1426604966848-d7adac402bff?q=80&w=800'
+];
+
+// Add this function to ensure times are distributed evenly throughout the day
+const generateTimeSlots = (numberOfActivities: number): string[] => {
+  // Start at 8:00 AM and end at 8:00 PM (12 hour span)
+  const startHour = 8;
+  const endHour = 20;
+  const totalHours = endHour - startHour;
+  
+  // Create an array of evenly distributed time slots
+  const timeSlots: string[] = [];
+  const interval = totalHours / (numberOfActivities || 1);
+  
+  for (let i = 0; i < numberOfActivities; i++) {
+    const hour = Math.floor(startHour + i * interval);
+    const minute = Math.round((startHour + i * interval - hour) * 60);
+    
+    // Format as 12-hour time with AM/PM
+    const hourFormatted = hour > 12 ? hour - 12 : hour;
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const minuteFormatted = minute < 10 ? `0${minute}` : minute;
+    
+    timeSlots.push(`${hourFormatted}:${minuteFormatted} ${ampm}`);
+  }
+  
+  return timeSlots;
+};
 
 const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps) => {
-  const [selectedLocations, setSelectedLocations] = useState<string[]>(['Vashi']);
-  const [numberOfDays, setNumberOfDays] = useState(3);
-  const [startDate, setStartDate] = useState<Date | undefined>(new Date());
-  const [selectedInterests, setSelectedInterests] = useState<string[]>(['Outdoor Activities', 'Local Cuisine']);
-  const [pace, setPace] = useState('Moderate');
-  const [budget, setBudget] = useState('Mid-Range');
-  const [transportation, setTransportation] = useState('Public Transportation');
-  const [includeFood, setIncludeFood] = useState(true);
-  const [itinerary, setItinerary] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [itineraryTitle, setItineraryTitle] = useState('Navi Mumbai Exploration');
+  const [title, setTitle] = useState(initialData?.title || 'Navi Mumbai Itinerary');
+  const [days, setDays] = useState(initialData?.days || 3);
+  const [pace, setPace] = useState(initialData?.pace || 'moderate');
+  const [budget, setBudget] = useState(initialData?.budget || 'Mid-Range');
+  const [interests, setInterests] = useState<string[]>(initialData?.interests || ['Historical Sites', 'Shopping']);
+  const [transportation, setTransportation] = useState(initialData?.transportation || 'public');
+  const [includeFood, setIncludeFood] = useState(initialData?.include_food !== null ? initialData?.include_food : true);
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState<Date | undefined>(initialData?.start_date || undefined);
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { saveItinerary } = useItinerary();
-
-  useEffect(() => {
-    if (!user) {
-      console.log("No user logged in for itinerary generator");
-      // We'll allow users to generate itineraries without logging in,
-      // but saving will require login
-    }
-  }, [user]);
-
-  const handleLocationToggle = (location: string) => {
-    if (selectedLocations.includes(location)) {
-      // Don't remove if it's the only location left
-      if (selectedLocations.length > 1) {
-        setSelectedLocations(selectedLocations.filter(loc => loc !== location));
-      }
-    } else {
-      setSelectedLocations([...selectedLocations, location]);
-    }
+  
+  // Function to get a random image from the default images array
+  const getRandomLocationImage = (): string => {
+    const randomIndex = Math.floor(Math.random() * defaultImages.length);
+    return defaultImages[randomIndex];
   };
 
-  const handleInterestToggle = (interest: string) => {
-    if (selectedInterests.includes(interest)) {
-      setSelectedInterests(selectedInterests.filter(i => i !== interest));
-    } else {
-      setSelectedInterests([...selectedInterests, interest]);
-    }
+  const generateItinerary = async (settings: ItinerarySettings): Promise<ItineraryDayBase[]> => {
+    // Basic itinerary template
+    const itineraryTemplate = {
+      title: settings.title,
+      days: Array.from({ length: settings.days }, (_, i) => ({
+        day: i + 1,
+        activities: [] as ItineraryActivityBase[]
+      }))
+    };
+    
+    // Mock activities based on interests
+    const mockActivities: Record<string, ItineraryActivityBase[]> = {
+      'Historical Sites': [
+        { title: 'Explore Belapur Fort', location: 'Belapur Fort', description: 'Visit the historic Belapur Fort and learn about its significance.' },
+        { title: 'Visit Pandavkada Falls', location: 'Pandavkada Falls', description: 'Explore the ancient cave temples and enjoy the natural surroundings.' }
+      ],
+      'Shopping': [
+        { title: 'Shop at Seawoods Grand Central', location: 'Seawoods Grand Central', description: 'Enjoy shopping at Seawoods Grand Central, one of the largest malls in Navi Mumbai.' },
+        { title: 'Visit Little World Mall', location: 'Little World Mall', description: 'Shop for local handicrafts and souvenirs at Little World Mall.' }
+      ],
+      'Food & Drink': [
+        { title: 'Try street food in Vashi', location: 'Vashi', description: 'Sample local street food delicacies in Vashi.' },
+        { title: 'Dine at Pop Tate\'s', location: 'Pop Tate\'s', description: 'Enjoy a meal at Pop Tate\'s.' }
+      ],
+      'Nature & Outdoors': [
+        { title: 'Walk at Jewel of Navi Mumbai', location: 'Jewel of Navi Mumbai', description: 'Take a walk at Jewel of Navi Mumbai.' },
+        { title: 'Visit Kharghar Hills', location: 'Kharghar Hills', description: 'Hike in the scenic Kharghar Hills.' }
+      ],
+      'Museums & Galleries': [
+        { title: 'Visit Navi Mumbai Science Centre', location: 'Navi Mumbai Science Centre', description: 'Explore the exhibits at the Navi Mumbai Science Centre.' },
+        { title: 'Visit the nearby museum', location: 'Science Centre', description: 'Explore the exhibits at the Science Centre.' }
+      ],
+      'Nightlife': [
+        { title: 'Enjoy nightlife at Someplace Else', location: 'Someplace Else', description: 'Enjoy the nightlife at Someplace Else.' },
+        { title: 'Visit The Irish House', location: 'The Irish House', description: 'Enjoy the nightlife at The Irish House.' }
+      ],
+      'Family Activities': [
+        { title: 'Visit Wonder Park', location: 'Wonder Park', description: 'Spend time with family at Wonder Park.' },
+        { title: 'Visit Central Park', location: 'Central Park', description: 'Spend time with family at Central Park.' }
+      ],
+      'Adventure': [
+        { title: 'Trekking at Kharghar Hills', location: 'Kharghar Hills', description: 'Enjoy trekking at Kharghar Hills.' },
+        { title: 'Visit Pandavkada Falls', location: 'Pandavkada Falls', description: 'Enjoy the natural surroundings at Pandavkada Falls.' }
+      ],
+      'Relaxation': [
+        { title: 'Relax at Sagar Vihar', location: 'Sagar Vihar', description: 'Relax at Sagar Vihar.' },
+        { title: 'Visit Nerul Lake', location: 'Nerul Lake', description: 'Relax at Nerul Lake.' }
+      ],
+      'Cultural Experiences': [
+        { title: 'Visit Hanuman Temple', location: 'Hanuman Temple', description: 'Visit the Hanuman Temple.' },
+        { title: 'Visit Rock Garden', location: 'Rock Garden', description: 'Visit the Rock Garden.' }
+      ]
+    };
+    
+    // Assign activities to days based on interests
+    itineraryTemplate.days.forEach(day => {
+      const selectedInterests = interests.filter(interest => mockActivities[interest]);
+      
+      selectedInterests.forEach(interest => {
+        const activitiesForInterest = mockActivities[interest];
+        if (activitiesForInterest && activitiesForInterest.length > 0) {
+          // Add a random activity for each selected interest
+          const randomIndex = Math.floor(Math.random() * activitiesForInterest.length);
+          day.activities.push(activitiesForInterest[randomIndex]);
+        }
+      });
+    });
+
+    // Process the itinerary to format activities and assign times
+    const processedItinerary: ItineraryDayBase[] = [];
+    
+    itineraryTemplate.days.forEach(day => {
+      const activities = day.activities || [];
+      
+      // Generate evenly distributed time slots for this day's activities
+      const timeSlots = generateTimeSlots(activities.length);
+      
+      // Assign times to activities
+      const processedActivities = activities.map((activity, index) => {
+        return {
+          ...activity,
+          time: timeSlots[index],
+          image: activity.image || getRandomLocationImage()
+        };
+      });
+      
+      processedItinerary.push({
+        day: day.day,
+        activities: processedActivities
+      });
+    });
+    
+    // Return the generated itinerary
+    return processedItinerary;
   };
 
-  const generateItineraryHandler = async () => {
-    if (!selectedLocations.length || !numberOfDays || !startDate || selectedInterests.length === 0 || !pace || !budget || !transportation) {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!title || !days) {
       toast({
         title: "Missing information",
-        description: "Please fill in all the fields to generate an itinerary.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    try {
-      // Using the data.ts generator function with multiple locations
-      const generatedItinerary = generateItinerary({
-        days: numberOfDays,
-        pace: pace.toLowerCase(),
-        budget: budget.toLowerCase(),
-        interests: selectedInterests,
-        includeFood,
-        transportation,
-        locations: selectedLocations, // Pass selected locations array
-        excludedLocations: EXCLUDED_LOCATIONS // Pass excluded locations
-      });
-      
-      setItinerary(generatedItinerary);
-      
-      // Create settings object to pass to the parent component
-      const settings: ItinerarySettings = {
-        title: itineraryTitle,
-        days: numberOfDays,
-        start_date: startDate ? startDate.toISOString() : null, // Convert Date to string
-        pace,
-        budget,
-        interests: selectedInterests,
-        transportation,
-        include_food: includeFood
-      };
-      
-      // If onGenerate callback is provided, pass the itinerary and settings
-      if (onGenerate) {
-        onGenerate(generatedItinerary, settings);
-      }
-      
-      toast({
-        title: "Itinerary generated",
-        description: "Your itinerary has been generated successfully."
-      });
-    } catch (error) {
-      console.error("Error generating itinerary:", error);
-      toast({
-        title: "Error generating itinerary",
-        description: "There was an error generating your itinerary. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const saveItineraryHandler = async () => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to save your itinerary.",
-        variant: "destructive"
-      });
-      navigate('/login');
-      return;
-    }
-    
-    if (itinerary.length === 0) {
-      toast({
-        title: "No itinerary generated",
-        description: "Please generate an itinerary first.",
+        description: "Please fill in all required fields.",
         variant: "destructive"
       });
       return;
     }
     
     const settings: ItinerarySettings = {
-      title: itineraryTitle,
-      days: numberOfDays,
-      start_date: startDate ? startDate.toISOString() : null, // Convert Date to string
+      title,
+      days,
+      start_date: date,
       pace,
       budget,
-      interests: selectedInterests,
+      interests,
       transportation,
-      include_food: includeFood,
-      user_id: user.id  // Add the user_id field
+      include_food: includeFood
     };
     
-    const itineraryId = await saveItinerary(settings, itinerary);
-    
-    if (itineraryId) {
-      toast({
-        title: "Itinerary saved",
-        description: "Your itinerary has been saved successfully."
-      });
-      navigate('/saved-itineraries');
-    } else {
-      toast({
-        title: "Error saving itinerary",
-        description: "There was an error saving your itinerary. Please try again.",
-        variant: "destructive"
-      });
-    }
+    const itinerary = await generateItinerary(settings);
+    onGenerate(itinerary, settings);
   };
 
   return (
-    <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
-      <h3 className="text-xl font-semibold mb-4">Create Your Itinerary</h3>
-      
-      <div className="space-y-6">
-        {/* Multiple Location Selection */}
-        <div>
-          <Label className="mb-2 block">Locations</Label>
-          <div className="flex flex-wrap gap-2 mb-2">
-            {selectedLocations.map((loc) => (
-              <Badge key={loc} variant="secondary" className="flex items-center gap-1">
-                {loc}
-                <button 
-                  onClick={() => handleLocationToggle(loc)}
-                  disabled={selectedLocations.length <= 1}
-                  className="ml-1 rounded-full hover:bg-muted"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {LOCATIONS.filter(loc => !selectedLocations.includes(loc) && !EXCLUDED_LOCATIONS.includes(loc)).map((loc) => (
-              <Badge 
-                key={loc} 
-                variant="outline" 
-                className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
-                onClick={() => handleLocationToggle(loc)}
-              >
-                + {loc}
-              </Badge>
-            ))}
-          </div>
-        </div>
-        
-        {/* Itinerary Title */}
-        <div>
-          <Label htmlFor="title">Itinerary Title</Label>
-          <Select 
-            value={itineraryTitle} 
-            onValueChange={setItineraryTitle}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a title" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Navi Mumbai Exploration">Navi Mumbai Exploration</SelectItem>
-              <SelectItem value="Weekend Getaway">Weekend Getaway</SelectItem>
-              <SelectItem value="Culinary Adventure">Culinary Adventure</SelectItem>
-              <SelectItem value="Cultural Tour">Cultural Tour</SelectItem>
-              <SelectItem value="Nature Retreat">Nature Retreat</SelectItem>
-              <SelectItem value="Family Fun Trip">Family Fun Trip</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        {/* Number of Days - Slider */}
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <Label htmlFor="days">Number of Days: {numberOfDays}</Label>
-          </div>
-          <Slider
-            id="days"
-            min={1}
-            max={7}
-            step={1}
-            value={[numberOfDays]}
-            onValueChange={(value) => setNumberOfDays(value[0])}
+    <Card>
+      <CardHeader>
+        <CardTitle>Itinerary Generator</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <div className="grid gap-2">
+          <Label htmlFor="title">Title</Label>
+          <Input 
+            type="text" 
+            id="title" 
+            value={title} 
+            onChange={(e) => setTitle(e.target.value)} 
           />
-          <div className="flex justify-between text-xs text-muted-foreground mt-1">
-            <span>1</span>
-            <span>2</span>
-            <span>3</span>
-            <span>4</span>
-            <span>5</span>
-            <span>6</span>
-            <span>7</span>
-          </div>
         </div>
         
-        {/* Start Date */}
-        <div>
+        <div className="grid gap-2">
+          <Label htmlFor="days">Number of Days</Label>
+          <Input
+            type="number"
+            id="days"
+            value={days}
+            onChange={(e) => setDays(parseInt(e.target.value))}
+            min="1"
+            max="7"
+          />
+        </div>
+        
+        <div className="grid gap-2">
           <Label>Start Date</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
                 className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !startDate && "text-muted-foreground"
+                  "w-[240px] justify-start text-left font-normal",
+                  !date && "text-muted-foreground"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                {date ? format(date, "PPP") : <span>Pick a date</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
-                selected={startDate}
-                onSelect={setStartDate}
+                selected={date}
+                onSelect={setDate}
+                disabled={(date) =>
+                  date < new Date()
+                }
                 initialFocus
               />
             </PopoverContent>
           </Popover>
         </div>
         
-        {/* Interests - Button Group */}
-        <div>
-          <Label className="mb-2 block">Interests</Label>
+        <div className="grid gap-2">
+          <Label htmlFor="pace">Pace</Label>
+          <Select value={pace} onValueChange={setPace}>
+            <SelectTrigger id="pace">
+              <SelectValue placeholder="Select" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="relaxed">Relaxed</SelectItem>
+              <SelectItem value="moderate">Moderate</SelectItem>
+              <SelectItem value=" Energetic"> Energetic</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="grid gap-2">
+          <Label htmlFor="budget">Budget</Label>
+          <Select value={budget} onValueChange={setBudget}>
+            <SelectTrigger id="budget">
+              <SelectValue placeholder="Select" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Economical">Economical</SelectItem>
+              <SelectItem value="Mid-Range">Mid-Range</SelectItem>
+              <SelectItem value="Luxury">Luxury</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="grid gap-2">
+          <Label>Interests</Label>
           <div className="flex flex-wrap gap-2">
-            {INTERESTS.map((interest) => (
+            {interestsList.map((interest) => (
               <Button
                 key={interest}
-                variant={selectedInterests.includes(interest) ? "default" : "outline"}
-                onClick={() => handleInterestToggle(interest)}
-                size="sm"
-                className="mb-1"
+                variant={interests.includes(interest) ? "default" : "outline"}
+                onClick={() => {
+                  if (interests.includes(interest)) {
+                    setInterests(interests.filter((i) => i !== interest));
+                  } else {
+                    setInterests([...interests, interest]);
+                  }
+                }}
               >
                 {interest}
               </Button>
@@ -335,78 +314,33 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
           </div>
         </div>
         
-        {/* Pace - Radio Group */}
-        <div>
-          <Label className="mb-2 block">Pace</Label>
-          <RadioGroup value={pace} onValueChange={setPace} className="flex gap-4">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Relaxed" id="relaxed" />
-              <Label htmlFor="relaxed">Relaxed</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Moderate" id="moderate" />
-              <Label htmlFor="moderate">Moderate</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Fast-Paced" id="fast" />
-              <Label htmlFor="fast">Fast-Paced</Label>
-            </div>
-          </RadioGroup>
+        <div className="grid gap-2">
+          <Label htmlFor="transportation">Transportation</Label>
+          <Select value={transportation} onValueChange={setTransportation}>
+            <SelectTrigger id="transportation">
+              <SelectValue placeholder="Select" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="public">Public Transportation</SelectItem>
+              <SelectItem value="private">Private Vehicle</SelectItem>
+              <SelectItem value="mixed">Mixed (Public & Private)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         
-        {/* Budget - Radio Group - Updated label from "Budget-Friendly" to "Economical" */}
-        <div>
-          <Label className="mb-2 block">Budget</Label>
-          <RadioGroup value={budget} onValueChange={setBudget} className="flex gap-4">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Economical" id="budget" />
-              <Label htmlFor="budget">Economical</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Mid-Range" id="mid" />
-              <Label htmlFor="mid">Mid-Range</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Luxury" id="luxury" />
-              <Label htmlFor="luxury">Luxury</Label>
-            </div>
-          </RadioGroup>
-        </div>
-        
-        {/* Transportation - Radio Group */}
-        <div>
-          <Label className="mb-2 block">Transportation</Label>
-          <RadioGroup value={transportation} onValueChange={setTransportation} className="flex flex-col space-y-1">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Public Transportation" id="public" />
-              <Label htmlFor="public">Public Transportation</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Rental Car" id="car" />
-              <Label htmlFor="car">Rental Car</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Mix of Both" id="mix" />
-              <Label htmlFor="mix">Mix of Both</Label>
-            </div>
-          </RadioGroup>
-        </div>
-        
-        {/* Include Food - Checkbox */}
         <div className="flex items-center space-x-2">
           <Checkbox 
             id="includeFood" 
-            checked={includeFood}
-            onCheckedChange={(checked) => setIncludeFood(checked === true)}
+            checked={includeFood} 
+            onCheckedChange={(checked) => setIncludeFood(!!checked)} 
           />
           <Label htmlFor="includeFood">Include Food Recommendations</Label>
         </div>
-        
-        <Button onClick={generateItineraryHandler} disabled={isLoading} className="w-full">
-          {isLoading ? "Generating..." : "Generate Itinerary"}
-        </Button>
-      </div>
-    </div>
+      </CardContent>
+      <CardFooter>
+        <Button className="w-full" onClick={handleSubmit}>Generate Itinerary</Button>
+      </CardFooter>
+    </Card>
   );
 };
 

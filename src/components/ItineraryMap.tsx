@@ -64,42 +64,42 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     }))
   );
 
-  // Navi Mumbai locations with coordinates (extended list)
-  // Extended with places that might be in the itinerary but not in the original list
+  // Navi Mumbai locations with coordinates (fixed coordinates for better accuracy)
   const locationCoordinates: Record<string, [number, number]> = {
-    'Vashi': [73.0071, 19.0754],
-    'Belapur': [73.0358, 19.0235],
-    'Kharghar': [73.0785, 19.0477],
-    'Nerul': [73.0157, 19.0377],
-    'Panvel': [73.1088, 18.9894],
-    'Airoli': [72.9985, 19.1557],
-    'Ghansoli': [73.0085, 19.1162],
-    'Kopar Khairane': [73.0071, 19.1050],
-    'Sanpada': [73.0119, 19.0506],
-    'Turbhe': [73.0224, 19.0897],
-    'Seawoods': [73.0185, 19.0142],
-    'Central Park': [73.0169, 19.0343],
-    'Inorbit Mall': [73.0169, 19.0343],
-    'Wonder Park': [73.0074, 19.0137],
-    'Mini Seashore': [73.0215, 19.0240],
-    'Akshar Dhaam': [72.9962, 19.1030],
-    'Wonders Park': [73.0074, 19.0137],
-    'APMC Market': [73.0166, 19.0680],
-    'Parsik Hill': [73.0299, 19.0303],
-    'Palm Beach Road': [73.0222, 19.0037],
-    'Jewel of Navi Mumbai': [73.0173, 19.0340],
-    'Sagar Vihar': [73.0083, 19.0633],
-    'Golf Course': [73.0081, 19.0157],
-    'Nerul Balaji Temple': [73.0206, 19.0377],
-    'Flamingo Sanctuary': [73.0165, 19.0380],
-    'Science Centre': [73.0174, 19.0390],
-    'Raghuleela Mall': [73.0077, 19.0720],
-    'Belapur Fort': [73.0358, 19.0235],
+    // Main areas in Navi Mumbai with corrected coordinates (longitude, latitude)
+    'Vashi': [72.9985, 19.0758],
+    'Belapur': [73.0394, 19.0237],
+    'Kharghar': [73.0692, 19.0470],
+    'Nerul': [73.0150, 19.0380],
+    'Panvel': [73.1096, 18.9889],
+    'Airoli': [73.0009, 19.1546],
+    'Ghansoli': [73.0101, 19.1167],
+    'Kopar Khairane': [73.0080, 19.1055],
+    'Sanpada': [73.0125, 19.0508],
+    'Turbhe': [73.0230, 19.0900],
+    'Seawoods': [73.0190, 19.0132],
+    'Central Park': [73.0169, 19.0345],
+    'Inorbit Mall': [73.0169, 19.0369],
+    'Wonder Park': [73.0074, 19.0140],
+    'Mini Seashore': [73.0220, 19.0245],
+    'Akshar Dhaam': [72.9965, 19.1032],
+    'Wonders Park': [73.0074, 19.0140],
+    'APMC Market': [73.0166, 19.0685],
+    'Parsik Hill': [73.0300, 19.0305],
+    'Palm Beach Road': [73.0225, 19.0040],
+    'Jewel of Navi Mumbai': [73.0170, 19.0342],
+    'Sagar Vihar': [73.0085, 19.0635],
+    'Golf Course': [73.0085, 19.0160],
+    'Nerul Balaji Temple': [73.0210, 19.0380],
+    'Flamingo Sanctuary': [73.0165, 19.0382],
+    'Science Centre': [73.0174, 19.0392],
+    'Raghuleela Mall': [73.0080, 19.0722],
+    'Belapur Fort': [73.0358, 19.0237],
     'Navi Mumbai': [73.0401, 19.0185],
-    'Shivaji Park': [73.0325, 19.0279],
+    'Shivaji Park': [72.8384, 19.0282], // This is actually in Mumbai, not Navi Mumbai
     'DLF Mall': [73.0140, 19.0446],
     'Mindspace': [73.0238, 19.0556],
-    'CBD Belapur': [73.0358, 19.0235],
+    'CBD Belapur': [73.0358, 19.0237],
     'Utsav Chowk': [73.0790, 19.0494],
     'Kharghar Valley': [73.0783, 19.0434],
     'Kharghar Hills': [73.0753, 19.0370],
@@ -113,10 +113,10 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     // Additional places for points of interest
     'Fish Land': [73.0071, 19.0754],
     'Pop Tate\'s': [73.0169, 19.0343],
-    'Someplace Else': [73.0169, 19.0343],
+    'Someplace Else': [73.0160, 19.0350],
     'The Irish House': [73.0180, 19.0131],
     'Hanuman Temple': [73.0169, 19.0343],
-    'Rock Garden': [73.0169, 19.0343],
+    'Rock Garden': [73.0745, 19.0406],
     'Little Theatre': [73.0169, 19.0343],
     'INOX': [73.0171, 19.0343],
     'Navi Mumbai Science Centre': [73.0174, 19.0390]
@@ -340,7 +340,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
             className: 'custom-div-icon'
           });
           
-          // Create marker with popup
+          // Create marker with popup - note coordinates are [longitude, latitude] in our data but Leaflet wants [latitude, longitude]
           const marker = window.L.marker([coordinates[1], coordinates[0]], { icon: markerIcon })
             .bindPopup(`
               <div style="padding: 10px;">
