@@ -44,7 +44,7 @@ const Index = () => {
         subtitle="Explore the hidden gems and must-visit places in the planned city of Navi Mumbai, Maharashtra."
         ctaText="Start Exploring"
         ctaLink="/places"
-        imageUrl="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1500&q=80"
+        imageUrl="https://www.theparkhotels.com/images/site-specific/navi-mumbai/explore/navi_mumbai_city_banner.jpg"
       />
       
       {/* Features Section */}
