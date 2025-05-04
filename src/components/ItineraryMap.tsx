@@ -73,7 +73,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     'Turbhe': [73.0224, 19.0897],
     'Seawoods': [73.0185, 19.0142],
     'DY Patil Stadium': [73.0282, 19.0446],
-    'Central Park': [73.0169, 19.0343],
+    'Central Park': [73.0785, 19.0477], // Updated to match Kharghar
     'Inorbit Mall': [73.0169, 19.0343],
     'Wonder Park': [73.0074, 19.0137],
     'Mini Seashore': [73.0215, 19.0240],
@@ -87,7 +87,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     'Golf Course': [73.0081, 19.0157],
     'Nerul Balaji Temple': [73.0206, 19.0377],
     'Flamingo Sanctuary': [73.0165, 19.0380],
-    'Dr. Ambedkar Memorial': [72.9985, 19.1557], // Updated to Airoli coordinates
+    'Dr. Ambedkar Memorial': [72.9985, 19.1557], // Updated to match Airoli
     'Raghuleela Mall': [73.0077, 19.0720],
     'Belapur Fort': [73.0358, 19.0235],
     'Navi Mumbai': [73.0401, 19.0185],
@@ -105,7 +105,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     'Pandavkada Falls': [73.0825, 19.0345],
     'Little World Mall': [73.0187, 19.0421],
     'Vashi Lake': [73.0042, 19.0701],
-    'Mango Garden': [73.0358, 19.0235] // Updated to Belapur coordinates
+    'Mango Garden': [73.0358, 19.0235] // Updated to match Belapur
   };
   
   const leafletCssId = 'leaflet-css';
@@ -226,6 +226,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         
         // Create bounds object
         const bounds = window.L.latLngBounds();
+        let hasValidLocations = false;
         
         // Create map instance centered on Navi Mumbai
         const map = window.L.map(mapContainer.current).setView(
@@ -251,82 +252,104 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
           }
         }, 100);
         
+        // Gather all locations from itinerary
+        const allActivities: Array<{activity: ItineraryActivity, day: number}> = [];
+        itinerary.forEach(day => {
+          day.activities.forEach(activity => {
+            allActivities.push({activity, day: day.day});
+          });
+        });
+        
+        console.log(`Found ${allActivities.length} activities in itinerary`);
+        
         // Add markers for each activity location
         const markers: any[] = [];
         const dayColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'];
+        const processedLocations = new Set<string>();
         
         // Process all activities from all days in the itinerary
-        itinerary.forEach(day => {
-          const dayColor = dayColors[(day.day - 1) % dayColors.length];
+        allActivities.forEach(({activity, day}) => {
+          const dayColor = dayColors[(day - 1) % dayColors.length];
           
-          day.activities.forEach(activity => {
-            const locationName = activity.location.trim();
-            let coordinates: [number, number] | undefined;
-            
-            // First try exact match
-            if (locationCoordinates[locationName]) {
-              coordinates = locationCoordinates[locationName];
-            } else {
-              // Try partial matching for location names
-              const locationKey = Object.keys(locationCoordinates).find(
-                key => locationName.toLowerCase().includes(key.toLowerCase()) || 
-                      key.toLowerCase().includes(locationName.toLowerCase())
-              );
-              
-              if (locationKey) {
-                coordinates = locationCoordinates[locationKey];
-              } else {
-                console.log("Unknown location:", locationName);
-                // Use random offset from Navi Mumbai center for unknown locations
-                const randomOffset = () => (Math.random() - 0.5) * 0.02;
-                coordinates = [API_CONFIG.defaultMapCenter[0] + randomOffset(), API_CONFIG.defaultMapCenter[1] + randomOffset()];
+          // Clean location name
+          const locationName = activity.location.trim();
+          let coordinates: [number, number] | undefined;
+          
+          // First try exact match
+          if (locationCoordinates[locationName]) {
+            coordinates = locationCoordinates[locationName];
+          } else {
+            // Try partial matching for location names (case insensitive)
+            for (const key of Object.keys(locationCoordinates)) {
+              if (locationName.toLowerCase().includes(key.toLowerCase()) || 
+                  key.toLowerCase().includes(locationName.toLowerCase())) {
+                coordinates = locationCoordinates[key];
+                console.log(`Found partial match for ${locationName}: ${key}`);
+                break;
               }
             }
             
-            if (!coordinates) return;
+            // If still no match, use random offset from Navi Mumbai center
+            if (!coordinates) {
+              console.log("No match found for location:", locationName);
+              const randomOffset = () => (Math.random() - 0.5) * 0.02;
+              coordinates = [API_CONFIG.defaultMapCenter[0] + randomOffset(), API_CONFIG.defaultMapCenter[1] + randomOffset()];
+            }
+          }
+          
+          // Create marker if coordinates are valid
+          if (coordinates) {
+            hasValidLocations = true;
             
-            // Create marker with custom icon
-            const markerIcon = window.L.divIcon({
-              html: `<div style="
-                background-color: ${dayColor}; 
-                width: 24px; 
-                height: 24px; 
-                border-radius: 50%; 
-                display: flex; 
-                align-items: center; 
-                justify-content: center; 
-                color: white; 
-                font-weight: bold;
-                border: 2px solid white;
-                box-shadow: 0 0 10px rgba(0,0,0,0.3);
-              ">${day.day}</div>`,
-              iconSize: [24, 24],
-              className: 'custom-div-icon'
-            });
-            
-            // Create marker with popup
-            const marker = window.L.marker([coordinates[1], coordinates[0]], { icon: markerIcon })
-              .bindPopup(`
-                <div style="padding: 10px;">
-                  <h3 style="font-weight: bold;">${activity.title}</h3>
-                  <p style="font-size: 12px; color: #666;">${activity.time} - Day ${day.day}</p>
-                  <p style="font-size: 12px;">${activity.location}</p>
-                </div>
-              `);
-            
-            marker.addTo(map);
-            markers.push(marker);
-            markersRef.current.push(marker);
-            
-            // Add location to bounds for auto-zooming
-            bounds.extend([coordinates[1], coordinates[0]]);
-          });
+            // Only create one marker per unique location per day
+            const locationKey = `${locationName}-${day}`;
+            if (!processedLocations.has(locationKey)) {
+              processedLocations.add(locationKey);
+              
+              // Create marker with custom icon
+              const markerIcon = window.L.divIcon({
+                html: `<div style="
+                  background-color: ${dayColor}; 
+                  width: 24px; 
+                  height: 24px; 
+                  border-radius: 50%; 
+                  display: flex; 
+                  align-items: center; 
+                  justify-content: center; 
+                  color: white; 
+                  font-weight: bold;
+                  border: 2px solid white;
+                  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+                ">${day}</div>`,
+                iconSize: [24, 24],
+                className: 'custom-div-icon'
+              });
+              
+              // Create marker with popup
+              const marker = window.L.marker([coordinates[1], coordinates[0]], { icon: markerIcon })
+                .bindPopup(`
+                  <div style="padding: 10px;">
+                    <h3 style="font-weight: bold;">${activity.title}</h3>
+                    <p style="font-size: 12px; color: #666;">${activity.time} - Day ${day}</p>
+                    <p style="font-size: 12px;">${activity.location}</p>
+                  </div>
+                `);
+              
+              marker.addTo(map);
+              markers.push(marker);
+              markersRef.current.push(marker);
+              
+              // Add location to bounds for auto-zooming
+              bounds.extend([coordinates[1], coordinates[0]]);
+              console.log(`Added marker for ${activity.title} at ${activity.location}`);
+            }
+          }
         });
         
         console.log("Added", markers.length, "markers to map");
         
         // If we have markers, fit the map to show all of them
-        if (markers.length > 0) {
+        if (markers.length > 0 && hasValidLocations) {
           map.fitBounds(bounds, {
             padding: [40, 40],
             maxZoom: 13
