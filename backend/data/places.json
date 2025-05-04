@@ -1,4 +1,3 @@
-
 {
   "places": [
     {
@@ -17,7 +16,7 @@
       "name": "Central Park",
       "category": "Parks & Gardens",
       "description": "A large urban park with walking paths, gardens, and recreational facilities.",
-      "image": "https://images.unsplash.com/photo-1618773928121-c32242e63f39?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "image": "https://d3mbwbgtcl4x70.cloudfront.net/Central_Park_Kharghar_774b4a891e.webp",
       "rating": 4.3,
       "location": "Kharghar",
       "duration": "1-2 hours"
