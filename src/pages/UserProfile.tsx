@@ -15,41 +15,32 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, UserItinerary } from '@/integrations/supabase/client';
 import { useItinerary } from '@/hooks/useItinerary';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/components/ui/use-toast';
-import axios from 'axios';
 
 interface UserProfileData {
   id: string;
   username: string;
-  name: string | null;
+  name: string;
   email: string;
-  location: string | null;
+  location: string;
   memberSince: string;
-  bio: string | null;
+  bio: string;
   savedItineraries: number;
   forumPosts: number;
   hoursExplored: number;
   avatarUrl?: string;
 }
 
-interface UserStats {
-  saved_itineraries: number;
-  forum_posts: number;
-  hours_explored: number;
-}
-
 const UserProfile = () => {
   const { userId } = useParams<{ userId?: string }>();
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
   const [loading, setLoading] = useState(true);
-  const { user: currentUser, getAccessToken } = useAuth();
+  const { user: currentUser } = useAuth();
   const { getUserItineraries } = useItinerary();
-  const [userItineraries, setUserItineraries] = useState([]);
+  const [userItineraries, setUserItineraries] = useState<UserItinerary[]>([]);
   const isCurrentUserProfile = !userId || userId === currentUser?.id;
-  const { toast } = useToast();
 
   useEffect(() => {
     const fetchUserProfileData = async () => {
@@ -67,134 +58,57 @@ const UserProfile = () => {
         const itineraries = await getUserItineraries(targetUserId);
         setUserItineraries(itineraries);
 
-        let userProfileData: UserProfileData;
-        let userStats = { saved_itineraries: 0, forum_posts: 0, hours_explored: 0 };
-        
-        // If viewing current user profile, get profile from API
-        if (isCurrentUserProfile) {
-          const token = getAccessToken();
-          
-          if (token) {
-            try {
-              // Fetch profile data from API
-              const profileResponse = await axios.get('/api/profile', {
-                headers: {
-                  Authorization: `Bearer ${token}`
-                }
-              });
-              
-              // Fetch stats from API
-              const statsResponse = await axios.get('/api/profile/stats', {
-                headers: {
-                  Authorization: `Bearer ${token}`
-                }
-              });
-              
-              const profile = profileResponse.data;
-              userStats = statsResponse.data;
-              
-              userProfileData = {
-                id: profile.id,
-                username: profile.email?.split('@')[0] || 'user',
-                name: profile.name || null,
-                email: profile.email || '',
-                location: profile.location || 'Navi Mumbai',
-                memberSince: profile.created_at,
-                bio: profile.bio || 'Loves exploring local food and hidden gems in Navi Mumbai.',
-                savedItineraries: userStats.saved_itineraries || itineraries.length,
-                forumPosts: userStats.forum_posts || 8,
-                hoursExplored: userStats.hours_explored || 36,
-                avatarUrl: profile.avatar_url
-              };
-              
-              setUserProfile(userProfileData);
-              setLoading(false);
-              return;
-            } catch (error) {
-              console.error('Failed to fetch profile from API:', error);
-              // Continue to fallback
-            }
-          }
+        // Get itineraries count
+        const { count: itinerariesCount, error: itinerariesError } = await supabase
+          .from('user_itineraries')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', targetUserId);
+
+        if (itinerariesError) {
+          console.error('Error fetching itineraries count:', itinerariesError);
         }
         
-        // Fallback for other users or if API fails: use current user data or fetch from Supabase
-        if (currentUser && isCurrentUserProfile) {
-          userProfileData = {
-            id: currentUser.id,
-            username: currentUser.email?.split('@')[0] || 'user',
-            name: currentUser.user_metadata?.name || null,
-            email: currentUser.email || '',
-            location: currentUser.user_metadata?.location || 'Navi Mumbai',
-            memberSince: currentUser.created_at,
-            bio: currentUser.user_metadata?.bio || 'Loves exploring local food and hidden gems in Navi Mumbai.',
-            savedItineraries: itineraries.length || 3,
-            forumPosts: 8, // Default
-            hoursExplored: 36, // Default
-            avatarUrl: currentUser.user_metadata?.avatar_url
-          };
+        // Get forum posts count (would need to implement if forum table exists)
+        // This is a placeholder since we don't have the actual forum posts table
+        const forumPostsCount = 8; // Default value
+
+        // Calculate hours explored based on itineraries
+        const { data: activities, error: activitiesError } = await supabase
+          .from('itinerary_activities')
+          .select('itinerary_id')
+          .in('itinerary_id', itineraries.map(i => i.id));
           
-          setUserProfile(userProfileData);
-        } else {
-          // User is viewing someone else's profile
-          console.log("Fetching other user profile with ID:", targetUserId);
-          
-          // For other users, try to get basic user data
-          const { data: userData, error } = await supabase.auth.admin.getUserById(targetUserId);
-          
-          if (error || !userData?.user) {
-            console.error('User not found:', error);
-            setLoading(false);
-            return;
-          }
-          
-          const user = userData.user;
-          userProfileData = {
-            id: user.id,
-            username: user.email?.split('@')[0] || 'user',
-            name: user.user_metadata?.name || null,
-            email: user.email || '',
-            location: user.user_metadata?.location || 'Navi Mumbai',
-            memberSince: user.created_at || new Date().toISOString(),
-            bio: user.user_metadata?.bio || 'Loves exploring local food and hidden gems in Navi Mumbai.',
-            savedItineraries: itineraries.length || 3,
-            forumPosts: 8, // Default placeholder
-            hoursExplored: 36, // Default placeholder
-            avatarUrl: user.user_metadata?.avatar_url
-          };
-          
-          setUserProfile(userProfileData);
+        const hoursExplored = activities ? Math.round(activities.length * 1.5) : 36; // Estimate 1.5 hours per activity
+
+        if (activitiesError) {
+          console.error('Error fetching activities:', activitiesError);
         }
+
+        // Construct user profile with real data where possible
+        const profileData: UserProfileData = {
+          id: targetUserId,
+          username: currentUser?.email?.split('@')[0] || 'ganeshaditya125',
+          name: currentUser?.user_metadata?.name || 'Ganesh Aditya',
+          email: currentUser?.email || 'ganeshaditya125@gmail.com',
+          location: 'Navi Mumbai',
+          memberSince: currentUser?.created_at || '2023-05-20',
+          bio: 'Loves exploring local food and hidden gems in Navi Mumbai.',
+          savedItineraries: itinerariesCount || userItineraries.length || 3,
+          forumPosts: forumPostsCount,
+          hoursExplored: hoursExplored,
+          avatarUrl: currentUser?.user_metadata?.avatar_url
+        };
+
+        setUserProfile(profileData);
       } catch (error) {
         console.error('Error fetching user profile:', error);
-        toast({
-          title: "Error loading profile",
-          description: "Could not load user profile data.",
-          variant: "destructive"
-        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchUserProfileData();
-  }, [userId, currentUser, getUserItineraries, isCurrentUserProfile, toast, getAccessToken]);
-
-  // Helper function to create user profile from user object
-  const createProfileFromUser = (user: any, itinerariesCount: number, stats: UserStats) => {
-    return {
-      id: user.id,
-      username: user.email?.split('@')[0] || 'user',
-      name: user.user_metadata?.name || null,
-      email: user.email || '',
-      location: user.user_metadata?.location || 'Navi Mumbai',
-      memberSince: user.created_at || new Date().toISOString(),
-      bio: user.user_metadata?.bio || 'Loves exploring local food and hidden gems in Navi Mumbai.',
-      savedItineraries: stats.saved_itineraries || itinerariesCount || 3,
-      forumPosts: stats.forum_posts || 8,
-      hoursExplored: stats.hours_explored || 36,
-      avatarUrl: user.user_metadata?.avatar_url
-    };
-  };
+  }, [userId, currentUser, getUserItineraries, userItineraries.length]);
 
   if (loading) {
     return (
@@ -274,7 +188,7 @@ const UserProfile = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4 opacity-70" />
-                <span>{userProfile.location || 'Location not specified'}</span>
+                <span>{userProfile.location}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Calendar className="h-4 w-4 opacity-70" />
