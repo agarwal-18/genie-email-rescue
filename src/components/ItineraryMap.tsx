@@ -87,7 +87,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     'Golf Course': [73.0081, 19.0157],
     'Nerul Balaji Temple': [73.0206, 19.0377],
     'Flamingo Sanctuary': [73.0165, 19.0380],
-    'Science Centre': [73.0174, 19.0390],
+    'Dr. Ambedkar Memorial': [72.9985, 19.1557], // Updated to Airoli coordinates
     'Raghuleela Mall': [73.0077, 19.0720],
     'Belapur Fort': [73.0358, 19.0235],
     'Navi Mumbai': [73.0401, 19.0185],
@@ -104,7 +104,8 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     'Seawoods Grand Central': [73.0180, 19.0131],
     'Pandavkada Falls': [73.0825, 19.0345],
     'Little World Mall': [73.0187, 19.0421],
-    'Vashi Lake': [73.0042, 19.0701]
+    'Vashi Lake': [73.0042, 19.0701],
+    'Mango Garden': [73.0358, 19.0235] // Updated to Belapur coordinates
   };
   
   const leafletCssId = 'leaflet-css';
@@ -254,25 +255,12 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         const markers: any[] = [];
         const dayColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'];
         
-        // Track seen locations to avoid duplicates
-        const seenLocations = new Set<string>();
-        const unknownLocations: string[] = [];
-        
-        // Process activities and add markers for all unique locations
+        // Process all activities from all days in the itinerary
         itinerary.forEach(day => {
           const dayColor = dayColors[(day.day - 1) % dayColors.length];
           
           day.activities.forEach(activity => {
             const locationName = activity.location.trim();
-            
-            // Skip if we've already added this location
-            if (seenLocations.has(locationName)) {
-              return;
-            }
-            
-            seenLocations.add(locationName);
-            
-            // Find coordinates for this location
             let coordinates: [number, number] | undefined;
             
             // First try exact match
@@ -288,9 +276,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
               if (locationKey) {
                 coordinates = locationCoordinates[locationKey];
               } else {
-                // Mark as unknown location for logging
-                unknownLocations.push(locationName);
-                
+                console.log("Unknown location:", locationName);
                 // Use random offset from Navi Mumbai center for unknown locations
                 const randomOffset = () => (Math.random() - 0.5) * 0.02;
                 coordinates = [API_CONFIG.defaultMapCenter[0] + randomOffset(), API_CONFIG.defaultMapCenter[1] + randomOffset()];
@@ -332,15 +318,12 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
             markers.push(marker);
             markersRef.current.push(marker);
             
-            // Add location to bounds
+            // Add location to bounds for auto-zooming
             bounds.extend([coordinates[1], coordinates[0]]);
           });
         });
         
         console.log("Added", markers.length, "markers to map");
-        if (unknownLocations.length > 0) {
-          console.log("Unknown locations:", unknownLocations);
-        }
         
         // If we have markers, fit the map to show all of them
         if (markers.length > 0) {

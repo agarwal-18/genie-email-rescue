@@ -356,14 +356,8 @@ export function useItinerary() {
       if (!element) {
         throw new Error('Element not found for PDF generation');
       }
-      
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        logging: false,
-        useCORS: true
-      });
-      
-      const imgData = canvas.toDataURL('image/png');
+
+      // Create PDF document
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -377,11 +371,54 @@ export function useItinerary() {
       // Add date
       pdf.setFontSize(10);
       pdf.text(`Generated on ${new Date().toLocaleDateString()}`, 15, 22);
+
+      // Temporarily store all day tabs that need to be captured
+      const dayTabs = element.querySelectorAll('[role="tab"]');
       
-      const imgWidth = 180; // A4 width with margins
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      // Loop through each day in the itinerary
+      for (let i = 0; i < itineraryDays.length; i++) {
+        const day = itineraryDays[i];
+        
+        // Add a new page for each day except the first one
+        if (i > 0) {
+          pdf.addPage();
+          pdf.setFontSize(16);
+          pdf.text(`${itineraryInfo.title} - Day ${day.day}`, 15, 15);
+          pdf.setFontSize(10);
+          pdf.text(`Generated on ${new Date().toLocaleDateString()}`, 15, 22);
+        }
+
+        // Click on the day tab to make it visible
+        if (dayTabs && dayTabs[i]) {
+          (dayTabs[i] as HTMLElement).click();
+          
+          // Wait for the tab content to render
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+        
+        // Find the tab content that's currently visible
+        const visibleTab = element.querySelector('[data-state="active"]');
+        
+        if (visibleTab) {
+          const canvas = await html2canvas(visibleTab as HTMLElement, {
+            scale: 2,
+            logging: false,
+            useCORS: true
+          });
+          
+          const imgData = canvas.toDataURL('image/png');
+          const imgWidth = 180; // A4 width with margins
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          
+          // Add the image at a position below the title
+          pdf.addImage(imgData, 'PNG', 15, 25, imgWidth, imgHeight);
+        }
+      }
       
-      pdf.addImage(imgData, 'PNG', 15, 25, imgWidth, imgHeight);
+      // Return to the first tab for UI consistency
+      if (dayTabs && dayTabs[0]) {
+        (dayTabs[0] as HTMLElement).click();
+      }
       
       const fileName = `${itineraryInfo.title.replace(/\s+/g, '_')}.pdf`;
       pdf.save(fileName);
