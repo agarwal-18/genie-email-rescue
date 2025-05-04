@@ -112,7 +112,8 @@ const PlaceCard = ({
     // Updated specific location images with higher quality ones
     const specificLocationImages: Record<string, string> = {
       "Nerul Balaji Temple": "https://www.holidify.com/images/cmsuploads/square/dsfsdf_20190314154524.jpg",
-      "Flamingo Sanctuary": "https://images.unsplash.com/photo-1573722719733-7a27b909a07d?q=80&w=800", 
+      // Updated Flamingo Sanctuary image as requested
+      "Flamingo Sanctuary": "https://dbdzm869oupei.cloudfront.net/img/photomural/preview/57085.png", 
       "Science Centre": "https://images.unsplash.com/photo-1576086135878-bd1e26313586?q=80&w=800",
       "Raghuleela Mall": "https://images.unsplash.com/photo-1567958451986-2de427a3a0fc?q=80&w=800",
       "Belapur Fort": "https://images.unsplash.com/photo-1599408587288-6f9ef85db0ab?q=80&w=800",
