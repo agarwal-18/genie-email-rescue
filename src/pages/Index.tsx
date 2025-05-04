@@ -17,7 +17,21 @@ const Index = () => {
   useEffect(() => {
     // Get places from data.ts
     const places = getAllPlaces();
-    setFeaturedPlaces(places); // Show all places, not just featured
+    // Get the featured places or the first 3 places
+    const featured = places
+      .filter(place => place.featured)
+      .slice(0, 3);
+    
+    // If we don't have 3 featured places, add some non-featured ones
+    if (featured.length < 3) {
+      const nonFeatured = places
+        .filter(place => !place.featured)
+        .slice(0, 3 - featured.length);
+      
+      setFeaturedPlaces([...featured, ...nonFeatured]);
+    } else {
+      setFeaturedPlaces(featured);
+    }
   }, []);
 
   return (
