@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { MapPin, Clock, Calendar, Map, Menu, Copy, Share2, Download, Printer, Save } from 'lucide-react';
+import { MapPin, Clock, Calendar, Map, Menu, Copy, Share2, Download, Printer, Save, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -60,7 +60,7 @@ const locationImages: Record<string, string> = {
   'Jewel of Navi Mumbai': 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800',
   'Sagar Vihar': 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=800',
   'Golf Course': 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=800',
-  'Nerul Balaji Temple': 'https://images.unsplash.com/photo-1602526432604-029a709e131c?q=80&w=800',
+  'Nerul Balaji Temple': 'https://www.holidify.com/images/cmsuploads/square/dsfsdf_20190314154524.jpg',
   'Flamingo Sanctuary': 'https://images.unsplash.com/photo-1509022702721-0ce3c0c677b1?q=80&w=800', 
   'Science Centre': 'https://images.unsplash.com/photo-1576086135878-bd1e26313586?q=80&w=800',
   'Raghuleela Mall': 'https://images.unsplash.com/photo-1567958451986-2de427a3a0fc?q=80&w=800',
@@ -132,13 +132,13 @@ const Itinerary = () => {
           setEditMode(true);
           loadedItineraryRef.current = idParam;
           
-          // Set the itinerary settings
+          // Set the itinerary settings, handling Budget-Friendly -> Economical conversion
           setItinerarySettings({
             title: result.details.title,
             days: result.details.days,
             start_date: result.details.start_date ? new Date(result.details.start_date) : undefined,
             pace: result.details.pace || 'moderate',
-            budget: result.details.budget || 'medium',
+            budget: result.details.budget === 'Budget-Friendly' ? 'Economical' : result.details.budget || 'Mid-Range',
             interests: result.details.interests || ['Historical Sites', 'Shopping'],
             transportation: result.details.transportation || 'public',
             include_food: result.details.include_food !== null ? result.details.include_food : true
@@ -297,22 +297,30 @@ const Itinerary = () => {
       return;
     }
 
-    const success = await downloadItineraryAsPdf(
-      {
-        title: itinerarySettings.title || 'Navi Mumbai Itinerary',
-        days: itinerarySettings.days || itinerary.length,
-      },
-      itinerary,
-      itineraryContentRef.current
-    );
+    // Make sure we're fully rendering the content before capturing
+    setTimeout(async () => {
+      const success = await downloadItineraryAsPdf(
+        {
+          title: itinerarySettings.title || 'Navi Mumbai Itinerary',
+          days: itinerarySettings.days || itinerary.length,
+        },
+        itinerary,
+        itineraryContentRef.current
+      );
 
-    if (!success) {
-      toast({
-        title: "Download failed",
-        description: "There was a problem downloading your itinerary.",
-        variant: "destructive"
-      });
-    }
+      if (success) {
+        toast({
+          title: "Download complete",
+          description: "Your itinerary PDF has been downloaded successfully."
+        });
+      } else {
+        toast({
+          title: "Download failed",
+          description: "There was a problem downloading your itinerary.",
+          variant: "destructive"
+        });
+      }
+    }, 100); // Small delay to ensure DOM is updated
   };
 
   const handleOpenMap = () => {
@@ -417,7 +425,7 @@ const Itinerary = () => {
                         <Tabs defaultValue={`day-${itinerary[0].day}`}>
                           <TabsList className="grid grid-flow-col auto-cols-fr">
                             {itinerary.map((day) => (
-                              <TabsTrigger key={day.day} value={`day-${day.day}`}>
+                              <TabsTrigger key={day.day} value={`day-${day.day}`} data-day={day.day}>
                                 Day {day.day}
                               </TabsTrigger>
                             ))}
@@ -483,6 +491,75 @@ const Itinerary = () => {
                           ))}
                         </Tabs>
                       </CardHeader>
+                    </Card>
+                    
+                    {/* Travel Tips & Instructions Section - Added for PDF */}
+                    <Card className="border-none shadow-md mt-6 travel-tips-section">
+                      <CardHeader className="px-6 py-4 bg-primary/5 border-b">
+                        <CardTitle className="flex items-center text-lg">
+                          <Info className="h-5 w-5 mr-2 text-primary" />
+                          <span>Travel Tips & Instructions</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div>
+                            <h3 className="font-medium mb-3">Before You Go</h3>
+                            <ul className="space-y-2 text-sm">
+                              <li className="flex items-start">
+                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">1</span>
+                                <span>Check weather forecasts daily</span>
+                              </li>
+                              <li className="flex items-start">
+                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">2</span>
+                                <span>Download offline maps of each area</span>
+                              </li>
+                              <li className="flex items-start">
+                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">3</span>
+                                <span>Keep digital and physical copies of your itinerary</span>
+                              </li>
+                              <li className="flex items-start">
+                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">4</span>
+                                <span>Have emergency contacts saved on your phone</span>
+                              </li>
+                              <li className="flex items-start">
+                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">5</span>
+                                <span>Pack appropriate clothing for your activities</span>
+                              </li>
+                            </ul>
+                          </div>
+                          
+                          <div>
+                            <h3 className="font-medium mb-3">During Your Trip</h3>
+                            <ul className="space-y-2 text-sm">
+                              <li className="flex items-start">
+                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">1</span>
+                                <span>Arrive 30 minutes early for scheduled activities</span>
+                              </li>
+                              <li className="flex items-start">
+                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">2</span>
+                                <span>Always carry water and stay hydrated</span>
+                              </li>
+                              <li className="flex items-start">
+                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">3</span>
+                                <span>Be respectful of local customs and traditions</span>
+                              </li>
+                              <li className="flex items-start">
+                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">4</span>
+                                <span>Take regular breaks to avoid exhaustion</span>
+                              </li>
+                              <li className="flex items-start">
+                                <span className="inline-block w-5 h-5 mr-2 bg-primary/10 rounded-full text-xs flex items-center justify-center text-primary font-medium">5</span>
+                                <span>Try local cuisine for an authentic experience</span>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                        
+                        <p className="mt-6 text-center text-sm text-muted-foreground">
+                          Keep these tips in mind to ensure a smooth and enjoyable experience in Navi Mumbai.
+                        </p>
+                      </CardContent>
                     </Card>
                   </div>
                   
