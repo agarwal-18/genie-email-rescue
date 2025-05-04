@@ -216,7 +216,7 @@ const places: Place[] = [
     name: "Vashi Creek Bridge",
     category: "Landmarks",
     description: "An iconic bridge connecting Mumbai to Navi Mumbai, offering scenic views of the creek.",
-    image: "https://images.unsplash.com/photo-1559570278-eb8d71d06403?q=80&w=1473&auto=format&fit=crop&ixlib=rb-4.0.3",
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/cf/Vashi_creek_flyover_2020.jpg",
     rating: 4.1,
     location: "Vashi",
     duration: "30 minutes"
