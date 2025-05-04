@@ -185,7 +185,7 @@ const places: Place[] = [
     name: "Shilp Gram",
     category: "Cultural",
     description: "A craft village showcasing traditional arts, crafts, and cultural performances.",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1415&auto=format&fit=crop&ixlib=rb-4.0.3",
+    image: "https://s3.ap-southeast-1.amazonaws.com/images.asianage.com/images/aa-Cover-d4moekinu534g2mard9nj7shj5-20181014055344.Medi.jpeg",
     rating: 4.2,
     location: "Airoli",
     duration: "2 hours"
