@@ -12,7 +12,7 @@ import TripTips from '@/components/TripTips';
 
 const Index = () => {
   const [featuredPlaces, setFeaturedPlaces] = useState<any[]>([]);
-  const heroImageUrl = "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?q=80&w=1470&auto=format&fit=crop";
+  const heroImageUrl = "/my-hero-bg.jpg";
 
   useEffect(() => {
     // Get places from data.ts
@@ -44,7 +44,7 @@ const Index = () => {
         subtitle="Explore the hidden gems and must-visit places in the planned city of Navi Mumbai, Maharashtra."
         ctaText="Start Exploring"
         ctaLink="/places"
-        imageUrl={heroImageUrl}
+        imageUrl="https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=1500&q=80"
       />
       
       {/* Features Section */}
