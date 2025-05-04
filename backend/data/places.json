@@ -1,3 +1,4 @@
+
 {
   "places": [
     {
@@ -30,6 +31,26 @@
       "rating": 4.4,
       "location": "Nerul",
       "duration": "2-3 hours"
+    },
+    {
+      "id": "17",
+      "name": "Dr. Ambedkar Memorial",
+      "category": "Educational",
+      "description": "An interactive museum with exhibits and demonstrations for all ages.",
+      "image": "https://images.unsplash.com/photo-1576086135867-9301855780d5?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.3,
+      "location": "Kopar Khairane",
+      "duration": "2-3 hours"
+    },
+    {
+      "id": "25",
+      "name": "Mango Garden",
+      "category": "Parks & Gardens",
+      "description": "A garden with various species of mango trees, popular during the summer season.",
+      "image": "https://images.unsplash.com/photo-1622944925998-2429e7c6ae91?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.2,
+      "location": "Belapur",
+      "duration": "1 hour"
     }
   ]
 }

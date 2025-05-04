@@ -79,7 +79,7 @@ const PlaceCard = ({
     }
   };
 
-  const handleFavoriteClick = (e: React.MouseEvent) => {
+  const handleFavoriteToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     if (onFavoriteToggle) {
@@ -94,7 +94,7 @@ const PlaceCard = ({
       "Parks & Gardens": "https://images.unsplash.com/photo-1584479898061-15742e14f50d?ixlib=rb-4.0.3&q=80&w=800",
       "Natural Attractions": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&q=80&w=800",
       "Shopping": "https://images.unsplash.com/photo-1605267994962-015b59d59ea9?ixlib=rb-4.0.3&q=80&w=800",
-      "Historical Sites": "https://images.unsplash.com/photo-1564566500014-459a2967f00c?ixlib=rb-4.0.3&q=80&w=800",
+      "Historical Sites": "https://images.unsplash.com/photo-1561361058-c12e14fc165e?ixlib=rb-4.0.3&q=80&w=800",
       "Religious Sites": "https://images.unsplash.com/photo-1561361058-c12e14fc165e?ixlib=rb-4.0.3&q=80&w=800",
       "Sports": "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-4.0.3&q=80&w=800",
       "Wildlife": "https://images.unsplash.com/photo-1564171149171-88ba9136cdc8?ixlib=rb-4.0.3&q=80&w=800", 
@@ -243,7 +243,7 @@ const PlaceCard = ({
                 "w-5 h-5 cursor-pointer", 
                 isFavorite ? "text-yellow-500 fill-yellow-500" : "text-gray-400"
               )} 
-              onClick={handleFavoriteClick}
+              onClick={handleFavoriteToggle}
             />
             <span className="ml-1 text-sm font-medium">{rating.toFixed(1)}</span>
           </div>
@@ -268,12 +268,6 @@ const PlaceCard = ({
               <span>{duration}</span>
             </div>
           )}
-        </div>
-        
-        <div className="mt-auto pt-4">
-          <Button size="sm" variant="outline" className="w-full text-xs">
-            View Details
-          </Button>
         </div>
       </div>
     </div>

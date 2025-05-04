@@ -204,9 +204,9 @@ const places: Place[] = [
   },
   {
     id: "17",
-    name: "Science Centre",
+    name: "Dr. Ambedkar Memorial",
     category: "Educational",
-    description: "An interactive museum with science exhibits and demonstrations for all ages.",
+    description: "An interactive museum with exhibits and demonstrations for all ages.",
     image: "https://images.unsplash.com/photo-1576086135867-9301855780d5?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.3,
     location: "Kopar Khairane",
@@ -289,7 +289,7 @@ const places: Place[] = [
     description: "A garden with various species of mango trees, popular during the summer season.",
     image: "https://images.unsplash.com/photo-1622944925998-2429e7c6ae91?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.2,
-    location: "Kopar Khairane",
+    location: "Belapur",
     duration: "1 hour"
   }
 ];
