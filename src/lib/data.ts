@@ -236,7 +236,7 @@ const places: Place[] = [
     name: "Ulwe Hill",
     category: "Natural Attractions",
     description: "A hill offering panoramic views of the developing Navi Mumbai Airport area.",
-    image: "https://images.unsplash.com/photo-1551978129-b73f45d132eb?q=80&w=1472&auto=format&fit=crop&ixlib=rb-4.0.3",
+    image: "https://sceneloc8.com/wp-content/uploads/2024/03/Teenjhadi-Hills.png",
     rating: 4.0,
     location: "Ulwe",
     duration: "2 hours"
