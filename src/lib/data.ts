@@ -256,7 +256,7 @@ const places: Place[] = [
     name: "Raghuleela Mall",
     category: "Shopping",
     description: "A popular shopping destination with various retail outlets, food court, and entertainment options.",
-    image: "https://images.unsplash.com/photo-1605267994962-015b59d59ea9?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+    image: "https://storage.googleapis.com/goa-app-12a91.appspot.com/2024-08-01T23%3A47%3A02.261ZRaghuleelaMall_Vashi_1.webp?GoogleAccessId=firebase-adminsdk-zeqcj%40goa-app-12a91.iam.gserviceaccount.com&Expires=16447017600&Signature=gewiG2IEL614K1rGHnLeiQy%2Fd%2Fb48vw1L5p9nTAbo34Zy7YKvmoASXjs%2FLxdttSSflk8DBr1iXdBhL3IPCmQcDTZR4xx7Rp8r4oFbOH7TK9WVMWhiuOaFo1mUpLS6vRbu%2Be91c1FLAbsrFDGrBtJ4dz2XjFUy%2BQc%2FIAiCKZ%2B7cvtzQad2c1126JfsnJAUsZT5uMZT1GEGemcoZD%2B8marsLxx40QINq8RTW%2F7FPAGdsOk7%2B6zxNFFL%2BtRxcMOB9sj9NwYKMx28oGGIkKkMEnEHeWn%2BNvTHjjtHk440MSsnL%2BNMEzI8hjcOZeEY3LjRMkLqe7omBjqt7bgM3eETU25YQ%3D%3D",
     rating: 4.1,
     location: "Vashi",
     duration: "2-3 hours"
