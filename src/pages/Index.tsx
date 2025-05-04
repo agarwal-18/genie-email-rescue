@@ -17,21 +17,13 @@ const Index = () => {
   useEffect(() => {
     // Get places from data.ts
     const places = getAllPlaces();
-    // Get the featured places or the first 3 places
-    const featured = places
-      .filter(place => place.featured)
-      .slice(0, 3);
-    
-    // If we don't have 3 featured places, add some non-featured ones
-    if (featured.length < 3) {
-      const nonFeatured = places
-        .filter(place => !place.featured)
-        .slice(0, 3 - featured.length);
-      
-      setFeaturedPlaces([...featured, ...nonFeatured]);
-    } else {
-      setFeaturedPlaces(featured);
-    }
+    // Custom featured places for homepage
+    const customFeatured = [
+      places.find(place => place.name === "Seawoods Grand Central Mall"),
+      places.find(place => place.name === "Golf Course"),
+      ...places.filter(place => place.featured && place.name !== "Nerul Balaji Temple" && place.name !== "Inorbit Mall" && place.name !== "Seawoods Grand Central Mall" && place.name !== "Golf Course").slice(0, 1)
+    ].filter(Boolean);
+    setFeaturedPlaces(customFeatured);
   }, []);
 
   return (
