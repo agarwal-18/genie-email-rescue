@@ -104,7 +104,7 @@ const places: Place[] = [
     name: "Parsik Hill",
     category: "Natural Attractions",
     description: "A hill offering panoramic views of Navi Mumbai, popular for trekking and sunrise viewing.",
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+    image: "https://www.mappls.com/place/KIQ2FR_1644231876290_1.jpeg",
     rating: 4.1,
     location: "Belapur",
     duration: "2-3 hours"
