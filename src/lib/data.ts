@@ -286,7 +286,7 @@ const places: Place[] = [
     name: "Mango Garden",
     category: "Parks & Gardens",
     description: "A garden with various species of mango trees, popular during the summer season.",
-    image: "https://images.unsplash.com/photo-1622944925998-2429e7c6ae91?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+    image: "https://thumbs.dreamstime.com/b/magoes-hanging-tree-mango-garden-chapainwabganj-rajshahi-bangladesh-176979768.jpg",
     rating: 4.2,
     location: "Belapur",
     duration: "1 hour"
