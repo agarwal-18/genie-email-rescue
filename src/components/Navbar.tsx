@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, User, MapPin, LogOut, MessageSquare, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +17,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
@@ -36,6 +38,10 @@ const Navbar = () => {
     // Close mobile menu when changing routes
     setIsOpen(false);
   }, [location]);
+  
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'glass py-3' : 'bg-transparent py-5'}`}>
@@ -80,7 +86,7 @@ const Navbar = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => location.pathname !== "/profile" && window.location.assign("/profile")}>
+                  <DropdownMenuItem onClick={handleProfileClick}>
                     <User className="h-4 w-4 mr-2" />
                     My Profile
                   </DropdownMenuItem>
@@ -147,12 +153,15 @@ const Navbar = () => {
               <>
                 <Link to="/itinerary" className={`px-4 py-2 rounded-lg ${isActive('/itinerary') ? 'bg-primary/10 text-primary' : 'hover:bg-accent'}`}>Planner</Link>
                 <Link to="/saved-itineraries" className={`px-4 py-2 rounded-lg ${isActive('/saved-itineraries') ? 'bg-primary/10 text-primary' : 'hover:bg-accent'}`}>My Itineraries</Link>
-                <Link to="/profile" className={`px-4 py-2 rounded-lg ${isActive('/profile') ? 'bg-primary/10 text-primary' : 'hover:bg-accent'}`}>
+                <div 
+                  onClick={handleProfileClick}
+                  className={`px-4 py-2 rounded-lg ${isActive('/profile') ? 'bg-primary/10 text-primary' : 'hover:bg-accent'} cursor-pointer`}
+                >
                   <div className="flex items-center">
                     <User className="h-4 w-4 mr-2" />
                     My Profile
                   </div>
-                </Link>
+                </div>
               </>
             )}
           </nav>

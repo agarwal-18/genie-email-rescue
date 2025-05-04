@@ -11,6 +11,7 @@ import {
   DialogClose
 } from '@/components/ui/dialog';
 import { API_CONFIG } from '@/config';
+import { toast } from 'sonner';
 
 // Declare Leaflet types globally
 declare global {
@@ -174,6 +175,46 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
       mapInstance.current = null;
     }
   };
+
+  // Helper function for fuzzy location matching
+  const findBestLocationMatch = (locationName: string): [number, number] | null => {
+    // 1. Try exact match first
+    if (locationCoordinates[locationName]) {
+      return locationCoordinates[locationName];
+    }
+    
+    // 2. Try case-insensitive exact match
+    const lowerLocationName = locationName.toLowerCase();
+    for (const [key, coords] of Object.entries(locationCoordinates)) {
+      if (key.toLowerCase() === lowerLocationName) {
+        return coords;
+      }
+    }
+    
+    // 3. Try partial matching (location contains key or key contains location)
+    for (const [key, coords] of Object.entries(locationCoordinates)) {
+      if (locationName.toLowerCase().includes(key.toLowerCase()) || 
+          key.toLowerCase().includes(locationName.toLowerCase())) {
+        return coords;
+      }
+    }
+    
+    // 4. Try word-by-word matching
+    const locationWords = locationName.toLowerCase().split(/\s+/);
+    for (const [key, coords] of Object.entries(locationCoordinates)) {
+      const keyWords = key.toLowerCase().split(/\s+/);
+      // Check if any word in the location matches any word in the key
+      const hasCommonWord = locationWords.some(word => 
+        keyWords.some(keyWord => keyWord === word && word.length > 2)
+      );
+      if (hasCommonWord) {
+        return coords;
+      }
+    }
+    
+    // No match found
+    return null;
+  };
   
   // Initialize the map when dialog is opened and Leaflet is loaded
   useEffect(() => {
@@ -265,7 +306,10 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         // Add markers for each activity location
         const markers: any[] = [];
         const dayColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'];
-        const processedLocations = new Set<string>();
+        const processedLocations = new Map<string, number[]>(); // Track processed locations with their days
+        
+        // Debug: Log all locations that will be plotted
+        console.log("Locations to plot on map:", allActivities.map(({activity}) => activity.location));
         
         // Process all activities from all days in the itinerary
         allActivities.forEach(({activity, day}) => {
@@ -273,38 +317,28 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
           
           // Clean location name
           const locationName = activity.location.trim();
-          let coordinates: [number, number] | undefined;
+          let coordinates = findBestLocationMatch(locationName);
           
-          // First try exact match
-          if (locationCoordinates[locationName]) {
-            coordinates = locationCoordinates[locationName];
+          if (!coordinates) {
+            // If no match found, use random offset from Navi Mumbai center
+            console.log("No match found for location:", locationName);
+            const randomOffset = () => (Math.random() - 0.5) * 0.02;
+            coordinates = [API_CONFIG.defaultMapCenter[0] + randomOffset(), API_CONFIG.defaultMapCenter[1] + randomOffset()];
           } else {
-            // Try partial matching for location names (case insensitive)
-            for (const key of Object.keys(locationCoordinates)) {
-              if (locationName.toLowerCase().includes(key.toLowerCase()) || 
-                  key.toLowerCase().includes(locationName.toLowerCase())) {
-                coordinates = locationCoordinates[key];
-                console.log(`Found partial match for ${locationName}: ${key}`);
-                break;
-              }
-            }
-            
-            // If still no match, use random offset from Navi Mumbai center
-            if (!coordinates) {
-              console.log("No match found for location:", locationName);
-              const randomOffset = () => (Math.random() - 0.5) * 0.02;
-              coordinates = [API_CONFIG.defaultMapCenter[0] + randomOffset(), API_CONFIG.defaultMapCenter[1] + randomOffset()];
-            }
+            console.log(`Found coordinates for ${locationName}:`, coordinates);
           }
           
-          // Create marker if coordinates are valid
+          // Create marker
           if (coordinates) {
             hasValidLocations = true;
             
-            // Only create one marker per unique location per day
-            const locationKey = `${locationName}-${day}`;
-            if (!processedLocations.has(locationKey)) {
-              processedLocations.add(locationKey);
+            // Get days this location has been used in
+            const locationKey = `${locationName}`;
+            const existingDays = processedLocations.get(locationKey) || [];
+            
+            // Add new day if it's not already tracked for this location
+            if (!existingDays.includes(day)) {
+              processedLocations.set(locationKey, [...existingDays, day]);
               
               // Create marker with custom icon
               const markerIcon = window.L.divIcon({
@@ -341,12 +375,15 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
               
               // Add location to bounds for auto-zooming
               bounds.extend([coordinates[1], coordinates[0]]);
-              console.log(`Added marker for ${activity.title} at ${activity.location}`);
+              console.log(`Added marker for ${activity.title} at ${activity.location} (Day ${day})`);
+            } else {
+              console.log(`Skipping duplicate marker for ${locationName} on day ${day}`);
             }
           }
         });
         
         console.log("Added", markers.length, "markers to map");
+        console.log("Processed locations:", [...processedLocations.keys()]);
         
         // If we have markers, fit the map to show all of them
         if (markers.length > 0 && hasValidLocations) {
@@ -354,6 +391,10 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
             padding: [40, 40],
             maxZoom: 13
           });
+          console.log("Map zoomed to fit all markers");
+        } else {
+          console.warn("No valid markers to display on map");
+          toast.warning("Couldn't locate some places on the map");
         }
         
         setMapLoaded(true);
