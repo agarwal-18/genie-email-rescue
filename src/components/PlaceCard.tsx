@@ -111,14 +111,14 @@ const PlaceCard = ({
     
     // Updated specific location images with higher quality ones
     const specificLocationImages: Record<string, string> = {
-      "Nerul Balaji Temple": "https://images.unsplash.com/photo-1602526432604-029a709e131c?q=80&w=800",
+      "Nerul Balaji Temple": "https://www.holidify.com/images/cmsuploads/square/dsfsdf_20190314154524.jpg",
       // Updated Flamingo Sanctuary image as requested
       "Flamingo Sanctuary": "https://dbdzm869oupei.cloudfront.net/img/photomural/preview/57085.png", 
       "Science Centre": "https://images.unsplash.com/photo-1576086135878-bd1e26313586?q=80&w=800",
       "Raghuleela Mall": "https://images.unsplash.com/photo-1567958451986-2de427a3a0fc?q=80&w=800",
       "Belapur Fort": "https://images.unsplash.com/photo-1599408587288-6f9ef85db0ab?q=80&w=800",
       // Updated Inorbit Mall image as requested
-      "Inorbit Mall": "https://images.unsplash.com/photo-1581417478175-a9ef18f210c2?q=80&w=800",
+      "Inorbit Mall": "https://www.imagesbof.in/wp-content/uploads/2022/03/Inorbit-vashi.png",
       "DLF Mall": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800",
       "Vashi": "https://images.unsplash.com/photo-1599359969577-a5611718a25e?q=80&w=800",
       "Belapur": "https://images.unsplash.com/photo-1599408587288-6f9ef85db0ab?q=80&w=800",
