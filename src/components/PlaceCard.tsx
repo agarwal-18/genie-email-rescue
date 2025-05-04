@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { Star, Clock, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -111,7 +112,7 @@ const PlaceCard = ({
     
     // Updated specific location images with higher quality ones
     const specificLocationImages: Record<string, string> = {
-      "Nerul Balaji Temple": "https://www.holidify.com/images/cmsuploads/square/dsfsdf_20190314154524.jpg",
+      "Nerul Balaji Temple": "https://images.unsplash.com/photo-1553164700-3cae46c2243f?q=80&w=800",
       "Flamingo Sanctuary": "https://images.unsplash.com/photo-1573722719733-7a27b909a07d?q=80&w=800", 
       "Science Centre": "https://images.unsplash.com/photo-1576086135878-bd1e26313586?q=80&w=800",
       "Raghuleela Mall": "https://images.unsplash.com/photo-1567958451986-2de427a3a0fc?q=80&w=800",
@@ -277,4 +278,3 @@ const PlaceCard = ({
 };
 
 export default PlaceCard;
-
