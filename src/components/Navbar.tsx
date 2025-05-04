@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, User, MapPin, LogOut, MessageSquare, Sun, Moon } from 'lucide-react';
@@ -44,7 +43,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2 text-lg font-medium">
             <MapPin className="h-6 w-6 text-navi-blue" />
-            <span className="font-semibold">NaviExplore</span>
+            <span className="font-semibold">TripGenie</span>
           </Link>
           
           {/* Desktop Navigation */}
