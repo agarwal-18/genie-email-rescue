@@ -73,7 +73,7 @@ const places: Place[] = [
     name: "NMMC Butterfly Garden",
     category: "Parks & Gardens",
     description: "A specialized garden that attracts various butterfly species with plants that serve as food sources.",
-    image: "https://images.unsplash.com/photo-1606748313289-81f81f9eae50?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+    image: "https://images.hindustantimes.com/rf/image_size_960x540/HT/p2/2018/09/29/Pictures/thane-india-visit-thane-2018-collector-impact_38ad43b0-c3e6-11e8-9e8c-b17643e39fb5.jpg",
     rating: 4.2,
     location: "Seawoods",
     duration: "1 hour"
