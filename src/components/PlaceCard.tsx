@@ -279,3 +279,4 @@ const PlaceCard = ({
 };
 
 export default PlaceCard;
+
