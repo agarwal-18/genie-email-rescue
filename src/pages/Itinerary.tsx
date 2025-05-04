@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { MapPin, Clock, Calendar, Map, Menu, Copy, Share2, Download, Printer, Save, Info } from 'lucide-react';
+// import { useState, useEffect, useRef } from 'react';
+// import { useSearchParams, useNavigate } from 'react-router-dom';
+// import { MapPin, Clock, Calendar, Map, Menu, Copy, Share2, Download, Printer, Save, Info } from 'lucide-react';
+// import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -16,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
 import ItineraryGenerator from '@/components/ItineraryGenerator';
