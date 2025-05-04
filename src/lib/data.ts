@@ -114,7 +114,7 @@ const places: Place[] = [
     name: "Belapur Fort",
     category: "Historical Sites",
     description: "Historical fort built in the 17th century, offering a glimpse into the region's past.",
-    image: "https://images.unsplash.com/photo-1564566500014-459a2967f00c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+    image: "https://storage.googleapis.com/goa-app-12a91.appspot.com/2024-07-25T00%3A30%3A49.319Zbelapur-fort.webp?GoogleAccessId=firebase-adminsdk-zeqcj%40goa-app-12a91.iam.gserviceaccount.com&Expires=16447017600&Signature=Ub8xfPATcPuojR8AtREAv%2FY6GEtNCs%2BdDM4hDHRrZ%2BXH40Jl2pBUcupPUD%2BCeN%2F8Bu4KPdeOPuPpmrh0MSEVpdh7GJ1lMZlZsK0xCdrGg9ruWpFYx75pWK8QBUDcQGnj2HGBTKfbXtzvNJB2QqWqVi%2BdjyDzrGIKWgDKWSIe2WJipLMrjMHOcijKibWpX1JI0Hg9Rg9r4YuuI%2B4EEvr%2BrcLTUQbcGOYKShj95TziZ4Z0Ykqhko2yoGhqPF44krb3rBZmSmuu2lYdPFsNJOpK2K%2BN%2BaQEq0yNvoG08T1%2FQ2IV%2ByxZF4sY9aSZlZXKf35d6ntD2wqqMocUIhont11MAg%3D%3D",
     rating: 4.0,
     location: "Belapur",
     duration: "1-2 hours"
