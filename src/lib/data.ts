@@ -1,4 +1,3 @@
-
 interface ItineraryOptions {
   days: number;
   pace: string;
@@ -209,7 +208,7 @@ const places: Place[] = [
     description: "An interactive museum with exhibits and demonstrations for all ages.",
     image: "https://images.unsplash.com/photo-1576086135867-9301855780d5?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.3,
-    location: "Kopar Khairane",
+    location: "Airoli",
     duration: "2-3 hours"
   },
   {
