@@ -117,7 +117,8 @@ const PlaceCard = ({
       "Science Centre": "https://images.unsplash.com/photo-1576086135878-bd1e26313586?q=80&w=800",
       "Raghuleela Mall": "https://images.unsplash.com/photo-1567958451986-2de427a3a0fc?q=80&w=800",
       "Belapur Fort": "https://images.unsplash.com/photo-1599408587288-6f9ef85db0ab?q=80&w=800",
-      "Inorbit Mall": "https://images.unsplash.com/photo-1581417478175-a9ef18f210c2?q=80&w=800",
+      // Updated Inorbit Mall image as requested
+      "Inorbit Mall": "https://www.imagesbof.in/wp-content/uploads/2022/03/Inorbit-vashi.png",
       "DLF Mall": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800",
       "Vashi": "https://images.unsplash.com/photo-1599359969577-a5611718a25e?q=80&w=800",
       "Belapur": "https://images.unsplash.com/photo-1599408587288-6f9ef85db0ab?q=80&w=800",
@@ -126,7 +127,8 @@ const PlaceCard = ({
       "Panvel": "https://images.unsplash.com/photo-1561789474-cb8a3cb4dea9?q=80&w=800",
       "Airoli": "https://images.unsplash.com/photo-1618001789034-25fd141f5ae3?q=80&w=800",
       "DY Patil Stadium": "https://images.unsplash.com/photo-1505307112588-69289757a94c?q=80&w=800",
-      "Central Park": "https://images.unsplash.com/photo-1571633554068-d1c5b250da46?q=80&w=800",
+      // Updated Central Park image as requested
+      "Central Park": "https://d3mbwbgtcl4x70.cloudfront.net/Central_Park_Kharghar_774b4a891e.webp",
       "Wonder Park": "https://images.unsplash.com/photo-1617143207675-e7e6371f5f5d?q=80&w=800",
       "Wonders Park": "https://images.unsplash.com/photo-1617143207675-e7e6371f5f5d?q=80&w=800",
       "Mini Seashore": "https://images.unsplash.com/photo-1471922694854-ff1b63b20054?q=80&w=800",
@@ -279,4 +281,3 @@ const PlaceCard = ({
 };
 
 export default PlaceCard;
-
