@@ -135,7 +135,8 @@ const PlaceCard = ({
       "Palm Beach Road": "https://images.unsplash.com/photo-1610641818989-bcd0bd756e93?q=80&w=800",
       "Shivaji Park": "https://images.unsplash.com/photo-1521138054413-5a47d349b7af?q=80&w=800",
       "Nerul Lake": "https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?q=80&w=800",
-      "Pandavkada Falls": "https://images.unsplash.com/photo-1462470371455-6e3fb709d02c?q=80&w=800",
+      // Updated Pandavkada Falls image as requested
+      "Pandavkada Falls": "https://www.tripplatform.com/blog/wp-content/uploads/2016/09/A-view-of-the-fall-from-a-distance.jpg",
       "Kharghar Hills": "https://images.unsplash.com/photo-1446329813274-7c9036bd9a1f?q=80&w=800",
       "Kharghar Valley": "https://images.unsplash.com/photo-1565938525338-659bf7ab20da?q=80&w=800",
       "NMMC Butterfly Garden": "https://images.unsplash.com/photo-1606748313289-81f81f9eae50?q=80&w=800",
