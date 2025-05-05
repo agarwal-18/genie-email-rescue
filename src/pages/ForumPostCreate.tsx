@@ -21,17 +21,16 @@ const ForumPostCreate = () => {
   const [tags, setTags] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  if (!user) {
-    useEffect(() => {
+  useEffect(() => {
+    if (!user) {
       navigate('/login');
       toast({
         title: "Authentication required",
         description: "You need to log in to create a post.",
         variant: "destructive"
       });
-    }, []);
-    return null;
-  }
+    }
+  }, [user, navigate, toast]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,24 +46,23 @@ const ForumPostCreate = () => {
     
     setIsSubmitting(true);
     
-    // Create post object
-    const newPost = {
-      id: Date.now().toString(),
-      title,
-      content,
-      category,
-      tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
-      author: {
-        id: user?.id || 'unknown',
-        name: user?.email?.split('@')[0] || 'Anonymous',
-        avatar: null
-      },
-      createdAt: new Date().toISOString(),
-      likes: 0,
-      comments: []
-    };
-    
     try {
+      // Create post object
+      const newPost = {
+        id: Date.now().toString(),
+        title,
+        content,
+        category,
+        tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
+        authorId: user?.id || 'unknown',
+        authorName: user?.email?.split('@')[0] || 'Anonymous',
+        authorAvatar: null,
+        createdAt: new Date().toISOString(),
+        likesCount: 0,
+        commentsCount: 0,
+        viewsCount: 0
+      };
+      
       // Get existing posts from localStorage
       const existingPosts = JSON.parse(localStorage.getItem('forumPosts') || '[]');
       
@@ -76,7 +74,7 @@ const ForumPostCreate = () => {
       
       toast({
         title: "Post created",
-        description: "Your post has been successfully published.",
+        description: "Your post has been successfully published."
       });
       
       navigate('/forum');
@@ -91,6 +89,11 @@ const ForumPostCreate = () => {
       setIsSubmitting(false);
     }
   };
+
+  // If user not logged in, return null (useEffect will handle redirect)
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">

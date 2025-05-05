@@ -60,6 +60,8 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     day.activities.map(activity => activity.location)
   ).filter((value, index, self) => self.indexOf(value) === index);
 
+  console.log("All extracted locations:", locations);
+
   // Navi Mumbai locations with coordinates (extended list)
   const locationCoordinates: Record<string, [number, number]> = {
     'Vashi': [73.0071, 19.0754],
@@ -74,7 +76,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     'Turbhe': [73.0224, 19.0897],
     'Seawoods': [73.0185, 19.0142],
     'DY Patil Stadium': [73.0282, 19.0446],
-    'Central Park': [73.0785, 19.0477], // Updated to match Kharghar
+    'Central Park': [73.0785, 19.0477],
     'Inorbit Mall': [73.0169, 19.0343],
     'Wonder Park': [73.0074, 19.0137],
     'Mini Seashore': [73.0215, 19.0240],
@@ -88,7 +90,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     'Golf Course': [73.0081, 19.0157],
     'Nerul Balaji Temple': [73.0206, 19.0377],
     'Flamingo Sanctuary': [73.0165, 19.0380],
-    'Dr. Ambedkar Memorial': [72.9985, 19.1557], // Updated to match Airoli
+    'Dr. Ambedkar Memorial': [72.9985, 19.1557],
     'Raghuleela Mall': [73.0077, 19.0720],
     'Belapur Fort': [73.0358, 19.0235],
     'Navi Mumbai': [73.0401, 19.0185],
@@ -106,7 +108,33 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     'Pandavkada Falls': [73.0825, 19.0345],
     'Little World Mall': [73.0187, 19.0421],
     'Vashi Lake': [73.0042, 19.0701],
-    'Mango Garden': [73.0358, 19.0235] // Updated to match Belapur
+    'Mango Garden': [73.0358, 19.0235],
+    'Science Centre': [73.0154, 19.0377],
+    'Navi Mumbai Municipal Corporation': [73.0175, 19.0334],
+    'Vashi Railway Station': [73.0066, 19.0760],
+    'Kharghar Railway Station': [73.0798, 19.0422],
+    'Nerul Railway Station': [73.0162, 19.0375],
+    'Belapur Railway Station': [73.0340, 19.0243],
+    'Tikuji-Ni-Wadi': [73.1025, 19.2052],
+    'Karnala Bird Sanctuary': [73.1242, 18.8891],
+    'Kharghar Hills and Golf Course': [73.0753, 19.0370],
+    'DPS Lake': [73.0776, 19.0299],
+    'Dolphin Aquatic Complex': [73.0152, 19.0304],
+    'Shri Sai Baba Mandir': [73.0100, 19.0730],
+    'ISKCON Temple': [73.0176, 19.0332],
+    'Central Park Kharghar': [73.0790, 19.0440],
+    'Shilp Garden': [73.0339, 19.0240],
+    'Nerul Sea Beach': [73.0070, 19.0150],
+    'TS Chanakya': [73.0210, 19.0238],
+    'Seawoods Lake': [73.0167, 19.0148],
+    'Vashi Mini Seashore': [73.0080, 19.0633],
+    'Botanical Gardens': [73.0783, 19.0434],
+    'Talawe Wetlands': [73.0165, 19.0380],
+    'Wonder Park Nerul': [73.0114, 19.0380],
+    'CIDCO Exhibition Centre': [73.0141, 19.0353],
+    'Ambrosia Water Park': [73.0548, 19.0031],
+    'Central Park Belapur': [73.0358, 19.0235],
+    'Seawoods Grand Central Mall': [73.0180, 19.0131]
   };
   
   const leafletCssId = 'leaflet-css';
@@ -176,30 +204,42 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
     }
   };
 
-  // Helper function for fuzzy location matching
+  // Enhanced helper function for fuzzy location matching
   const findBestLocationMatch = (locationName: string): [number, number] | null => {
-    // 1. Try exact match first
+    console.log("Finding location match for:", locationName);
+    
+    // Strategy 1: Direct exact match
     if (locationCoordinates[locationName]) {
+      console.log(`Found direct match for ${locationName}`);
       return locationCoordinates[locationName];
     }
     
-    // 2. Try case-insensitive exact match
+    // Strategy 2: Case-insensitive exact match
     const lowerLocationName = locationName.toLowerCase();
     for (const [key, coords] of Object.entries(locationCoordinates)) {
       if (key.toLowerCase() === lowerLocationName) {
+        console.log(`Found case-insensitive match for ${locationName}: ${key}`);
         return coords;
       }
     }
     
-    // 3. Try partial matching (location contains key or key contains location)
+    // Strategy 3: Check if the location contains any of our known locations
     for (const [key, coords] of Object.entries(locationCoordinates)) {
-      if (locationName.toLowerCase().includes(key.toLowerCase()) || 
-          key.toLowerCase().includes(locationName.toLowerCase())) {
+      if (locationName.toLowerCase().includes(key.toLowerCase())) {
+        console.log(`Found partial match (location contains key) for ${locationName}: ${key}`);
         return coords;
       }
     }
     
-    // 4. Try word-by-word matching
+    // Strategy 4: Check if any of our known locations contain this location
+    for (const [key, coords] of Object.entries(locationCoordinates)) {
+      if (key.toLowerCase().includes(locationName.toLowerCase()) && locationName.length > 3) {
+        console.log(`Found partial match (key contains location) for ${locationName}: ${key}`);
+        return coords;
+      }
+    }
+    
+    // Strategy 5: Word-by-word matching (any significant word match)
     const locationWords = locationName.toLowerCase().split(/\s+/);
     for (const [key, coords] of Object.entries(locationCoordinates)) {
       const keyWords = key.toLowerCase().split(/\s+/);
@@ -207,12 +247,25 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
       const hasCommonWord = locationWords.some(word => 
         keyWords.some(keyWord => keyWord === word && word.length > 2)
       );
+      
       if (hasCommonWord) {
+        console.log(`Found word match for ${locationName}: ${key}`);
+        return coords;
+      }
+    }
+
+    // Strategy 6: Try to extract any known location from the name
+    // For text like "Visit XYZ in Kharghar", we want to extract "Kharghar"
+    for (const [key, coords] of Object.entries(locationCoordinates)) {
+      if (locationName.toLowerCase().includes("in " + key.toLowerCase()) ||
+          locationName.toLowerCase().includes("at " + key.toLowerCase()) ||
+          locationName.toLowerCase().includes("near " + key.toLowerCase())) {
+        console.log(`Found location by preposition extraction for ${locationName}: ${key}`);
         return coords;
       }
     }
     
-    // No match found
+    console.log(`No match found for ${locationName}`);
     return null;
   };
   
@@ -293,7 +346,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
           }
         }, 100);
         
-        // Gather all locations from itinerary
+        // Gather all activities from itinerary
         const allActivities: Array<{activity: ItineraryActivity, day: number}> = [];
         itinerary.forEach(day => {
           day.activities.forEach(activity => {
@@ -306,7 +359,7 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         // Add markers for each activity location
         const markers: any[] = [];
         const dayColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'];
-        const processedLocations = new Map<string, number[]>(); // Track processed locations with their days
+        const locationTracker = new Map<string, number[]>();
         
         // Debug: Log all locations that will be plotted
         console.log("Locations to plot on map:", allActivities.map(({activity}) => activity.location));
@@ -315,83 +368,101 @@ const ItineraryMap = ({ itinerary, isOpen, onClose }: ItineraryMapProps) => {
         allActivities.forEach(({activity, day}) => {
           const dayColor = dayColors[(day - 1) % dayColors.length];
           
-          // Clean location name
+          // Get the location name
           const locationName = activity.location.trim();
+          
+          // Generate a unique key that combines location and day
+          const locationDayKey = `${locationName}-day${day}`;
+          
+          // Skip if we've already processed this exact location-day combination
+          if (locationTracker.has(locationDayKey)) {
+            console.log(`Already added marker for ${locationName} on day ${day}`);
+            return;
+          }
+          
+          // Find coordinates for this location
           let coordinates = findBestLocationMatch(locationName);
           
+          // If no coordinates found, try with just the main city/area names that might appear in the location
           if (!coordinates) {
-            // If no match found, use random offset from Navi Mumbai center
-            console.log("No match found for location:", locationName);
-            const randomOffset = () => (Math.random() - 0.5) * 0.02;
-            coordinates = [API_CONFIG.defaultMapCenter[0] + randomOffset(), API_CONFIG.defaultMapCenter[1] + randomOffset()];
-          } else {
-            console.log(`Found coordinates for ${locationName}:`, coordinates);
-          }
-          
-          // Create marker
-          if (coordinates) {
-            hasValidLocations = true;
+            // Try to extract just the area name that might be in the location string
+            const locationLower = locationName.toLowerCase();
+            const extractedLocation = Object.keys(locationCoordinates).find(key => 
+              locationLower.includes(key.toLowerCase())
+            );
             
-            // Get days this location has been used in
-            const locationKey = `${locationName}`;
-            const existingDays = processedLocations.get(locationKey) || [];
-            
-            // Add new day if it's not already tracked for this location
-            if (!existingDays.includes(day)) {
-              processedLocations.set(locationKey, [...existingDays, day]);
-              
-              // Create marker with custom icon
-              const markerIcon = window.L.divIcon({
-                html: `<div style="
-                  background-color: ${dayColor}; 
-                  width: 24px; 
-                  height: 24px; 
-                  border-radius: 50%; 
-                  display: flex; 
-                  align-items: center; 
-                  justify-content: center; 
-                  color: white; 
-                  font-weight: bold;
-                  border: 2px solid white;
-                  box-shadow: 0 0 10px rgba(0,0,0,0.3);
-                ">${day}</div>`,
-                iconSize: [24, 24],
-                className: 'custom-div-icon'
-              });
-              
-              // Create marker with popup
-              const marker = window.L.marker([coordinates[1], coordinates[0]], { icon: markerIcon })
-                .bindPopup(`
-                  <div style="padding: 10px;">
-                    <h3 style="font-weight: bold;">${activity.title}</h3>
-                    <p style="font-size: 12px; color: #666;">${activity.time} - Day ${day}</p>
-                    <p style="font-size: 12px;">${activity.location}</p>
-                  </div>
-                `);
-              
-              marker.addTo(map);
-              markers.push(marker);
-              markersRef.current.push(marker);
-              
-              // Add location to bounds for auto-zooming
-              bounds.extend([coordinates[1], coordinates[0]]);
-              console.log(`Added marker for ${activity.title} at ${activity.location} (Day ${day})`);
-            } else {
-              console.log(`Skipping duplicate marker for ${locationName} on day ${day}`);
+            if (extractedLocation) {
+              console.log(`Using extracted location ${extractedLocation} from ${locationName}`);
+              coordinates = locationCoordinates[extractedLocation];
             }
           }
+          
+          // If still no coordinates, use a close approximation or the Navi Mumbai center
+          if (!coordinates) {
+            console.log(`No coordinates found for ${locationName}, using fallback`);
+            
+            // Use a random offset from center for visual separation
+            const randomOffset = () => (Math.random() - 0.5) * 0.02;
+            coordinates = [
+              API_CONFIG.defaultMapCenter[0] + randomOffset(), 
+              API_CONFIG.defaultMapCenter[1] + randomOffset()
+            ];
+          }
+          
+          // Mark this location-day combo as processed
+          locationTracker.set(locationDayKey, [coordinates[1], coordinates[0]]);
+          
+          // Create marker with custom icon
+          const markerIcon = window.L.divIcon({
+            html: `<div style="
+              background-color: ${dayColor}; 
+              width: 24px; 
+              height: 24px; 
+              border-radius: 50%; 
+              display: flex; 
+              align-items: center; 
+              justify-content: center; 
+              color: white; 
+              font-weight: bold;
+              border: 2px solid white;
+              box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            ">${day}</div>`,
+            iconSize: [24, 24],
+            className: 'custom-div-icon'
+          });
+          
+          console.log(`Adding marker for ${locationName} at [${coordinates[1]}, ${coordinates[0]}] for day ${day}`);
+          
+          // Create marker with popup
+          const marker = window.L.marker([coordinates[1], coordinates[0]], { icon: markerIcon })
+            .bindPopup(`
+              <div style="padding: 10px;">
+                <h3 style="font-weight: bold;">${activity.title}</h3>
+                <p style="font-size: 12px; color: #666;">${activity.time} - Day ${day}</p>
+                <p style="font-size: 12px;">${activity.location}</p>
+                <p style="font-size: 12px;">${activity.description || ''}</p>
+              </div>
+            `);
+          
+          marker.addTo(map);
+          markers.push(marker);
+          markersRef.current.push(marker);
+          
+          // Add to bounds for auto-zooming
+          bounds.extend([coordinates[1], coordinates[0]]);
+          hasValidLocations = true;
         });
         
-        console.log("Added", markers.length, "markers to map");
-        console.log("Processed locations:", [...processedLocations.keys()]);
+        console.log(`Added ${markers.length} markers to map`);
+        console.log(`Tracked ${locationTracker.size} unique location-day combinations`);
         
-        // If we have markers, fit the map to show all of them
+        // Fit the map to show all markers
         if (markers.length > 0 && hasValidLocations) {
+          console.log("Fitting map to bounds");
           map.fitBounds(bounds, {
             padding: [40, 40],
             maxZoom: 13
           });
-          console.log("Map zoomed to fit all markers");
         } else {
           console.warn("No valid markers to display on map");
           toast.warning("Couldn't locate some places on the map");
