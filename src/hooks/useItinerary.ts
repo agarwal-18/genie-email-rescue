@@ -347,7 +347,7 @@ export function useItinerary() {
     }
   };
   
-  // Completely rewritten PDF generation function to handle all days serially
+  // Completely rewritten PDF generation function that ensures all days are properly captured
   const downloadItineraryAsPdf = async (
     itineraryInfo: { title: string; days: number },
     itineraryDays: ItineraryDay[],
@@ -359,8 +359,8 @@ export function useItinerary() {
       }
       
       console.log(`Starting PDF generation for ${itineraryDays.length} days`);
-
-      // Create PDF document with better quality settings
+      
+      // Create PDF document
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -374,40 +374,37 @@ export function useItinerary() {
       const margin = 15;
       const contentWidth = pageWidth - (margin * 2);
       
-      // Set font styles for title
+      // Set font for title
       pdf.setFontSize(24);
       pdf.setFont('helvetica', 'bold');
       
-      // Add main title at the top of the first page
+      // Add main title
       pdf.text(itineraryInfo.title, pageWidth / 2, margin, { align: 'center' });
       
-      // Add date with smaller font
+      // Add generation date
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
       pdf.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, margin + 8, { align: 'center' });
-      
-      // Add number of days info
       pdf.text(`${itineraryDays.length} day itinerary`, pageWidth / 2, margin + 14, { align: 'center' });
       
-      // Get all day tabs to click on them
+      // Get all day tabs
       const dayTabs = Array.from(element.querySelectorAll('[role="tab"]')) as HTMLElement[];
-      
       if (!dayTabs.length) {
-        console.error('No day tabs found');
-        throw new Error('Could not find day tabs for PDF generation');
+        throw new Error('No day tabs found for PDF generation');
       }
       
-      console.log(`Found ${dayTabs.length} day tabs for PDF generation`);
+      console.log(`Found ${dayTabs.length} day tabs`);
       
-      // Start position for content after the header
+      // Starting position after title
       let yPosition = margin + 20;
       let currentPage = 1;
       
-      // Process each day sequentially
+      // Process each day one by one
       for (let i = 0; i < itineraryDays.length; i++) {
         const day = itineraryDays[i];
+        console.log(`Processing Day ${day.day}`);
         
-        // Check if we need to add a new page
+        // Add new page for each day except the first
         if (i > 0) {
           pdf.addPage();
           currentPage++;
@@ -425,85 +422,80 @@ export function useItinerary() {
         pdf.line(margin, yPosition, pageWidth - margin, yPosition);
         yPosition += 8;
         
+        // Click on the correct day tab to make it visible
+        if (dayTabs[i]) {
+          console.log(`Clicking on tab for Day ${day.day}`);
+          dayTabs[i].click();
+          // Wait for tab panel to render
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+        
+        // Find the active tab panel (should be the current day)
+        const activePanel = element.querySelector('[data-state="active"][role="tabpanel"]');
+        if (!activePanel) {
+          console.error(`No active panel found for Day ${day.day}`);
+          continue;
+        }
+        
+        console.log(`Capturing content for Day ${day.day}`);
+        
         try {
-          // Click on the specific day tab to make it visible
-          if (dayTabs[i]) {
-            dayTabs[i].click();
-            // Wait for the tab content to render and animations to complete
-            await new Promise(resolve => setTimeout(resolve, 300));
+          // Capture the active content with higher quality
+          const canvas = await html2canvas(activePanel as HTMLElement, {
+            scale: 3, // Higher scale for better quality
+            logging: false,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff'
+          });
+          
+          const imgData = canvas.toDataURL('image/jpeg', 0.95);
+          
+          // Calculate image dimensions
+          const imgWidth = contentWidth;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          
+          // Check if image fits on current page
+          if (yPosition + imgHeight > pageHeight - margin) {
+            pdf.addPage();
+            currentPage++;
+            yPosition = margin;
           }
           
-          // Find the currently active tab content
-          const activeTabContent = element.querySelector('[data-state="active"][role="tabpanel"]');
+          // Add image to PDF
+          pdf.addImage(imgData, 'JPEG', margin, yPosition, imgWidth, imgHeight);
           
-          if (activeTabContent) {
-            console.log(`Capturing content for Day ${day.day}`);
-            
-            // Capture the tab content with better scale for higher quality
-            const canvas = await html2canvas(activeTabContent as HTMLElement, {
-              scale: 3, // Higher scale for better quality
-              logging: false,
-              useCORS: true,
-              allowTaint: true,
-              backgroundColor: '#ffffff'
-            });
-            
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-            
-            // Calculate image dimensions while maintaining aspect ratio
-            const imgWidth = contentWidth;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            
-            // Check if image would go beyond page boundary
-            if (yPosition + imgHeight > pageHeight - margin) {
-              // Add a new page if the image doesn't fit
-              pdf.addPage();
-              currentPage++;
-              yPosition = margin; // Reset Y position for new page
-            }
-            
-            // Add the image
-            pdf.addImage(imgData, 'JPEG', margin, yPosition, imgWidth, imgHeight);
-            
-            // Update Y position for next content
-            yPosition += imgHeight + 15;
-            
-            // Add page number at the bottom
-            pdf.setFontSize(10);
-            pdf.text(`Page ${currentPage}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
-          } else {
-            console.error(`No active content found for Day ${day.day}`);
-            // Add error message in the PDF
-            pdf.setFontSize(12);
-            pdf.setTextColor(255, 0, 0);
-            pdf.text(`Error: Could not capture content for Day ${day.day}`, margin, yPosition);
-            yPosition += 10;
-            pdf.setTextColor(0, 0, 0); // Reset text color
-          }
+          yPosition += imgHeight + 15;
+          
+          // Add page number
+          pdf.setFontSize(10);
+          pdf.text(`Page ${currentPage}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+          
+          console.log(`Added Day ${day.day} content to PDF`);
         } catch (err) {
-          console.error(`Error capturing day ${day.day}:`, err);
-          // Add error message in the PDF
+          console.error(`Error capturing Day ${day.day}:`, err);
+          // Add error text to PDF
           pdf.setFontSize(12);
           pdf.setTextColor(255, 0, 0);
-          pdf.text(`Error processing Day ${day.day}: ${err}`, margin, yPosition);
+          pdf.text(`Error capturing content for Day ${day.day}`, margin, yPosition);
+          pdf.setTextColor(0, 0, 0);
           yPosition += 10;
-          pdf.setTextColor(0, 0, 0); // Reset text color
         }
       }
       
-      // Return to the first tab for UI consistency
+      // Reset to first day tab for better UI experience
       if (dayTabs[0]) {
         dayTabs[0].click();
       }
       
-      // Generate a clean filename
+      // Generate clean filename
       const fileName = `${itineraryInfo.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_itinerary.pdf`;
       pdf.save(fileName);
       
-      console.log(`PDF generation completed: ${fileName}`);
+      console.log(`PDF generation completed successfully`);
       return true;
     } catch (err: any) {
-      console.error('Error generating PDF:', err);
+      console.error('PDF generation failed:', err);
       setError(err.message);
       return false;
     }
