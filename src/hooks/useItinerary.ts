@@ -347,7 +347,7 @@ export function useItinerary() {
     }
   };
   
-  // Completely rewritten PDF generation function that ensures all days are properly captured
+  // Completely rewritten PDF generation function with proper day switching
   const downloadItineraryAsPdf = async (
     itineraryInfo: { title: string; days: number },
     itineraryDays: ItineraryDay[],
@@ -387,13 +387,19 @@ export function useItinerary() {
       pdf.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, margin + 8, { align: 'center' });
       pdf.text(`${itineraryDays.length} day itinerary`, pageWidth / 2, margin + 14, { align: 'center' });
       
-      // Get all day tabs
-      const dayTabs = Array.from(element.querySelectorAll('[role="tab"]')) as HTMLElement[];
-      if (!dayTabs.length) {
-        throw new Error('No day tabs found for PDF generation');
+      // Find all day tabs by their role
+      const tabsElement = element.querySelector('[role="tablist"]');
+      if (!tabsElement) {
+        throw new Error('No tabs element found for PDF generation');
       }
       
-      console.log(`Found ${dayTabs.length} day tabs`);
+      // Get all tab triggers
+      const tabTriggers = Array.from(tabsElement.querySelectorAll('[role="tab"]')) as HTMLElement[];
+      console.log(`Found ${tabTriggers.length} tab triggers`);
+      
+      if (tabTriggers.length === 0) {
+        throw new Error('No day tabs found for PDF generation');
+      }
       
       // Starting position after title
       let yPosition = margin + 20;
@@ -422,25 +428,30 @@ export function useItinerary() {
         pdf.line(margin, yPosition, pageWidth - margin, yPosition);
         yPosition += 8;
         
-        // Click on the correct day tab to make it visible
-        if (dayTabs[i]) {
-          console.log(`Clicking on tab for Day ${day.day}`);
-          dayTabs[i].click();
-          // Wait for tab panel to render
-          await new Promise(resolve => setTimeout(resolve, 300));
+        // Clear any previous click state and click on the current day tab
+        const trigger = tabTriggers[i];
+        if (!trigger) {
+          console.error(`No tab trigger found for Day ${day.day}`);
+          continue;
         }
         
-        // Find the active tab panel (should be the current day)
-        const activePanel = element.querySelector('[data-state="active"][role="tabpanel"]');
+        // Click the tab and wait for the UI to update
+        console.log(`Clicking tab for Day ${day.day}`);
+        trigger.click();
+        
+        // Wait for the content to appear
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Get the active tab panel by querying for the currently active panel
+        const activePanel = element.querySelector('[role="tabpanel"][data-state="active"]');
         if (!activePanel) {
           console.error(`No active panel found for Day ${day.day}`);
           continue;
         }
         
-        console.log(`Capturing content for Day ${day.day}`);
-        
         try {
-          // Capture the active content with higher quality
+          // Capture the content for this specific day
+          console.log(`Capturing content for Day ${day.day}`);
           const canvas = await html2canvas(activePanel as HTMLElement, {
             scale: 3, // Higher scale for better quality
             logging: false,
@@ -474,7 +485,6 @@ export function useItinerary() {
           console.log(`Added Day ${day.day} content to PDF`);
         } catch (err) {
           console.error(`Error capturing Day ${day.day}:`, err);
-          // Add error text to PDF
           pdf.setFontSize(12);
           pdf.setTextColor(255, 0, 0);
           pdf.text(`Error capturing content for Day ${day.day}`, margin, yPosition);
@@ -484,8 +494,8 @@ export function useItinerary() {
       }
       
       // Reset to first day tab for better UI experience
-      if (dayTabs[0]) {
-        dayTabs[0].click();
+      if (tabTriggers[0]) {
+        tabTriggers[0].click();
       }
       
       // Generate clean filename
