@@ -19,6 +19,7 @@ export interface ItineraryDetail {
 
 export function useItinerary() {
   const [loading, setLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const getUserItineraries = async (userId: string): Promise<UserItinerary[]> => {
@@ -347,7 +348,41 @@ export function useItinerary() {
     }
   };
   
-  // Completely rewritten PDF generation function with proper day switching
+  // Add the missing generateItinerary function
+  const generateItinerary = async (formData: any) => {
+    setIsGenerating(true);
+    setError(null);
+    try {
+      // This would typically call an API to generate an itinerary
+      // For now, we'll simulate a delay and return a mock itinerary
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Extract the number of days from the form data
+      const days = formData.days || 3;
+      const selectedRegions = formData.regions || [];
+      
+      // Generate a mock itinerary based on the form data
+      const mockItinerary: ItineraryDay[] = Array.from({ length: days }, (_, i) => ({
+        day: i + 1,
+        activities: Array.from({ length: 3 + Math.floor(Math.random() * 3) }, (_, j) => ({
+          time: `${8 + j * 2}:00`,
+          title: `Activity ${j + 1} in ${selectedRegions.length > 0 ? selectedRegions[0] : 'Maharashtra'}`,
+          location: selectedRegions.length > 0 ? selectedRegions[Math.floor(Math.random() * selectedRegions.length)] : 'Maharashtra',
+          description: `Enjoy this ${formData.interests ? formData.interests[0] : 'interesting'} activity`,
+          image: null,
+          category: formData.interests ? formData.interests[0] : null,
+        }))
+      }));
+      
+      return mockItinerary;
+    } catch (err: any) {
+      setError(err.message);
+      return [];
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+  
   const downloadItineraryAsPdf = async (
     itineraryInfo: { title: string; days: number },
     itineraryDays: ItineraryDay[],
@@ -514,6 +549,7 @@ export function useItinerary() {
   return {
     loading,
     error,
+    isGenerating,
     getUserItineraries,
     createUserItinerary,
     updateUserItinerary,
@@ -525,6 +561,7 @@ export function useItinerary() {
     saveItinerary,
     fetchItineraryById,
     updateItinerary,
-    downloadItineraryAsPdf
+    downloadItineraryAsPdf,
+    generateItinerary
   };
 }

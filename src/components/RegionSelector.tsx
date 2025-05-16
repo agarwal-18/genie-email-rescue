@@ -39,7 +39,7 @@ const RegionSelector = ({
     const fetchRegions = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_CONFIG.baseUrl}/api/regions`);
+        const response = await axios.get(`${API_CONFIG.baseURL}/api/regions`);
         if (response.data && response.data.regions) {
           setRegions(response.data.regions);
         }

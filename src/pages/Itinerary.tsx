@@ -178,7 +178,7 @@ const Itinerary = () => {
     loadSavedItinerary();
   }, [searchParams, user, fetchItineraryById, toast, hasShownLoadToast]);
 
-  const handleGenerateItinerary = (newItinerary: ItineraryDay[], settings: ItinerarySettings) => {
+  const handleGenerateItinerary = (newItinerary: ItineraryDayBase[], settings: ItinerarySettings) => {
     console.log("New itinerary generated:", newItinerary);
     console.log("Itinerary settings:", settings);
     
@@ -347,7 +347,7 @@ const Itinerary = () => {
           <div className="max-w-4xl mx-auto text-center mb-10">
             <h1 className="text-4xl font-bold">Itinerary Planner</h1>
             <p className="mt-4 text-lg text-muted-foreground">
-              {editMode ? 'Edit your saved itinerary' : 'Create your perfect Navi Mumbai exploration plan in minutes'}
+              {editMode ? 'Edit your saved itinerary' : 'Create your perfect Maharashtra exploration plan in minutes'}
             </p>
           </div>
           
@@ -356,8 +356,7 @@ const Itinerary = () => {
             <div className="md:col-span-5 lg:col-span-4 md:sticky md:top-24 h-fit">
               <ItineraryGenerator 
                 onGenerate={handleGenerateItinerary}
-                // Pass initialData only if in edit mode
-                {...(editMode ? { initialData: itinerarySettings } : {})}
+                initialData={editMode ? itinerarySettings : undefined}
               />
               
               {/* Weather Widget */}
@@ -503,8 +502,8 @@ const Itinerary = () => {
                   <h3 className="text-xl font-medium mb-2">No Itinerary Yet</h3>
                   <p className="text-muted-foreground max-w-md mx-auto mb-6">
                     {user ? 
-                      "Use the itinerary generator to create your personalized Navi Mumbai exploration plan." : 
-                      "Sign in to create and save your personalized Navi Mumbai exploration plans."}
+                      "Use the itinerary generator to create your personalized Maharashtra exploration plan." : 
+                      "Sign in to create and save your personalized Maharashtra exploration plans."}
                   </p>
                   <div className="flex flex-col gap-3 text-sm text-muted-foreground">
                     <div className="flex items-center">

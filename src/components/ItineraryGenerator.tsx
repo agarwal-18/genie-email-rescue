@@ -32,6 +32,7 @@ import { toast } from '@/hooks/use-toast';
 import { useItinerary } from '@/hooks/useItinerary';
 import { getAllRegions } from '@/lib/data';
 import RegionSelector from '@/components/RegionSelector';
+import { ItinerarySettings, ItineraryDayBase } from '@/config';
 
 // Available interests for the itinerary
 const interests = [
@@ -65,21 +66,27 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const ItineraryGenerator = () => {
+// Add onGenerate prop to the component's props interface
+interface ItineraryGeneratorProps {
+  onGenerate?: (itinerary: ItineraryDayBase[], settings: ItinerarySettings) => void;
+  initialData?: any;
+}
+
+const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps) => {
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
   const { generateItinerary, isGenerating } = useItinerary();
   const regions = getAllRegions();
 
   const defaultValues: Partial<FormValues> = {
-    title: "My Maharashtra Trip",
-    days: 3,
-    pace: "moderate",
-    budget: "mid-range",
-    transportation: "public",
-    interests: ["nature"],
-    includeFood: true,
-    regions: [],
-    locations: [],
+    title: initialData?.title || "My Maharashtra Trip",
+    days: initialData?.days || 3,
+    pace: initialData?.pace || "moderate",
+    budget: initialData?.budget || "mid-range",
+    transportation: initialData?.transportation || "public",
+    interests: initialData?.interests || ["nature"],
+    includeFood: initialData?.include_food !== undefined ? initialData.include_food : true,
+    regions: initialData?.regions || [],
+    locations: initialData?.locations || [],
   };
 
   const form = useForm<FormValues>({
@@ -102,7 +109,11 @@ const ItineraryGenerator = () => {
       regions: selectedRegions,
     };
 
-    generateItinerary(formData);
+    const itineraryData = await generateItinerary(formData);
+    
+    if (itineraryData && onGenerate) {
+      onGenerate(itineraryData, formData);
+    }
   };
 
   const handleAddRegion = (region: string) => {
