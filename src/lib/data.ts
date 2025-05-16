@@ -6,7 +6,8 @@ interface ItineraryOptions {
   includeFood: boolean;
   transportation: string;
   location?: string; // Keeping for backwards compatibility
-  locations?: string[]; // New multiple locations parameter
+  locations?: string[]; // Multiple locations parameter
+  regions?: string[]; // Multiple regions parameter
 }
 
 // Define the Place interface to ensure consistent data structure
@@ -18,6 +19,7 @@ interface Place {
   image: string;
   rating: number;
   location: string;
+  region?: string;
   duration?: string;
   featured?: boolean;
   price?: string;
@@ -32,10 +34,11 @@ interface Restaurant {
   image: string;
   rating: number;
   location: string;
+  region?: string;
   price: string;
 }
 
-// Navi Mumbai places data
+// Maharashtra places data
 const places: Place[] = [
   {
     id: "1",
@@ -45,6 +48,7 @@ const places: Place[] = [
     image: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=1473&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.6,
     location: "Nerul",
+    region: "Navi Mumbai",
     duration: "3-4 hours",
     featured: true
   },
@@ -53,9 +57,10 @@ const places: Place[] = [
     name: "Central Park",
     category: "Parks & Gardens",
     description: "A large urban park with walking paths, gardens, and recreational facilities.",
-    image: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+    image: "https://d3mbwbgtcl4x70.cloudfront.net/Central_Park_Kharghar_774b4a891e.webp",
     rating: 4.3,
     location: "Kharghar",
+    region: "Navi Mumbai",
     duration: "1-2 hours"
   },
   {
@@ -66,6 +71,7 @@ const places: Place[] = [
     image: "https://images.unsplash.com/photo-1513889961551-628c1e5e2ee9?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.4,
     location: "Nerul",
+    region: "Navi Mumbai",
     duration: "2-3 hours"
   },
   {
@@ -76,6 +82,7 @@ const places: Place[] = [
     image: "https://images.hindustantimes.com/rf/image_size_960x540/HT/p2/2018/09/29/Pictures/thane-india-visit-thane-2018-collector-impact_38ad43b0-c3e6-11e8-9e8c-b17643e39fb5.jpg",
     rating: 4.2,
     location: "Seawoods",
+    region: "Navi Mumbai",
     duration: "1 hour"
   },
   {
@@ -86,214 +93,128 @@ const places: Place[] = [
     image: "https://images.unsplash.com/photo-1503614472-8c93d56e92ce?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.5,
     location: "Kharghar",
+    region: "Navi Mumbai",
     duration: "2-3 hours"
   },
   {
     id: "6",
-    name: "Inorbit Mall",
-    category: "Shopping",
-    description: "A premium shopping destination with international brands, restaurants, and entertainment options.",
-    image: "https://images.unsplash.com/photo-1519567241313-8636f525cd4a?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
-    rating: 4.4,
-    location: "Vashi",
-    duration: "3-4 hours",
+    name: "Gateway of India",
+    category: "Historical Sites",
+    description: "The iconic arch monument built during the British Raj, situated on the waterfront of Mumbai harbor.",
+    image: "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+    rating: 4.8,
+    location: "Colaba",
+    region: "Mumbai",
+    duration: "1-2 hours",
     featured: true
   },
   {
     id: "7",
-    name: "Parsik Hill",
-    category: "Natural Attractions",
-    description: "A hill offering panoramic views of Navi Mumbai, popular for trekking and sunrise viewing.",
-    image: "https://www.mappls.com/place/KIQ2FR_1644231876290_1.jpeg",
-    rating: 4.1,
-    location: "Belapur",
-    duration: "2-3 hours"
+    name: "Marine Drive",
+    category: "Landmarks",
+    description: "A 3.6-kilometer-long boulevard that curves along the coastline of Mumbai's Back Bay, also known as the Queen's Necklace.",
+    image: "https://images.unsplash.com/photo-1570269691466-b3bb7973a23c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+    rating: 4.7,
+    location: "South Mumbai",
+    region: "Mumbai",
+    duration: "1-2 hours",
+    featured: true
   },
   {
     id: "8",
-    name: "Belapur Fort",
+    name: "Ajanta Caves",
     category: "Historical Sites",
-    description: "Historical fort built in the 17th century, offering a glimpse into the region's past.",
-    image: "https://storage.googleapis.com/goa-app-12a91.appspot.com/2024-07-25T00%3A30%3A49.319Zbelapur-fort.webp?GoogleAccessId=firebase-adminsdk-zeqcj%40goa-app-12a91.iam.gserviceaccount.com&Expires=16447017600&Signature=Ub8xfPATcPuojR8AtREAv%2FY6GEtNCs%2BdDM4hDHRrZ%2BXH40Jl2pBUcupPUD%2BCeN%2F8Bu4KPdeOPuPpmrh0MSEVpdh7GJ1lMZlZsK0xCdrGg9ruWpFYx75pWK8QBUDcQGnj2HGBTKfbXtzvNJB2QqWqVi%2BdjyDzrGIKWgDKWSIe2WJipLMrjMHOcijKibWpX1JI0Hg9Rg9r4YuuI%2B4EEvr%2BrcLTUQbcGOYKShj95TziZ4Z0Ykqhko2yoGhqPF44krb3rBZmSmuu2lYdPFsNJOpK2K%2BN%2BaQEq0yNvoG08T1%2FQ2IV%2ByxZF4sY9aSZlZXKf35d6ntD2wqqMocUIhont11MAg%3D%3D",
-    rating: 4.0,
-    location: "Belapur",
-    duration: "1-2 hours"
+    description: "Ancient rock-cut Buddhist cave monuments dating from the 2nd century BCE to about 480 CE, designated UNESCO World Heritage Site.",
+    image: "https://images.unsplash.com/photo-1623776025811-fd139155a39b?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.0.3",
+    rating: 4.9,
+    location: "Aurangabad",
+    region: "Aurangabad",
+    duration: "4-6 hours",
+    featured: true
   },
   {
     id: "9",
-    name: "Nerul Balaji Temple",
-    category: "Religious Sites",
-    description: "A beautiful temple dedicated to Lord Balaji, featuring South Indian architecture.",
-    image: "https://images.unsplash.com/photo-1561361058-c12e14fc165e?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
-    rating: 4.7,
-    location: "Nerul",
-    duration: "1 hour",
+    name: "Ellora Caves",
+    category: "Historical Sites",
+    description: "A UNESCO World Heritage Site featuring Buddhist, Hindu and Jain rock-cut temples and monasteries built between the 6th and 10th century.",
+    image: "https://images.unsplash.com/photo-1626015633076-e8578ee16ba9?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+    rating: 4.8,
+    location: "Aurangabad",
+    region: "Aurangabad",
+    duration: "4-5 hours",
     featured: true
   },
   {
     id: "10",
-    name: "Seawoods Grand Central Mall",
-    category: "Shopping",
-    description: "A modern mall with a mix of retail shops, eateries, and entertainment options.",
-    image: "https://images.unsplash.com/photo-1568254183919-78a4f43a2877?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
-    rating: 4.3,
-    location: "Seawoods",
-    duration: "2-3 hours"
-  },
-  {
-    id: "11",
-    name: "Kharghar Hills",
-    category: "Natural Attractions",
-    description: "Rolling hills offering scenic views, popular for trekking and nature photography.",
-    image: "https://images.unsplash.com/photo-1525477759567-7c3cd50a8957?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
-    rating: 4.5,
-    location: "Kharghar",
-    duration: "3-4 hours"
-  },
-  {
-    id: "12",
-    name: "Utsav Chowk",
-    category: "Entertainment",
-    description: "A popular hangout spot with food stalls, cultural performances, and community gatherings.",
-    image: "https://images.unsplash.com/photo-1464207687429-7505649dae38?q=80&w=1473&auto=format&fit=crop&ixlib=rb-4.0.3",
-    rating: 4.2,
-    location: "Kharghar",
-    duration: "1-2 hours"
-  },
-  {
-    id: "13",
-    name: "CIDCO Exhibition Centre",
-    category: "Cultural",
-    description: "A venue hosting exhibitions, trade shows, and cultural events throughout the year.",
-    image: "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
-    rating: 4.0,
-    location: "Vashi",
-    duration: "2-3 hours"
-  },
-  {
-    id: "14",
-    name: "Mini Seashore",
-    category: "Natural Attractions",
-    description: "A small waterfront area perfect for evening walks and enjoying cool breezes.",
-    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1473&auto=format&fit=crop&ixlib=rb-4.0.3",
-    rating: 4.4,
-    location: "Vashi",
-    duration: "1 hour"
-  },
-  {
-    id: "15",
-    name: "Shilp Gram",
-    category: "Cultural",
-    description: "A craft village showcasing traditional arts, crafts, and cultural performances.",
-    image: "https://s3.ap-southeast-1.amazonaws.com/images.asianage.com/images/aa-Cover-d4moekinu534g2mard9nj7shj5-20181014055344.Medi.jpeg",
-    rating: 4.2,
-    location: "Airoli",
-    duration: "2 hours"
-  },
-  {
-    id: "16",
-    name: "Flamingo Sanctuary",
-    category: "Wildlife",
-    description: "A wetland sanctuary where thousands of flamingos migrate during winter months.",
-    image: "https://images.unsplash.com/photo-1564171149171-88ba9136cdc8?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
-    rating: 4.8,
-    location: "Airoli",
-    duration: "2-3 hours",
+    name: "Mahabaleshwar",
+    category: "Hill Stations",
+    description: "A serene hill station with panoramic viewpoints, lush green valleys, and famous strawberry farms.",
+    image: "https://images.unsplash.com/photo-1618982469316-5571b3057be5?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+    rating: 4.6,
+    location: "Mahabaleshwar",
+    region: "Western Ghats",
+    duration: "1-2 days",
     featured: true
   },
   {
-    id: "17",
-    name: "Dr. Ambedkar Memorial",
-    category: "Educational",
-    description: "An interactive museum with exhibits and demonstrations for all ages.",
-    image: "https://miro.medium.com/v2/resize:fit:1400/1*DJCCndzwFqAt85kxJbpcKA.jpeg",
-    rating: 4.3,
-    location: "Airoli",
-    duration: "2-3 hours"
-  },
-  {
-    id: "18",
-    name: "Vashi Creek Bridge",
-    category: "Landmarks",
-    description: "An iconic bridge connecting Mumbai to Navi Mumbai, offering scenic views of the creek.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/c/cf/Vashi_creek_flyover_2020.jpg",
-    rating: 4.1,
-    location: "Vashi",
-    duration: "30 minutes"
-  },
-  {
-    id: "19",
-    name: "Jewel of Navi Mumbai",
-    category: "Parks & Gardens",
-    description: "A well-maintained garden with beautiful landscapes, fountains, and recreational areas.",
-    image: "https://images.unsplash.com/photo-1584479898061-15742e14f50d?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
-    rating: 4.3,
-    location: "Seawoods",
-    duration: "1-2 hours"
-  },
-  {
-    id: "20",
-    name: "Ulwe Hill",
-    category: "Natural Attractions",
-    description: "A hill offering panoramic views of the developing Navi Mumbai Airport area.",
-    image: "https://sceneloc8.com/wp-content/uploads/2024/03/Teenjhadi-Hills.png",
-    rating: 4.0,
-    location: "Ulwe",
-    duration: "2 hours"
-  },
-  {
-    id: "21",
-    name: "Bonsai Garden",
-    category: "Parks & Gardens",
-    description: "A specialized garden featuring a collection of bonsai trees and Japanese-inspired landscapes.",
-    image: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.0.3",
-    rating: 4.2,
-    location: "Belapur",
-    duration: "1 hour"
-  },
-  {
-    id: "22",
-    name: "Raghuleela Mall",
-    category: "Shopping",
-    description: "A popular shopping destination with various retail outlets, food court, and entertainment options.",
-    image: "https://storage.googleapis.com/goa-app-12a91.appspot.com/2024-08-01T23%3A47%3A02.261ZRaghuleelaMall_Vashi_1.webp?GoogleAccessId=firebase-adminsdk-zeqcj%40goa-app-12a91.iam.gserviceaccount.com&Expires=16447017600&Signature=gewiG2IEL614K1rGHnLeiQy%2Fd%2Fb48vw1L5p9nTAbo34Zy7YKvmoASXjs%2FLxdttSSflk8DBr1iXdBhL3IPCmQcDTZR4xx7Rp8r4oFbOH7TK9WVMWhiuOaFo1mUpLS6vRbu%2Be91c1FLAbsrFDGrBtJ4dz2XjFUy%2BQc%2FIAiCKZ%2B7cvtzQad2c1126JfsnJAUsZT5uMZT1GEGemcoZD%2B8marsLxx40QINq8RTW%2F7FPAGdsOk7%2B6zxNFFL%2BtRxcMOB9sj9NwYKMx28oGGIkKkMEnEHeWn%2BNvTHjjtHk440MSsnL%2BNMEzI8hjcOZeEY3LjRMkLqe7omBjqt7bgM3eETU25YQ%3D%3D",
-    rating: 4.1,
-    location: "Vashi",
-    duration: "2-3 hours"
-  },
-  {
-    id: "23",
-    name: "Golf Course",
-    category: "Sports",
-    description: "An 18-hole golf course set amidst beautiful landscapes and greenery.",
-    image: "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+    id: "26",
+    name: "Lonavala",
+    category: "Hill Stations",
+    description: "A popular hill station known for its chikki (a traditional sweet), lookout points, and ancient caves.",
+    image: "https://images.unsplash.com/photo-1581792254171-cc81f4940827?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.5,
-    location: "Kharghar",
+    location: "Lonavala",
+    region: "Western Ghats",
+    duration: "1-2 days"
+  },
+  {
+    id: "27",
+    name: "Khandala",
+    category: "Hill Stations",
+    description: "A scenic hill station with beautiful valleys, grasslands, and a pleasant climate throughout the year.",
+    image: "https://images.unsplash.com/photo-1606215476392-fb8377e5a4b3?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+    rating: 4.4,
+    location: "Khandala",
+    region: "Western Ghats",
+    duration: "1 day"
+  },
+  {
+    id: "28",
+    name: "Bibi Ka Maqbara",
+    category: "Historical Sites",
+    description: "Also known as the 'Tomb of the Lady', it's a mausoleum built by Aurangzeb's son in memory of his mother.",
+    image: "https://images.unsplash.com/photo-1627548439946-fe25e3bcb736?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+    rating: 4.3,
+    location: "Aurangabad",
+    region: "Aurangabad",
+    duration: "2-3 hours"
+  },
+  {
+    id: "29",
+    name: "Shirdi Sai Baba Temple",
+    category: "Religious Sites",
+    description: "A famous temple dedicated to Sai Baba, a spiritual master revered by both Hindu and Muslim devotees.",
+    image: "https://images.unsplash.com/photo-1585146045695-4102009deef9?q=80&w=1471&auto=format&fit=crop&ixlib=rb-4.0.3",
+    rating: 4.9,
+    location: "Shirdi",
+    region: "Ahmednagar",
+    duration: "3-4 hours",
+    featured: true
+  },
+  {
+    id: "30",
+    name: "Raigad Fort",
+    category: "Historical Sites",
+    description: "The historic fort that was the capital of Maratha king Shivaji Maharaj's kingdom, situated atop a hill.",
+    image: "https://images.unsplash.com/photo-1608021689097-0123af69cfd0?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+    rating: 4.7,
+    location: "Mahad",
+    region: "Raigad",
     duration: "4-5 hours"
-  },
-  {
-    id: "24",
-    name: "Airoli Knowledge Park",
-    category: "Educational",
-    description: "A tech hub housing various IT companies and educational institutions.",
-    image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=1472&auto=format&fit=crop&ixlib=rb-4.0.3",
-    rating: 4.0,
-    location: "Airoli",
-    duration: "1-2 hours"
-  },
-  {
-    id: "25",
-    name: "Mango Garden",
-    category: "Parks & Gardens",
-    description: "A garden with various species of mango trees, popular during the summer season.",
-    image: "https://thumbs.dreamstime.com/b/magoes-hanging-tree-mango-garden-chapainwabganj-rajshahi-bangladesh-176979768.jpg",
-    rating: 4.2,
-    location: "Belapur",
-    duration: "1 hour"
   }
 ];
 
-// Navi Mumbai restaurants data
+// Maharashtra restaurants data
 const restaurants: Restaurant[] = [
   {
     id: "r1",
@@ -303,6 +224,7 @@ const restaurants: Restaurant[] = [
     image: "https://images.unsplash.com/photo-1536392706976-e486e2ba97af?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.5,
     location: "Vashi",
+    region: "Navi Mumbai",
     price: "Mid-Range"
   },
   {
@@ -313,6 +235,7 @@ const restaurants: Restaurant[] = [
     image: "https://images.unsplash.com/photo-1544148103-0773bf10d330?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.4,
     location: "Nerul",
+    region: "Navi Mumbai",
     price: "Luxury"
   },
   {
@@ -323,6 +246,7 @@ const restaurants: Restaurant[] = [
     image: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.3,
     location: "Kharghar",
+    region: "Navi Mumbai",
     price: "Mid-Range"
   },
   {
@@ -333,6 +257,7 @@ const restaurants: Restaurant[] = [
     image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.2,
     location: "Seawoods",
+    region: "Navi Mumbai",
     price: "Mid-Range"
   },
   {
@@ -343,6 +268,7 @@ const restaurants: Restaurant[] = [
     image: "https://images.unsplash.com/photo-1550388342-b3fd986e9e66?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.4,
     location: "Belapur",
+    region: "Navi Mumbai",
     price: "Mid-Range"
   },
   {
@@ -353,6 +279,7 @@ const restaurants: Restaurant[] = [
     image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.5,
     location: "Vashi",
+    region: "Navi Mumbai",
     price: "Mid-Range"
   },
   {
@@ -363,6 +290,7 @@ const restaurants: Restaurant[] = [
     image: "https://images.unsplash.com/photo-1625398407937-2ee245abd2aa?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.6,
     location: "Nerul",
+    region: "Navi Mumbai",
     price: "Luxury"
   },
   {
@@ -373,6 +301,7 @@ const restaurants: Restaurant[] = [
     image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.3,
     location: "Kharghar",
+    region: "Navi Mumbai",
     price: "Luxury"
   },
   {
@@ -383,6 +312,7 @@ const restaurants: Restaurant[] = [
     image: "https://images.unsplash.com/photo-1547573854-74d2a71d0826?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.2,
     location: "Kopar Khairane",
+    region: "Mumbai",
     price: "Budget-Friendly"
   },
   {
@@ -393,6 +323,40 @@ const restaurants: Restaurant[] = [
     image: "https://images.unsplash.com/photo-1599458252573-56ae36120de1?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
     rating: 4.1,
     location: "Belapur",
+    region: "Navi Mumbai",
+    price: "Mid-Range"
+  },
+  {
+    id: "r11",
+    name: "Trishna",
+    cuisine: "Seafood",
+    description: "World-famous restaurant known for butter garlic crab and other seafood delicacies.",
+    image: "https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+    rating: 4.7,
+    location: "Fort",
+    region: "Mumbai",
+    price: "Luxury"
+  },
+  {
+    id: "r12",
+    name: "Leopold Cafe",
+    cuisine: "Continental",
+    description: "Historic cafe and restaurant known for its colonial charm and global cuisine.",
+    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+    rating: 4.5,
+    location: "Colaba",
+    region: "Mumbai",
+    price: "Mid-Range"
+  },
+  {
+    id: "r13",
+    name: "Punjabi Grill",
+    cuisine: "North Indian",
+    description: "Authentic North Indian cuisine featuring tandoori specialties and rich curries.",
+    image: "https://images.unsplash.com/photo-1585937421612-70a008356c36?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+    rating: 4.3,
+    location: "Mahabaleshwar",
+    region: "Western Ghats",
     price: "Mid-Range"
   }
 ];
@@ -407,6 +371,17 @@ export function getAllRestaurants(): Restaurant[] {
   return restaurants;
 }
 
+// Get all regions function
+export function getAllRegions(): string[] {
+  const regions = new Set<string>();
+  places.forEach(place => {
+    if (place.region) {
+      regions.add(place.region);
+    }
+  });
+  return Array.from(regions);
+}
+
 // Function to get places by location (used for itinerary generation)
 export function getPlacesByLocation(locationName: string): Place[] {
   return places.filter(place => place.location === locationName);
@@ -415,6 +390,16 @@ export function getPlacesByLocation(locationName: string): Place[] {
 // Function to get places by multiple locations
 export function getPlacesByLocations(locationNames: string[]): Place[] {
   return places.filter(place => locationNames.includes(place.location));
+}
+
+// Function to get places by region
+export function getPlacesByRegion(regionName: string): Place[] {
+  return places.filter(place => place.region === regionName);
+}
+
+// Function to get places by multiple regions
+export function getPlacesByRegions(regionNames: string[]): Place[] {
+  return places.filter(place => place.region && regionNames.includes(place.region));
 }
 
 // Function to get restaurants by location (used for itinerary generation)
@@ -427,40 +412,93 @@ export function getRestaurantsByLocations(locationNames: string[]): Restaurant[]
   return restaurants.filter(restaurant => locationNames.includes(restaurant.location));
 }
 
+// Function to get restaurants by region
+export function getRestaurantsByRegion(regionName: string): Restaurant[] {
+  return restaurants.filter(restaurant => restaurant.region === regionName);
+}
+
+// Function to get restaurants by multiple regions
+export function getRestaurantsByRegions(regionNames: string[]): Restaurant[] {
+  return restaurants.filter(restaurant => restaurant.region && regionNames.includes(restaurant.region));
+}
+
 // Export function to generate an itinerary based on provided options
 export function generateItinerary(options: ItineraryOptions) {
   const { days, pace, budget, interests, includeFood, transportation } = options;
   
   // Handle both single location and multiple locations
   const locationsList = options.locations || (options.location ? [options.location] : []);
+  const regionsList = options.regions || [];
   
   // Array to store our itinerary
   const itinerary = [];
   
-  // Get places filtered by the selected locations
-  let locationPlaces: Place[] = [];
-  if (locationsList.length > 0) {
-    locationPlaces = getPlacesByLocations(locationsList);
+  // Get places filtered by the selected locations and regions
+  let eligiblePlaces: Place[] = [];
+  
+  if (regionsList.length > 0) {
+    // If regions are specified, prioritize by region
+    eligiblePlaces = getPlacesByRegions(regionsList);
+    
+    // If we still need more places, add places from the specified locations
+    if (locationsList.length > 0 && eligiblePlaces.length < days * 3) {
+      const locationPlaces = getPlacesByLocations(locationsList);
+      
+      // Add location places that aren't already included
+      locationPlaces.forEach(place => {
+        if (!eligiblePlaces.some(p => p.id === place.id)) {
+          eligiblePlaces.push(place);
+        }
+      });
+    }
+  } else if (locationsList.length > 0) {
+    // If only locations are specified, use those
+    eligiblePlaces = getPlacesByLocations(locationsList);
   } else {
-    locationPlaces = places;
+    // If neither regions nor locations are specified, use all places
+    eligiblePlaces = places;
   }
   
-  // Get restaurants filtered by the selected locations
-  let locationRestaurants: Restaurant[] = [];
-  if (locationsList.length > 0) {
-    locationRestaurants = getRestaurantsByLocations(locationsList);
+  // Get restaurants filtered by the selected locations and regions
+  let eligibleRestaurants: Restaurant[] = [];
+  
+  if (regionsList.length > 0) {
+    // If regions are specified, prioritize by region
+    eligibleRestaurants = getRestaurantsByRegions(regionsList);
+    
+    // If we still need more restaurants, add restaurants from the specified locations
+    if (locationsList.length > 0 && eligibleRestaurants.length < days * 2) {
+      const locationRestaurants = getRestaurantsByLocations(locationsList);
+      
+      // Add location restaurants that aren't already included
+      locationRestaurants.forEach(restaurant => {
+        if (!eligibleRestaurants.some(r => r.id === restaurant.id)) {
+          eligibleRestaurants.push(restaurant);
+        }
+      });
+    }
+  } else if (locationsList.length > 0) {
+    // If only locations are specified, use those
+    eligibleRestaurants = getRestaurantsByLocations(locationsList);
   } else {
-    locationRestaurants = restaurants;
+    // If neither regions nor locations are specified, use all restaurants
+    eligibleRestaurants = restaurants;
   }
   
-  // If we don't have enough places for the selected locations, add some from nearby areas
-  if (locationPlaces.length < days * 3) {
-    console.log(`Not enough places in ${locationsList.join(', ')}, adding some from nearby areas`);
-    // This would ideally use a more sophisticated algorithm to add nearby places
+  // If we don't have enough places for the selected locations/regions, add some from nearby areas
+  if (eligiblePlaces.length < days * 3) {
+    console.log(`Not enough places in the selected regions/locations, adding some from other areas`);
+    // Get places from other areas, sorted by rating
+    const otherPlaces = places
+      .filter(place => !eligiblePlaces.some(p => p.id === place.id))
+      .sort((a, b) => b.rating - a.rating)
+      .slice(0, days * 3 - eligiblePlaces.length);
+      
+    eligiblePlaces = [...eligiblePlaces, ...otherPlaces];
   }
   
   // Filter places by interests if provided
-  let filteredPlaces = locationPlaces;
+  let filteredPlaces = eligiblePlaces;
   if (interests && interests.length > 0) {
     // This is a simple filter that checks if any interest matches the place category
     filteredPlaces = filteredPlaces.filter(place => 
@@ -473,7 +511,7 @@ export function generateItinerary(options: ItineraryOptions) {
     // If we filtered too aggressively and don't have enough places, add some back
     if (filteredPlaces.length < days * 2) {
       // Add some popular places back regardless of interest
-      const popularPlaces = locationPlaces
+      const popularPlaces = eligiblePlaces
         .filter(place => place.rating >= 4.3)
         .filter(place => !filteredPlaces.some(fp => fp.id === place.id));
       
@@ -485,7 +523,7 @@ export function generateItinerary(options: ItineraryOptions) {
   filteredPlaces.sort((a, b) => b.rating - a.rating);
   
   // Filter restaurants by budget if food is included
-  let filteredRestaurants = locationRestaurants;
+  let filteredRestaurants = eligibleRestaurants;
   if (includeFood && budget) {
     // Match budget string to price categories
     let priceCategories = [];
@@ -507,7 +545,7 @@ export function generateItinerary(options: ItineraryOptions) {
     
     // If we don't have enough restaurants after filtering, add some back
     if (filteredRestaurants.length < days * 2) {
-      filteredRestaurants = locationRestaurants;
+      filteredRestaurants = eligibleRestaurants;
     }
     
     // Sort restaurants by rating
@@ -599,14 +637,14 @@ export function generateItinerary(options: ItineraryOptions) {
     
     // If we've used all places, recycle them (this allows for longer trips)
     if (filteredPlaces.length === 0) {
-      filteredPlaces = [...locationPlaces];
+      filteredPlaces = [...eligiblePlaces];
       // Re-sort and shuffle a bit to avoid exact repetition
       filteredPlaces.sort(() => Math.random() - 0.5);
     }
     
     // Same for restaurants
     if (filteredRestaurants.length === 0) {
-      filteredRestaurants = [...locationRestaurants];
+      filteredRestaurants = [...eligibleRestaurants];
       filteredRestaurants.sort(() => Math.random() - 0.5);
     }
   }

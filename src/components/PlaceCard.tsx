@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { Star, Clock, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ interface PlaceCardProps {
   rating: number;
   duration?: string;
   location: string;
+  region?: string;
   featured?: boolean;
   onFavoriteToggle?: (id: string) => void;
   isFavorite?: boolean;
@@ -27,6 +29,7 @@ const PlaceCard = ({
   rating, 
   duration, 
   location,
+  region,
   featured = false,
   onFavoriteToggle,
   isFavorite = false
@@ -257,17 +260,21 @@ const PlaceCard = ({
             {description}
           </p>
           
-          <div className="flex items-center text-xs text-muted-foreground">
-            <MapPin className="w-3 h-3 mr-1" />
-            <span className="line-clamp-1">{location}</span>
-          </div>
-          
-          {duration && (
-            <div className="flex items-center text-xs text-muted-foreground">
-              <Clock className="w-3 h-3 mr-1" />
-              <span>{duration}</span>
+          <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+            <div className="flex items-center">
+              <MapPin className="w-3 h-3 mr-1" />
+              <span className="line-clamp-1">
+                {location}{region ? `, ${region}` : ""}
+              </span>
             </div>
-          )}
+            
+            {duration && (
+              <div className="flex items-center">
+                <Clock className="w-3 h-3 mr-1" />
+                <span>{duration}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

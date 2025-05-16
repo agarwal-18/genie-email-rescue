@@ -8,9 +8,12 @@ from ..auth import get_current_user
 router = APIRouter(tags=["places"])
 
 @router.get("/places")
-async def get_places():
+async def get_places(region: Optional[str] = None):
     """
     Get a list of popular places and attractions.
+    
+    Args:
+        region: Optional region filter for places within Maharashtra
     """
     places = load_json_data("places.json")
     if not places:
@@ -18,12 +21,41 @@ async def get_places():
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Places data file not found"
         )
+    
+    # Filter by region if specified
+    if region:
+        places = [p for p in places if p.get("region", "Navi Mumbai") == region]
+        
     return places
 
+@router.get("/regions")
+async def get_regions():
+    """
+    Get a list of all regions in Maharashtra.
+    """
+    places = load_json_data("places.json")
+    if not places:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Places data file not found"
+        )
+    
+    # Extract unique regions from places data
+    regions = []
+    for place in places:
+        region = place.get("region", "Navi Mumbai")
+        if region not in regions:
+            regions.append(region)
+    
+    return {"regions": regions}
+
 @router.get("/restaurants")
-async def get_restaurants():
+async def get_restaurants(region: Optional[str] = None):
     """
     Get a list of restaurants and eateries.
+    
+    Args:
+        region: Optional region filter for restaurants within Maharashtra
     """
     restaurants = load_json_data("restaurants.json")
     if not restaurants:
@@ -31,10 +63,15 @@ async def get_restaurants():
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Restaurants data file not found"
         )
+    
+    # Filter by region if specified
+    if region:
+        restaurants = [r for r in restaurants if r.get("region", "Navi Mumbai") == region]
+        
     return restaurants
 
 @router.get("/places/nearby")
-async def get_nearby_places(lat: float, lng: float, radius: Optional[int] = 5000):
+async def get_nearby_places(lat: float, lng: float, radius: Optional[int] = 5000, region: Optional[str] = None):
     """
     Get places near a specific location.
     """
@@ -45,6 +82,10 @@ async def get_nearby_places(lat: float, lng: float, radius: Optional[int] = 5000
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Places data file not found"
         )
+    
+    # Filter by region if specified
+    if region:
+        places = [p for p in places if p.get("region", "Navi Mumbai") == region]
     
     # In a real implementation, you would calculate actual distances
     # or use a geospatial database query
@@ -73,6 +114,7 @@ async def generate_itinerary(options: Dict[str, Any]):
     days = options.get("days", 3)
     pace = options.get("pace", "moderate")
     interests = options.get("interests", [])
+    regions = options.get("regions", [])  # Added support for multiple regions
     
     result = []
     
@@ -87,7 +129,7 @@ async def generate_itinerary(options: Dict[str, Any]):
             activities_per_day = 4
         
         # In a real implementation, you would select activities 
-        # based on interests and other factors
+        # based on interests, regions, and other factors
         day_activities = template.get("activities", [])[:activities_per_day]
         
         day_data = {
@@ -99,9 +141,14 @@ async def generate_itinerary(options: Dict[str, Any]):
     return result
 
 @router.get("/places/search")
-async def search_places(query: str, category: Optional[str] = None):
+async def search_places(query: str, category: Optional[str] = None, region: Optional[str] = None):
     """
     Search for places by name or description.
+    
+    Args:
+        query: Search term
+        category: Optional category filter
+        region: Optional region filter
     """
     places = load_json_data("places.json")
     if not places:
@@ -118,9 +165,14 @@ async def search_places(query: str, category: Optional[str] = None):
         name = place.get("name", "").lower()
         description = place.get("description", "").lower()
         place_category = place.get("category", "").lower()
+        place_region = place.get("region", "Navi Mumbai").lower()
         
+        # Filter by search term
         if query in name or query in description:
+            # Apply category filter if specified
             if category is None or (category and category.lower() == place_category):
-                results.append(place)
+                # Apply region filter if specified
+                if region is None or (region and region.lower() == place_region):
+                    results.append(place)
     
     return results

@@ -9,6 +9,7 @@
       "image": "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=1473&auto=format&fit=crop&ixlib=rb-4.0.3",
       "rating": 4.6,
       "location": "Nerul",
+      "region": "Navi Mumbai",
       "duration": "3-4 hours",
       "featured": true
     },
@@ -20,6 +21,7 @@
       "image": "https://d3mbwbgtcl4x70.cloudfront.net/Central_Park_Kharghar_774b4a891e.webp",
       "rating": 4.3,
       "location": "Kharghar",
+      "region": "Navi Mumbai",
       "duration": "1-2 hours"
     },
     {
@@ -30,27 +32,203 @@
       "image": "https://images.unsplash.com/photo-1513889961551-628c1e5e2ee9?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
       "rating": 4.4,
       "location": "Nerul",
+      "region": "Navi Mumbai",
       "duration": "2-3 hours"
+    },
+    {
+      "id": "4",
+      "name": "NMMC Butterfly Garden",
+      "category": "Parks & Gardens",
+      "description": "A specialized garden that attracts various butterfly species with plants that serve as food sources.",
+      "image": "https://images.hindustantimes.com/rf/image_size_960x540/HT/p2/2018/09/29/Pictures/thane-india-visit-thane-2018-collector-impact_38ad43b0-c3e6-11e8-9e8c-b17643e39fb5.jpg",
+      "rating": 4.2,
+      "location": "Seawoods",
+      "region": "Navi Mumbai",
+      "duration": "1 hour"
+    },
+    {
+      "id": "5",
+      "name": "Pandavkada Falls",
+      "category": "Natural Attractions",
+      "description": "A scenic waterfall that comes alive during the monsoon season, offering beautiful views.",
+      "image": "https://www.tripplatform.com/blog/wp-content/uploads/2016/09/A-view-of-the-fall-from-a-distance.jpg",
+      "rating": 4.5,
+      "location": "Kharghar",
+      "region": "Navi Mumbai",
+      "duration": "2-3 hours"
+    },
+    {
+      "id": "6",
+      "name": "Gateway of India",
+      "category": "Historical Sites",
+      "description": "The iconic arch monument built during the British Raj, situated on the waterfront of Mumbai harbor.",
+      "image": "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.8,
+      "location": "Colaba",
+      "region": "Mumbai",
+      "duration": "1-2 hours",
+      "featured": true
+    },
+    {
+      "id": "7",
+      "name": "Marine Drive",
+      "category": "Landmarks",
+      "description": "A 3.6-kilometer-long boulevard that curves along the coastline of Mumbai's Back Bay, also known as the Queen's Necklace.",
+      "image": "https://images.unsplash.com/photo-1570269691466-b3bb7973a23c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.7,
+      "location": "South Mumbai",
+      "region": "Mumbai",
+      "duration": "1-2 hours",
+      "featured": true
+    },
+    {
+      "id": "8",
+      "name": "Ajanta Caves",
+      "category": "Historical Sites",
+      "description": "Ancient rock-cut Buddhist cave monuments dating from the 2nd century BCE to about 480 CE, designated UNESCO World Heritage Site.",
+      "image": "https://images.unsplash.com/photo-1623776025811-fd139155a39b?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.9,
+      "location": "Aurangabad",
+      "region": "Aurangabad",
+      "duration": "4-6 hours",
+      "featured": true
+    },
+    {
+      "id": "9",
+      "name": "Ellora Caves",
+      "category": "Historical Sites",
+      "description": "A UNESCO World Heritage Site featuring Buddhist, Hindu and Jain rock-cut temples and monasteries built between the 6th and 10th century.",
+      "image": "https://images.unsplash.com/photo-1626015633076-e8578ee16ba9?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.8,
+      "location": "Aurangabad",
+      "region": "Aurangabad",
+      "duration": "4-5 hours",
+      "featured": true
+    },
+    {
+      "id": "10",
+      "name": "Mahabaleshwar",
+      "category": "Hill Stations",
+      "description": "A serene hill station with panoramic viewpoints, lush green valleys, and famous strawberry farms.",
+      "image": "https://images.unsplash.com/photo-1618982469316-5571b3057be5?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.6,
+      "location": "Mahabaleshwar",
+      "region": "Western Ghats",
+      "duration": "1-2 days",
+      "featured": true
+    },
+    {
+      "id": "11",
+      "name": "Lonavala",
+      "category": "Hill Stations",
+      "description": "A popular hill station known for its chikki (a traditional sweet), lookout points, and ancient caves.",
+      "image": "https://images.unsplash.com/photo-1581792254171-cc81f4940827?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.5,
+      "location": "Lonavala",
+      "region": "Western Ghats",
+      "duration": "1-2 days"
+    },
+    {
+      "id": "12",
+      "name": "Khandala",
+      "category": "Hill Stations",
+      "description": "A scenic hill station with beautiful valleys, grasslands, and a pleasant climate throughout the year.",
+      "image": "https://images.unsplash.com/photo-1606215476392-fb8377e5a4b3?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.4,
+      "location": "Khandala",
+      "region": "Western Ghats",
+      "duration": "1 day"
+    },
+    {
+      "id": "13",
+      "name": "Bibi Ka Maqbara",
+      "category": "Historical Sites",
+      "description": "Also known as the 'Tomb of the Lady', it's a mausoleum built by Aurangzeb's son in memory of his mother.",
+      "image": "https://images.unsplash.com/photo-1627548439946-fe25e3bcb736?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.3,
+      "location": "Aurangabad",
+      "region": "Aurangabad",
+      "duration": "2-3 hours"
+    },
+    {
+      "id": "14",
+      "name": "Shirdi Sai Baba Temple",
+      "category": "Religious Sites",
+      "description": "A famous temple dedicated to Sai Baba, a spiritual master revered by both Hindu and Muslim devotees.",
+      "image": "https://images.unsplash.com/photo-1585146045695-4102009deef9?q=80&w=1471&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.9,
+      "location": "Shirdi",
+      "region": "Ahmednagar",
+      "duration": "3-4 hours",
+      "featured": true
+    },
+    {
+      "id": "15",
+      "name": "Raigad Fort",
+      "category": "Historical Sites",
+      "description": "The historic fort that was the capital of Maratha king Shivaji Maharaj's kingdom, situated atop a hill.",
+      "image": "https://images.unsplash.com/photo-1608021689097-0123af69cfd0?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.7,
+      "location": "Mahad",
+      "region": "Raigad",
+      "duration": "4-5 hours"
+    },
+    {
+      "id": "16",
+      "name": "Shree Siddhivinayak Temple",
+      "category": "Religious Sites",
+      "description": "One of the most visited temples in Mumbai dedicated to Lord Ganesha, the remover of obstacles.",
+      "image": "https://images.unsplash.com/photo-1588787900596-4feeab987cc7?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.7,
+      "location": "Prabhadevi",
+      "region": "Mumbai",
+      "duration": "1-2 hours"
     },
     {
       "id": "17",
-      "name": "Dr. Ambedkar Memorial",
-      "category": "Educational",
-      "description": "An interactive museum with exhibits and demonstrations for all ages.",
-      "image": "https://images.unsplash.com/photo-1576086135867-9301855780d5?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "name": "Alibaug Beach",
+      "category": "Beaches",
+      "description": "A popular weekend getaway known for its beaches, historic sea fort, and coastal cuisine.",
+      "image": "https://images.unsplash.com/photo-1590152441144-58cdf8d3e23d?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
       "rating": 4.3,
-      "location": "Airoli",
-      "duration": "2-3 hours"
+      "location": "Alibaug",
+      "region": "Konkan Coast",
+      "duration": "1 day"
     },
     {
-      "id": "25",
-      "name": "Mango Garden",
-      "category": "Parks & Gardens",
-      "description": "A garden with various species of mango trees, popular during the summer season.",
-      "image": "https://images.unsplash.com/photo-1622944925998-2429e7c6ae91?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
-      "rating": 4.2,
-      "location": "Belapur",
-      "duration": "1 hour"
+      "id": "18",
+      "name": "Ganpatipule Beach",
+      "category": "Beaches",
+      "description": "A pristine beach with white sand and clear water, also home to a 400-year-old Ganpati temple.",
+      "image": "https://images.unsplash.com/photo-1506929562872-bb421503ef21?q=80&w=1468&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.6,
+      "location": "Ratnagiri",
+      "region": "Konkan Coast",
+      "duration": "1 day",
+      "featured": true
+    },
+    {
+      "id": "19",
+      "name": "Pratapgad Fort",
+      "category": "Historical Sites",
+      "description": "A mountain fort known for the historic Battle of Pratapgad where Shivaji Maharaj defeated Afzal Khan.",
+      "image": "https://images.unsplash.com/photo-1616368173762-a012886ca22f?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.5,
+      "location": "Satara",
+      "region": "Western Ghats",
+      "duration": "3-4 hours"
+    },
+    {
+      "id": "20",
+      "name": "Tadoba Andhari Tiger Reserve",
+      "category": "Wildlife",
+      "description": "Maharashtra's oldest and largest national park, known for its tiger population and rich biodiversity.",
+      "image": "https://images.unsplash.com/photo-1549366021-9f761d450615?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.8,
+      "location": "Chandrapur",
+      "region": "Vidarbha",
+      "duration": "1-2 days",
+      "featured": true
     }
   ]
 }

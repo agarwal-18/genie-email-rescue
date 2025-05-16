@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Search, Filter, MapPin, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import PlaceCard from '@/components/PlaceCard';
 import Navbar from '@/components/Navbar';
 import { getAllPlaces } from '@/lib/data';
 import Weather from '@/components/Weather';
+import RegionSelector from '@/components/RegionSelector';
 
 interface Place {
   id: string;
@@ -24,6 +26,7 @@ interface Place {
   image: string;
   rating: number;
   location: string;
+  region?: string;
   duration?: string;
   featured?: boolean;
 }
@@ -31,6 +34,7 @@ interface Place {
 const Places = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('all');
+  const [region, setRegion] = useState('');
   const [filteredPlaces, setFilteredPlaces] = useState<Place[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string>('Vashi');
   const [currentTab, setCurrentTab] = useState('all');
@@ -63,8 +67,13 @@ const Places = () => {
   };
 
   useEffect(() => {
-    // Filter places based on search term, category, and current tab
+    // Filter places based on search term, category, region, and current tab
     let results = places;
+    
+    // Apply region filter if selected
+    if (region) {
+      results = results.filter(place => place.region === region);
+    }
     
     // Apply search filter if there's a search term
     if (searchTerm) {
@@ -120,9 +129,11 @@ const Places = () => {
       if (searchTerm) {
         setFeaturedPlace(null);
       } else {
-        // Only use featured places that match the current category filter
+        // Only use featured places that match the current category and region filters
         const eligibleFeatured = places.filter(place => 
-          place.featured && (category === 'all' || place.category === category)
+          place.featured && 
+          (category === 'all' || place.category === category) &&
+          (!region || place.region === region)
         );
         
         // Select a featured place based on page load, not on every filter change
@@ -144,7 +155,7 @@ const Places = () => {
     }
     
     setFilteredPlaces(results);
-  }, [searchTerm, category, places, currentTab, favorites]);
+  }, [searchTerm, category, region, places, currentTab, favorites]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -154,10 +165,22 @@ const Places = () => {
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4">Explore Navi Mumbai</h1>
+            <h1 className="text-4xl font-bold mb-4">Explore Maharashtra</h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Discover fascinating places around Navi Mumbai to add to your next exploration plan.
+              Discover fascinating places across Maharashtra - from bustling cities to serene beaches, historic forts to lush hill stations.
             </p>
+          </div>
+          
+          {/* Region Selector */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Choose Region</h2>
+            </div>
+            <RegionSelector 
+              value={region} 
+              onChange={setRegion}
+              showAllOption={true}
+            />
           </div>
           
           {/* Weather Component */}
@@ -236,6 +259,7 @@ const Places = () => {
                 image={featuredPlace.image}
                 rating={featuredPlace.rating}
                 location={featuredPlace.location}
+                region={featuredPlace.region}
                 featured={true}
                 onFavoriteToggle={toggleFavorite}
                 isFavorite={favorites.includes(featuredPlace.id)}
@@ -256,6 +280,7 @@ const Places = () => {
                 rating={place.rating}
                 duration={place.duration}
                 location={place.location}
+                region={place.region}
                 onFavoriteToggle={toggleFavorite}
                 isFavorite={favorites.includes(place.id)}
               />

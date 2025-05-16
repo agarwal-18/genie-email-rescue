@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Clock, Calendar, Compass, MessageSquare } from 'lucide-react';
@@ -9,35 +10,93 @@ import FeatureCard from '@/components/FeatureCard';
 import { getAllPlaces } from '@/lib/data';
 import Weather from '@/components/Weather';
 import TripTips from '@/components/TripTips';
+import RegionSelector from '@/components/RegionSelector';
 
 const Index = () => {
   const [featuredPlaces, setFeaturedPlaces] = useState<any[]>([]);
-  const heroImageUrl = "/my-hero-bg.jpg";
+  const [selectedRegion, setSelectedRegion] = useState('');
+  const heroImageUrl = "https://images.unsplash.com/photo-1567157577867-05ccb1388e66?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3";
 
   useEffect(() => {
     // Get places from data.ts
     const places = getAllPlaces();
+    
+    // Filter by region if selected
+    const regionFiltered = selectedRegion 
+      ? places.filter(place => place.region === selectedRegion)
+      : places;
+    
     // Custom featured places for homepage
-    const customFeatured = [
-      places.find(place => place.name === "Seawoods Grand Central Mall"),
-      places.find(place => place.name === "Golf Course"),
-      ...places.filter(place => place.featured && place.name !== "Nerul Balaji Temple" && place.name !== "Inorbit Mall" && place.name !== "Seawoods Grand Central Mall" && place.name !== "Golf Course").slice(0, 1)
-    ].filter(Boolean);
-    setFeaturedPlaces(customFeatured);
-  }, []);
+    const featuredFromRegion = regionFiltered.filter(place => place.featured).slice(0, 3);
+    
+    // If we don't have enough featured places, add some high-rated non-featured ones
+    if (featuredFromRegion.length < 3) {
+      const remaining = regionFiltered
+        .filter(place => !place.featured)
+        .sort((a, b) => b.rating - a.rating)
+        .slice(0, 3 - featuredFromRegion.length);
+      
+      setFeaturedPlaces([...featuredFromRegion, ...remaining]);
+    } else {
+      setFeaturedPlaces(featuredFromRegion);
+    }
+  }, [selectedRegion]);
+
+  // Get the hero title based on selected region
+  const getHeroTitle = () => {
+    if (!selectedRegion) return "Discover Maharashtra";
+    return `Discover ${selectedRegion}`;
+  };
+
+  // Get hero subtitle based on selected region
+  const getHeroSubtitle = () => {
+    if (!selectedRegion) {
+      return "Explore the hidden gems and must-visit places across the beautiful state of Maharashtra.";
+    }
+    return `Explore the hidden gems and must-visit places in ${selectedRegion}, Maharashtra.`;
+  };
+
+  // Get hero image based on region
+  const getHeroImage = () => {
+    const regionImages: Record<string, string> = {
+      "Mumbai": "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "Navi Mumbai": "https://www.theparkhotels.com/images/site-specific/navi-mumbai/explore/navi_mumbai_city_banner.jpg",
+      "Western Ghats": "https://images.unsplash.com/photo-1618982469316-5571b3057be5?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "Konkan Coast": "https://images.unsplash.com/photo-1590152441144-58cdf8d3e23d?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "Aurangabad": "https://images.unsplash.com/photo-1623776025811-fd139155a39b?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "Vidarbha": "https://images.unsplash.com/photo-1549366021-9f761d450615?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3"
+    };
+    
+    return selectedRegion && regionImages[selectedRegion] 
+      ? regionImages[selectedRegion] 
+      : heroImageUrl;
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      {/* Hero Section */}
-      <Hero
-        title="Discover Navi Mumbai"
-        subtitle="Explore the hidden gems and must-visit places in the planned city of Navi Mumbai, Maharashtra."
-        ctaText="Start Exploring"
-        ctaLink="/places"
-        imageUrl="https://www.theparkhotels.com/images/site-specific/navi-mumbai/explore/navi_mumbai_city_banner.jpg"
-      />
+      {/* Region Selector */}
+      <div className="fixed top-20 left-0 right-0 z-10 bg-background py-3 px-4 border-b shadow-sm">
+        <div className="max-w-7xl mx-auto">
+          <RegionSelector 
+            value={selectedRegion} 
+            onChange={setSelectedRegion}
+            showAllOption={true}
+          />
+        </div>
+      </div>
+      
+      {/* Hero Section with adjusted top margin to account for region selector */}
+      <div className="pt-16">
+        <Hero
+          title={getHeroTitle()}
+          subtitle={getHeroSubtitle()}
+          ctaText="Start Exploring"
+          ctaLink="/places"
+          imageUrl={getHeroImage()}
+        />
+      </div>
       
       {/* Features Section */}
       <section className="py-20 px-4 md:px-6">
@@ -45,14 +104,14 @@ const Index = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold">How It Works</h2>
             <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-              Plan your perfect Navi Mumbai exploration in just a few simple steps
+              Plan your perfect Maharashtra exploration in just a few simple steps
             </p>
           </div>
           
           <div className="grid md:grid-cols-4 gap-8">
             <FeatureCard
               title="Discover Places"
-              description="Explore curated destinations across Navi Mumbai from scenic spots to cultural attractions."
+              description="Explore curated destinations across Maharashtra from scenic spots to cultural attractions."
               icon={MapPin}
               buttonText="View Places"
               buttonLink="/places"
@@ -89,7 +148,9 @@ const Index = () => {
             <div>
               <h2 className="text-2xl font-bold">Featured Destinations</h2>
               <p className="mt-2 text-muted-foreground">
-                Explore these popular spots in Navi Mumbai
+                {selectedRegion 
+                  ? `Explore these popular spots in ${selectedRegion}` 
+                  : "Explore these popular spots in Maharashtra"}
               </p>
             </div>
             <Link to="/places">
@@ -117,7 +178,7 @@ const Index = () => {
                   </div>
                   <CardDescription className="flex items-center mt-1">
                     <MapPin className="h-4 w-4 mr-1" />
-                    {place.location}
+                    {place.location}{place.region ? `, ${place.region}` : ""}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 pt-0">
@@ -146,7 +207,7 @@ const Index = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold">Travel Resources</h2>
             <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-              Essential information to make your Navi Mumbai exploration enjoyable
+              Essential information to make your Maharashtra exploration enjoyable
             </p>
           </div>
           
@@ -154,13 +215,15 @@ const Index = () => {
             {/* Weather Widget */}
             <div>
               <h3 className="text-xl font-semibold mb-4">Local Weather</h3>
-              <Weather location="Navi Mumbai" className="h-full" />
+              <Weather location={selectedRegion || "Maharashtra"} className="h-full" />
             </div>
             
             {/* Travel Tips */}
             <div>
               <h3 className="text-xl font-semibold mb-4">Travel Tips</h3>
-              <TripTips locations={['Vashi', 'Nerul', 'Kharghar']} />
+              <TripTips locations={selectedRegion 
+                ? [selectedRegion] 
+                : ['Mumbai', 'Western Ghats', 'Konkan Coast']} />
             </div>
           </div>
         </div>
@@ -194,7 +257,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">Stay Updated</h2>
           <p className="max-w-2xl mx-auto mb-8">
-            Subscribe to our newsletter for the latest travel tips, new destinations, and special events in Navi Mumbai.
+            Subscribe to our newsletter for the latest travel tips, new destinations, and special events in Maharashtra.
           </p>
           <Link to="/register">
             <Button size="lg" variant="secondary">

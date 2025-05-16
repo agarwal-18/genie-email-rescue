@@ -9,6 +9,7 @@
       "image": "https://images.unsplash.com/photo-1536392706976-e486e2ba97af?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
       "rating": 4.5,
       "location": "Vashi",
+      "region": "Navi Mumbai",
       "price": "Mid-Range"
     },
     {
@@ -19,6 +20,7 @@
       "image": "https://images.unsplash.com/photo-1544148103-0773bf10d330?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
       "rating": 4.4,
       "location": "Nerul",
+      "region": "Navi Mumbai",
       "price": "Luxury"
     },
     {
@@ -29,6 +31,106 @@
       "image": "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3",
       "rating": 4.3,
       "location": "Kharghar",
+      "region": "Navi Mumbai",
+      "price": "Mid-Range"
+    },
+    {
+      "id": "r4",
+      "name": "Cafe Trofima",
+      "cuisine": "Continental",
+      "description": "A cozy cafe offering European dishes, pastries, and specialty coffees.",
+      "image": "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.2,
+      "location": "Seawoods",
+      "region": "Navi Mumbai",
+      "price": "Mid-Range"
+    },
+    {
+      "id": "r5",
+      "name": "China Gate",
+      "cuisine": "Chinese",
+      "description": "Authentic Chinese cuisine with Szechuan and Cantonese specialties.",
+      "image": "https://images.unsplash.com/photo-1550388342-b3fd986e9e66?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.4,
+      "location": "Belapur",
+      "region": "Navi Mumbai",
+      "price": "Mid-Range"
+    },
+    {
+      "id": "r10",
+      "name": "Garden Cafe",
+      "cuisine": "Multi-cuisine",
+      "description": "Outdoor cafe set in a garden environment with a diverse menu.",
+      "image": "https://images.unsplash.com/photo-1599458252573-56ae36120de1?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.1,
+      "location": "Belapur",
+      "region": "Navi Mumbai",
+      "price": "Mid-Range"
+    },
+    {
+      "id": "r11",
+      "name": "Trishna",
+      "cuisine": "Seafood",
+      "description": "World-famous restaurant known for butter garlic crab and other seafood delicacies.",
+      "image": "https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.7,
+      "location": "Fort",
+      "region": "Mumbai",
+      "price": "Luxury"
+    },
+    {
+      "id": "r12",
+      "name": "Leopold Cafe",
+      "cuisine": "Continental",
+      "description": "Historic cafe and restaurant known for its colonial charm and global cuisine.",
+      "image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.5,
+      "location": "Colaba",
+      "region": "Mumbai",
+      "price": "Mid-Range"
+    },
+    {
+      "id": "r13",
+      "name": "Punjabi Grill",
+      "cuisine": "North Indian",
+      "description": "Authentic North Indian cuisine featuring tandoori specialties and rich curries.",
+      "image": "https://images.unsplash.com/photo-1585937421612-70a008356c36?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.3,
+      "location": "Mahabaleshwar",
+      "region": "Western Ghats",
+      "price": "Mid-Range"
+    },
+    {
+      "id": "r14",
+      "name": "Mapro Garden Restaurant",
+      "cuisine": "Multi-cuisine",
+      "description": "Famous for strawberry-based treats, pizzas, and garden ambiance.",
+      "image": "https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.6,
+      "location": "Panchgani",
+      "region": "Western Ghats",
+      "price": "Mid-Range"
+    },
+    {
+      "id": "r15",
+      "name": "Kolhapuri Khanaval",
+      "cuisine": "Maharashtrian",
+      "description": "Traditional Maharashtrian eatery famous for spicy Kolhapuri cuisine.",
+      "image": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.5,
+      "location": "Kolhapur",
+      "region": "Western Maharashtra",
+      "price": "Budget-Friendly"
+    },
+    {
+      "id": "r16",
+      "name": "Malvan Katta",
+      "cuisine": "Seafood",
+      "description": "Authentic Malvani cuisine featuring seafood specialties and coconut-based curries.",
+      "image": "https://images.unsplash.com/photo-1623341214825-9f4f963727da?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.7,
+      "location": "Sindhudurg",
+      "region": "Konkan Coast",
       "price": "Mid-Range"
     }
   ]
