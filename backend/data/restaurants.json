@@ -57,6 +57,50 @@
       "price": "Mid-Range"
     },
     {
+      "id": "r6",
+      "name": "Dakshin",
+      "cuisine": "South Indian",
+      "description": "Specializing in authentic South Indian dishes from various regions.",
+      "image": "https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.5,
+      "location": "Vashi",
+      "region": "Navi Mumbai",
+      "price": "Mid-Range"
+    },
+    {
+      "id": "r7",
+      "name": "Saffron Bay",
+      "cuisine": "Indian",
+      "description": "Fine dining restaurant offering traditional Indian cuisine with modern presentation.",
+      "image": "https://images.unsplash.com/photo-1625398407937-2ee245abd2aa?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.6,
+      "location": "Nerul",
+      "region": "Navi Mumbai",
+      "price": "Luxury"
+    },
+    {
+      "id": "r8",
+      "name": "Bon Appetit",
+      "cuisine": "Italian",
+      "description": "Authentic Italian restaurant with handmade pasta and wood-fired pizzas.",
+      "image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.3,
+      "location": "Kharghar",
+      "region": "Navi Mumbai",
+      "price": "Luxury"
+    },
+    {
+      "id": "r9",
+      "name": "Street Food Corner",
+      "cuisine": "Street Food",
+      "description": "Popular spot offering a variety of Indian street food in a hygienic setting.",
+      "image": "https://images.unsplash.com/photo-1547573854-74d2a71d0826?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.2,
+      "location": "Kopar Khairane",
+      "region": "Navi Mumbai",
+      "price": "Budget-Friendly"
+    },
+    {
       "id": "r10",
       "name": "Garden Cafe",
       "cuisine": "Multi-cuisine",
@@ -131,6 +175,105 @@
       "rating": 4.7,
       "location": "Sindhudurg",
       "region": "Konkan Coast",
+      "price": "Mid-Range"
+    },
+    {
+      "id": "r17",
+      "name": "The Bombay Canteen",
+      "cuisine": "Indian Fusion",
+      "description": "Innovative restaurant serving regional Indian dishes with a contemporary twist.",
+      "image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.8,
+      "location": "Lower Parel",
+      "region": "Mumbai",
+      "price": "Luxury"
+    },
+    {
+      "id": "r18",
+      "name": "Britannia & Co.",
+      "cuisine": "Parsi",
+      "description": "Iconic Parsi restaurant known for its berry pulao and colonial-era ambiance.",
+      "image": "https://images.unsplash.com/photo-1555992336-03a23c7b20ee?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.6,
+      "location": "Fort",
+      "region": "Mumbai",
+      "price": "Mid-Range"
+    },
+    {
+      "id": "r19",
+      "name": "Vaishali",
+      "cuisine": "South Indian",
+      "description": "Legendary South Indian restaurant popular for its dosas and filter coffee.",
+      "image": "https://images.unsplash.com/photo-1627308595171-d1b5d95d20b8?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.5,
+      "location": "Pune",
+      "region": "Western Maharashtra",
+      "price": "Budget-Friendly"
+    },
+    {
+      "id": "r20",
+      "name": "Karavalli",
+      "cuisine": "Coastal",
+      "description": "Specializing in authentic coastal cuisine from Maharashtra, Goa, and Karnataka.",
+      "image": "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.6,
+      "location": "Alibaug",
+      "region": "Konkan Coast",
+      "price": "Mid-Range"
+    },
+    {
+      "id": "r21",
+      "name": "Peshawri",
+      "cuisine": "North Indian",
+      "description": "Fine dining restaurant known for its North-West Frontier cuisine and tandoori specialties.",
+      "image": "https://images.unsplash.com/photo-1633945274405-b8c447f17c2c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.7,
+      "location": "Aurangabad",
+      "region": "Aurangabad",
+      "price": "Luxury"
+    },
+    {
+      "id": "r22",
+      "name": "Baghban Restaurant",
+      "cuisine": "Mughlai",
+      "description": "Popular restaurant serving authentic Mughlai cuisine with a focus on biryanis and kebabs.",
+      "image": "https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.4,
+      "location": "Aurangabad",
+      "region": "Aurangabad",
+      "price": "Mid-Range"
+    },
+    {
+      "id": "r23",
+      "name": "Basho's Cafe",
+      "cuisine": "Japanese",
+      "description": "Modern cafe offering Japanese and pan-Asian cuisine in a zen-like setting.",
+      "image": "https://images.unsplash.com/photo-1517248130828-45fc31e41daf?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.5,
+      "location": "Lonavala",
+      "region": "Western Ghats",
+      "price": "Mid-Range"
+    },
+    {
+      "id": "r24",
+      "name": "Coconut Grove",
+      "cuisine": "Coastal",
+      "description": "Beachside restaurant specializing in fresh seafood and authentic Konkan cuisine.",
+      "image": "https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.6,
+      "location": "Ratnagiri",
+      "region": "Konkan Coast",
+      "price": "Mid-Range"
+    },
+    {
+      "id": "r25",
+      "name": "Spice Kitchen",
+      "cuisine": "Indian",
+      "description": "A multi-cuisine restaurant with a focus on regional Indian specialties.",
+      "image": "https://images.unsplash.com/photo-1555992336-03a23c7b20ee?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "rating": 4.3,
+      "location": "Chandrapur",
+      "region": "Vidarbha",
       "price": "Mid-Range"
     }
   ]

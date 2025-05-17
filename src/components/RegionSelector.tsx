@@ -64,7 +64,9 @@ const RegionSelector = ({
   }, []);
   
   const handleSelect = (currentValue: string) => {
-    onChange?.(currentValue === value ? "" : currentValue);
+    // If the value is "All Regions", send an empty string to clear the selection
+    const newValue = currentValue === "All Regions" ? "" : currentValue;
+    onChange?.(newValue === value ? "" : newValue);
     setOpen(false);
   };
   
@@ -92,7 +94,7 @@ const RegionSelector = ({
             {showAllOption && (
               <CommandItem
                 value="All Regions"
-                onSelect={() => handleSelect("")}
+                onSelect={() => handleSelect("All Regions")}
                 className="cursor-pointer"
               >
                 <Check

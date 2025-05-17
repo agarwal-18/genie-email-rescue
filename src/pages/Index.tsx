@@ -26,6 +26,8 @@ const Index = () => {
       ? places.filter(place => place.region === selectedRegion)
       : places;
     
+    console.log(`Selected Region: ${selectedRegion || 'All'}, Filtered Places: ${regionFiltered.length}`);
+    
     // Custom featured places for homepage
     const featuredFromRegion = regionFiltered.filter(place => place.featured).slice(0, 3);
     
@@ -64,12 +66,21 @@ const Index = () => {
       "Western Ghats": "https://images.unsplash.com/photo-1618982469316-5571b3057be5?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
       "Konkan Coast": "https://images.unsplash.com/photo-1590152441144-58cdf8d3e23d?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
       "Aurangabad": "https://images.unsplash.com/photo-1623776025811-fd139155a39b?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.0.3",
-      "Vidarbha": "https://images.unsplash.com/photo-1549366021-9f761d450615?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3"
+      "Vidarbha": "https://images.unsplash.com/photo-1549366021-9f761d450615?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "Western Maharashtra": "https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "Raigad": "https://images.unsplash.com/photo-1608021689097-0123af69cfd0?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
+      "Ahmednagar": "https://images.unsplash.com/photo-1585146045695-4102009deef9?q=80&w=1471&auto=format&fit=crop&ixlib=rb-4.0.3"
     };
     
     return selectedRegion && regionImages[selectedRegion] 
       ? regionImages[selectedRegion] 
       : heroImageUrl;
+  };
+
+  // Handle region selection
+  const handleRegionChange = (region: string) => {
+    console.log(`Region changed to: ${region || 'All'}`);
+    setSelectedRegion(region);
   };
 
   return (
@@ -81,7 +92,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto">
           <RegionSelector 
             value={selectedRegion} 
-            onChange={setSelectedRegion}
+            onChange={handleRegionChange}
             showAllOption={true}
           />
         </div>

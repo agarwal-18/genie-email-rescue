@@ -8,23 +8,34 @@ from ..auth import get_current_user
 router = APIRouter(tags=["places"])
 
 @router.get("/places")
-async def get_places(region: Optional[str] = None):
+async def get_places(region: Optional[str] = None, category: Optional[str] = None, limit: Optional[int] = None):
     """
     Get a list of popular places and attractions.
     
     Args:
         region: Optional region filter for places within Maharashtra
+        category: Optional category filter (e.g., "Historical Sites", "Beaches")
+        limit: Optional limit on number of results
     """
-    places = load_json_data("places.json")
-    if not places:
+    places_data = load_json_data("places.json")
+    if not places_data:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Places data file not found"
         )
     
-    # Filter by region if specified
+    places = places_data.get("places", [])
+    
+    # Apply filters
     if region:
-        places = [p for p in places if p.get("region", "Navi Mumbai") == region]
+        places = [p for p in places if p.get("region", "") == region]
+        
+    if category:
+        places = [p for p in places if p.get("category", "").lower() == category.lower()]
+    
+    # Apply limit if specified
+    if limit and limit > 0:
+        places = places[:limit]
         
     return places
 
@@ -33,40 +44,52 @@ async def get_regions():
     """
     Get a list of all regions in Maharashtra.
     """
-    places = load_json_data("places.json")
-    if not places:
+    places_data = load_json_data("places.json")
+    if not places_data:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Places data file not found"
         )
     
-    # Extract unique regions from places data
-    regions = []
-    for place in places:
-        region = place.get("region", "Navi Mumbai")
-        if region not in regions:
-            regions.append(region)
+    places = places_data.get("places", [])
     
-    return {"regions": regions}
+    # Extract unique regions from places data
+    regions = set()
+    for place in places:
+        region = place.get("region")
+        if region:
+            regions.add(region)
+    
+    return {"regions": sorted(list(regions))}
 
 @router.get("/restaurants")
-async def get_restaurants(region: Optional[str] = None):
+async def get_restaurants(region: Optional[str] = None, cuisine: Optional[str] = None, price: Optional[str] = None):
     """
     Get a list of restaurants and eateries.
     
     Args:
         region: Optional region filter for restaurants within Maharashtra
+        cuisine: Optional cuisine filter
+        price: Optional price range filter (Budget-Friendly, Mid-Range, Luxury)
     """
-    restaurants = load_json_data("restaurants.json")
-    if not restaurants:
+    restaurants_data = load_json_data("restaurants.json")
+    if not restaurants_data:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Restaurants data file not found"
         )
     
-    # Filter by region if specified
+    restaurants = restaurants_data.get("restaurants", [])
+    
+    # Apply filters
     if region:
-        restaurants = [r for r in restaurants if r.get("region", "Navi Mumbai") == region]
+        restaurants = [r for r in restaurants if r.get("region", "") == region]
+    
+    if cuisine:
+        restaurants = [r for r in restaurants if r.get("cuisine", "").lower() == cuisine.lower()]
+    
+    if price:
+        restaurants = [r for r in restaurants if r.get("price", "").lower() == price.lower()]
         
     return restaurants
 
@@ -76,16 +99,18 @@ async def get_nearby_places(lat: float, lng: float, radius: Optional[int] = 5000
     Get places near a specific location.
     """
     # For demo purposes, just return all places with a distance calculation added
-    places = load_json_data("places.json")
-    if not places:
+    places_data = load_json_data("places.json")
+    if not places_data:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Places data file not found"
         )
     
+    places = places_data.get("places", [])
+    
     # Filter by region if specified
     if region:
-        places = [p for p in places if p.get("region", "Navi Mumbai") == region]
+        places = [p for p in places if p.get("region", "") == region]
     
     # In a real implementation, you would calculate actual distances
     # or use a geospatial database query
@@ -150,12 +175,14 @@ async def search_places(query: str, category: Optional[str] = None, region: Opti
         category: Optional category filter
         region: Optional region filter
     """
-    places = load_json_data("places.json")
-    if not places:
+    places_data = load_json_data("places.json")
+    if not places_data:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Places data file not found"
         )
+    
+    places = places_data.get("places", [])
     
     # Simple search implementation
     query = query.lower()
@@ -165,7 +192,7 @@ async def search_places(query: str, category: Optional[str] = None, region: Opti
         name = place.get("name", "").lower()
         description = place.get("description", "").lower()
         place_category = place.get("category", "").lower()
-        place_region = place.get("region", "Navi Mumbai").lower()
+        place_region = place.get("region", "").lower()
         
         # Filter by search term
         if query in name or query in description:
@@ -176,3 +203,33 @@ async def search_places(query: str, category: Optional[str] = None, region: Opti
                     results.append(place)
     
     return results
+
+@router.get("/locations")
+async def get_locations(region: Optional[str] = None):
+    """
+    Get a list of all unique locations across Maharashtra.
+    
+    Args:
+        region: Optional filter to get locations within a specific region
+    """
+    places_data = load_json_data("places.json")
+    if not places_data:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Places data file not found"
+        )
+    
+    places = places_data.get("places", [])
+    
+    # Filter by region first if specified
+    if region:
+        places = [p for p in places if p.get("region", "") == region]
+    
+    # Extract unique locations
+    locations = set()
+    for place in places:
+        location = place.get("location")
+        if location:
+            locations.add(location)
+    
+    return {"locations": sorted(list(locations))}
