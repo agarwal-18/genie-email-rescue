@@ -40,8 +40,20 @@ const RegionSelector = ({
       try {
         setLoading(true);
         const response = await axios.get(`${API_CONFIG.baseURL}/api/regions`);
-        if (response.data && response.data.regions) {
+        if (response.data && Array.isArray(response.data.regions)) {
           setRegions(response.data.regions);
+        } else {
+          console.error("Invalid regions data format:", response.data);
+          // Fallback to default regions
+          setRegions([
+            "Navi Mumbai", 
+            "Mumbai", 
+            "Western Ghats", 
+            "Konkan Coast",
+            "Aurangabad", 
+            "Vidarbha", 
+            "Western Maharashtra"
+          ]);
         }
       } catch (error) {
         console.error("Error fetching regions:", error);
@@ -71,6 +83,9 @@ const RegionSelector = ({
   };
   
   const displayValue = value || (showAllOption ? "All Regions" : "Select Region");
+
+  // Prevent rendering the Command component if regions is empty or undefined
+  const regionsToRender = Array.isArray(regions) ? regions : [];
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -107,7 +122,7 @@ const RegionSelector = ({
               </CommandItem>
             )}
             
-            {regions.map((region) => (
+            {regionsToRender.map((region) => (
               <CommandItem
                 key={region}
                 value={region}
