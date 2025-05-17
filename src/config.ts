@@ -39,6 +39,8 @@ export interface ItinerarySettings {
   transportation?: string | null;
   include_food?: boolean | null;
   user_id?: string;
+  regions?: string[]; // Adding regions to the interface to match our implementation
+  locations?: string[] | null;
 }
 
 export interface ItineraryActivityBase {

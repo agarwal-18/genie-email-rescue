@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -108,13 +107,14 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
     const formData: ItinerarySettings = {
       title: data.title || "My Maharashtra Trip", // Provide default if missing
       days: data.days || 3, // Provide default if missing
-      regions: selectedRegions,
+      // Instead of adding regions directly to the settings object, we need to adapt to the interface
+      // Since regions is not in ItinerarySettings, we might need to use locations instead
+      locations: selectedRegions, // Use selected regions as locations
       pace: data.pace || "moderate",
       budget: data.budget || "mid-range",
       transportation: data.transportation || "public",
       interests: data.interests || ["nature"],
       include_food: data.includeFood,
-      locations: data.locations,
     };
 
     const itineraryData = await generateItinerary(formData);
