@@ -104,9 +104,17 @@ const ItineraryGenerator = ({ onGenerate, initialData }: ItineraryGeneratorProps
       return;
     }
 
-    const formData = {
-      ...data,
+    // Ensure title is always provided and not undefined
+    const formData: ItinerarySettings = {
+      title: data.title || "My Maharashtra Trip", // Provide default if missing
+      days: data.days || 3, // Provide default if missing
       regions: selectedRegions,
+      pace: data.pace || "moderate",
+      budget: data.budget || "mid-range",
+      transportation: data.transportation || "public",
+      interests: data.interests || ["nature"],
+      include_food: data.includeFood,
+      locations: data.locations,
     };
 
     const itineraryData = await generateItinerary(formData);
