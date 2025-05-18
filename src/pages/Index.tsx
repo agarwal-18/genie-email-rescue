@@ -10,102 +10,43 @@ import FeatureCard from '@/components/FeatureCard';
 import { getAllPlaces } from '@/lib/data';
 import Weather from '@/components/Weather';
 import TripTips from '@/components/TripTips';
-import RegionSelector from '@/components/RegionSelector';
 
 const Index = () => {
   const [featuredPlaces, setFeaturedPlaces] = useState<any[]>([]);
-  const [selectedRegion, setSelectedRegion] = useState('');
   const heroImageUrl = "https://images.unsplash.com/photo-1567157577867-05ccb1388e66?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3";
 
   useEffect(() => {
     // Get places from data.ts
     const places = getAllPlaces();
     
-    // Filter by region if selected
-    const regionFiltered = selectedRegion 
-      ? places.filter(place => place.region === selectedRegion)
-      : places;
-    
-    console.log(`Selected Region: ${selectedRegion || 'All'}, Filtered Places: ${regionFiltered.length}`);
-    
-    // Custom featured places for homepage
-    const featuredFromRegion = regionFiltered.filter(place => place.featured).slice(0, 3);
+    // Get featured places for homepage
+    const featured = places.filter(place => place.featured).slice(0, 3);
     
     // If we don't have enough featured places, add some high-rated non-featured ones
-    if (featuredFromRegion.length < 3) {
-      const remaining = regionFiltered
+    if (featured.length < 3) {
+      const remaining = places
         .filter(place => !place.featured)
         .sort((a, b) => b.rating - a.rating)
-        .slice(0, 3 - featuredFromRegion.length);
+        .slice(0, 3 - featured.length);
       
-      setFeaturedPlaces([...featuredFromRegion, ...remaining]);
+      setFeaturedPlaces([...featured, ...remaining]);
     } else {
-      setFeaturedPlaces(featuredFromRegion);
+      setFeaturedPlaces(featured);
     }
-  }, [selectedRegion]);
-
-  // Get the hero title based on selected region
-  const getHeroTitle = () => {
-    if (!selectedRegion) return "Discover Maharashtra";
-    return `Discover ${selectedRegion}`;
-  };
-
-  // Get hero subtitle based on selected region
-  const getHeroSubtitle = () => {
-    if (!selectedRegion) {
-      return "Explore the hidden gems and must-visit places across the beautiful state of Maharashtra.";
-    }
-    return `Explore the hidden gems and must-visit places in ${selectedRegion}, Maharashtra.`;
-  };
-
-  // Get hero image based on region
-  const getHeroImage = () => {
-    const regionImages: Record<string, string> = {
-      "Mumbai": "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
-      "Navi Mumbai": "https://www.theparkhotels.com/images/site-specific/navi-mumbai/explore/navi_mumbai_city_banner.jpg",
-      "Western Ghats": "https://images.unsplash.com/photo-1618982469316-5571b3057be5?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
-      "Konkan Coast": "https://images.unsplash.com/photo-1590152441144-58cdf8d3e23d?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
-      "Aurangabad": "https://images.unsplash.com/photo-1623776025811-fd139155a39b?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.0.3",
-      "Vidarbha": "https://images.unsplash.com/photo-1549366021-9f761d450615?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
-      "Western Maharashtra": "https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
-      "Raigad": "https://images.unsplash.com/photo-1608021689097-0123af69cfd0?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3",
-      "Ahmednagar": "https://images.unsplash.com/photo-1585146045695-4102009deef9?q=80&w=1471&auto=format&fit=crop&ixlib=rb-4.0.3"
-    };
-    
-    return selectedRegion && regionImages[selectedRegion] 
-      ? regionImages[selectedRegion] 
-      : heroImageUrl;
-  };
-
-  // Handle region selection
-  const handleRegionChange = (region: string) => {
-    console.log(`Region changed to: ${region || 'All'}`);
-    setSelectedRegion(region);
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      {/* Region Selector */}
-      <div className="fixed top-20 left-0 right-0 z-10 bg-background py-3 px-4 border-b shadow-sm">
-        <div className="max-w-7xl mx-auto">
-          <RegionSelector 
-            value={selectedRegion} 
-            onChange={handleRegionChange}
-            showAllOption={true}
-          />
-        </div>
-      </div>
-      
-      {/* Hero Section with adjusted top margin to account for region selector */}
-      <div className="pt-16">
+      {/* Hero Section */}
+      <div>
         <Hero
-          title={getHeroTitle()}
-          subtitle={getHeroSubtitle()}
+          title="Discover Maharashtra"
+          subtitle="Explore the hidden gems and must-visit places across the beautiful state of Maharashtra."
           ctaText="Start Exploring"
           ctaLink="/places"
-          imageUrl={getHeroImage()}
+          imageUrl={heroImageUrl}
         />
       </div>
       
@@ -159,9 +100,7 @@ const Index = () => {
             <div>
               <h2 className="text-2xl font-bold">Featured Destinations</h2>
               <p className="mt-2 text-muted-foreground">
-                {selectedRegion 
-                  ? `Explore these popular spots in ${selectedRegion}` 
-                  : "Explore these popular spots in Maharashtra"}
+                Explore these popular spots in Maharashtra
               </p>
             </div>
             <Link to="/places">
@@ -226,15 +165,13 @@ const Index = () => {
             {/* Weather Widget */}
             <div>
               <h3 className="text-xl font-semibold mb-4">Local Weather</h3>
-              <Weather location={selectedRegion || "Maharashtra"} className="h-full" />
+              <Weather location="Maharashtra" className="h-full" />
             </div>
             
             {/* Travel Tips */}
             <div>
               <h3 className="text-xl font-semibold mb-4">Travel Tips</h3>
-              <TripTips locations={selectedRegion 
-                ? [selectedRegion] 
-                : ['Mumbai', 'Western Ghats', 'Konkan Coast']} />
+              <TripTips locations={['Mumbai', 'Western Ghats', 'Konkan Coast']} />
             </div>
           </div>
         </div>
