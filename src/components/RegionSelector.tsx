@@ -35,6 +35,17 @@ const RegionSelector = ({
   const [regions, setRegions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   
+  // Default regions to use as fallback
+  const defaultRegions = [
+    "Navi Mumbai", 
+    "Mumbai", 
+    "Western Ghats", 
+    "Konkan Coast",
+    "Aurangabad", 
+    "Vidarbha", 
+    "Western Maharashtra"
+  ];
+  
   useEffect(() => {
     const fetchRegions = async () => {
       try {
@@ -45,28 +56,12 @@ const RegionSelector = ({
         } else {
           console.error("Invalid regions data format:", response.data);
           // Fallback to default regions
-          setRegions([
-            "Navi Mumbai", 
-            "Mumbai", 
-            "Western Ghats", 
-            "Konkan Coast",
-            "Aurangabad", 
-            "Vidarbha", 
-            "Western Maharashtra"
-          ]);
+          setRegions(defaultRegions);
         }
       } catch (error) {
         console.error("Error fetching regions:", error);
         // Fallback to default regions if API call fails
-        setRegions([
-          "Navi Mumbai", 
-          "Mumbai", 
-          "Western Ghats", 
-          "Konkan Coast",
-          "Aurangabad", 
-          "Vidarbha", 
-          "Western Maharashtra"
-        ]);
+        setRegions(defaultRegions);
       } finally {
         setLoading(false);
       }
@@ -84,8 +79,8 @@ const RegionSelector = ({
   
   const displayValue = value || (showAllOption ? "All Regions" : "Select Region");
 
-  // Prevent rendering the Command component if regions is empty or undefined
-  const regionsToRender = Array.isArray(regions) ? regions : [];
+  // Ensure regions is always an array to prevent the "undefined is not iterable" error
+  const regionsToRender = regions || defaultRegions;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
